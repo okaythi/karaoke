@@ -96,7 +96,10 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
 
         <!-- Video Player -->
         <div class="video-frame-container">
-          <video id="theater-video" crossorigin="anonymous" playsinline preload="auto"></video>
+          <video id="theater-video" playsinline preload="auto"></video>
+          <button class="center-play-overlay" id="center-play-btn" title="Play Video" aria-label="Play Video">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          </button>
         </div>
       </section>
 
@@ -163,6 +166,7 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
         videoContainer: document.getElementById('video-stage-wrapper') as HTMLElement,
         backlightContainer: document.getElementById('backlight-container') as HTMLElement,
         video: document.getElementById('theater-video') as HTMLVideoElement,
+        centerPlayBtn: document.getElementById('center-play-btn') as HTMLButtonElement,
         lyricsContainer: document.getElementById('lyrics-stage-container') as HTMLElement,
         lineTop: document.getElementById('k-line-top') as HTMLElement,
         lineBottom: document.getElementById('k-line-bottom') as HTMLElement,
