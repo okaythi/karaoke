@@ -507,39 +507,51 @@
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.8);
   opacity: 0;
   transition: opacity 0.35s ease;
-  padding: 8px 32px;
+  padding: 12px 32px 16px 32px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
   z-index: 4;
 }
 
 .k-line {
   width: 100%;
-  min-height: 56px;
+  min-height: 54px;
   display: flex;
-  align-items: center;
-  font-size: clamp(28px, 3.2vw, 42px);
+  flex-wrap: wrap;
+  align-items: baseline;
+  row-gap: 6px;
+  font-size: clamp(20px, 2.1vw, 29px);
   font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   letter-spacing: -0.01em;
+  padding-top: 18px;
+  padding-bottom: 6px;
+  overflow: visible;
   transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.k-line.k-line-dense {
+  font-size: clamp(16px, 1.7vw, 23px);
+  row-gap: 4px;
+  padding-top: 15px;
 }
 
 .k-line-top {
   justify-content: flex-start;
-  padding-left: 4%;
+  text-align: left;
+  padding-left: 3%;
+  padding-right: 3%;
 }
 
 .k-line-bottom {
   justify-content: flex-end;
-  padding-right: 4%;
+  text-align: right;
+  padding-left: 3%;
+  padding-right: 3%;
 }
 
 .k-line-idle {
   opacity: 0.45;
-  transform: scale(0.98);
+  transform: scale(0.99);
 }
 
 .k-line-active {
@@ -548,13 +560,17 @@
 }
 
 .k-line-translation {
-  font-size: 15px;
+  font-size: 13.5px;
   font-family: var(--font-sans);
   font-weight: 500;
-  opacity: 0.7;
-  margin-left: 20px;
-  color: rgba(255, 255, 255, 0.92);
+  opacity: 0.72;
+  margin-left: 14px;
+  margin-right: 14px;
+  color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  align-self: flex-end;
+  white-space: normal;
+  line-height: 1.35;
 }
 
 /* Continuous Syllable Wipe Layering */
@@ -565,7 +581,7 @@
 }
 
 .word-base {
-  color: rgba(255, 255, 255, 0.36);
+  color: rgba(255, 255, 255, 0.38);
   user-select: none;
 }
 
@@ -579,29 +595,30 @@
   text-shadow: 0 0 8px rgba(255, 77, 0, 0.9), 0 0 24px rgba(255, 122, 69, 0.5);
   pointer-events: none;
   user-select: none;
-  clip-path: inset(0 calc(100% - var(--wipe-progress, 0%)) 0 0);
+  clip-path: inset(-30px calc(100% - var(--wipe-progress, 0%)) -15px 0);
   will-change: clip-path;
 }
 
 /* Yomitan Ruby Furigana Positioning */
 .yomitan-ruby {
   position: relative;
+  display: inline-block;
 }
 
 .yomitan-ruby::before {
   content: attr(data-furi);
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% + 2px);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.46em;
+  font-size: 0.48em;
   line-height: 1;
-  margin-bottom: 4px;
+  font-weight: 600;
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
   color: inherit;
-  opacity: 0.88;
+  opacity: 0.92;
 }
 
 /* ==========================================================================
