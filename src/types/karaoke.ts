@@ -13,6 +13,11 @@ export interface Verse {
   words: Word[];
 }
 
+export interface SupportItem {
+  itemName: string;
+  itemLink: string;
+}
+
 export interface SongMetadata {
   id: string;
   videoFile: string;
@@ -26,6 +31,9 @@ export interface SongMetadata {
   globalOffset: number;
   hasTranslation: boolean;
   isDialect: boolean;
+  support?: boolean | SupportItem[];
+  supportItems?: SupportItem[];
+  shareCode?: string;
 }
 
 export interface SongLyricFile extends SongMetadata {
@@ -52,6 +60,9 @@ export interface SaveLyricsPayload {
   globalOffset: number;
   isDialect?: boolean;
   hasTranslation?: boolean;
+  support?: boolean | SupportItem[];
+  supportItems?: SupportItem[];
+  shareCode?: string;
   lyricsData: Verse[];
 }
 

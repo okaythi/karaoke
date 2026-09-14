@@ -194,7 +194,7 @@ export async function onRequestPost({ request, env }) {
           .run();
       } else {
         await env.DB
-          .prepare('INSERT INTO user_song_votes (username, file_name, action, timestamp, kr_id) VALUES (NULL, ?, ?, CURRENT_TIMESTAMP, ?) ON CONFLICT(kr_id, file_name) DO UPDATE SET action = excluded.action, timestamp = excluded.timestamp')
+          .prepare('INSERT INTO user_song_votes (username, file_name, action, timestamp, kr_id) VALUES (NULL, ?, ?, CURRENT_TIMESTAMP, ?) ON CONFLICT(kr_id, file_name) WHERE kr_id IS NOT NULL DO UPDATE SET action = excluded.action, timestamp = excluded.timestamp')
           .bind(file_name, action, krId)
           .run();
       }

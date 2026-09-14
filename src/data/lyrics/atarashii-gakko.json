@@ -1933,7 +1933,7 @@
     },
     {
       "verseStart": 169.712,
-      "verseEnd": 176.40,
+      "verseEnd": 176.4,
       "words": [
         {
           "word": "ま",
@@ -1968,9 +1968,10 @@
         {
           "word": "ルー",
           "start": 172.32,
-          "end": 176.00
+          "end": 176
         }
       ]
     }
-  ]
+  ],
+  "shareCode": "65NPVc"
 }

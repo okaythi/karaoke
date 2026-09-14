@@ -73,6 +73,17 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
+        const existingSong = manifest.find(m => m.id === payload.id);
+        let shareCode = payload.shareCode || existingSong?.shareCode;
+        if (!shareCode) {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          const used = new Set(manifest.map(m => m.shareCode).filter(Boolean));
+          do {
+            shareCode = '';
+            for (let i = 0; i < 6; i++) shareCode += chars.charAt(Math.floor(Math.random() * chars.length));
+          } while (used.has(shareCode));
+        }
+
         const meta: SongMetadata = {
           id: payload.id,
           videoFile: payload.videoFile,
@@ -80,7 +91,8 @@ const server = http.createServer(async (req, res) => {
           artist: payload.artist,
           globalOffset: payload.globalOffset || 0,
           hasTranslation: !!payload.hasTranslation,
-          isDialect: !!payload.isDialect
+          isDialect: !!payload.isDialect,
+          shareCode
         };
 
         if (payload.itunesArtist) meta.itunesArtist = payload.itunesArtist;
@@ -88,6 +100,10 @@ const server = http.createServer(async (req, res) => {
         if (payload.itunesCountry) meta.itunesCountry = payload.itunesCountry;
         if (payload.sortTitle) meta.sortTitle = payload.sortTitle;
         if (payload.coverUrl) meta.coverUrl = payload.coverUrl;
+        if (payload.support !== undefined) meta.support = payload.support;
+        else if (existingSong?.support !== undefined) meta.support = existingSong.support;
+        if (payload.supportItems) meta.supportItems = payload.supportItems;
+        else if (existingSong?.supportItems) meta.supportItems = existingSong.supportItems;
 
         const existingIdx = manifest.findIndex(m => m.id === payload.id);
         if (existingIdx >= 0) {

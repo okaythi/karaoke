@@ -138,7 +138,7 @@ export function initModals(
       uploadPctText.textContent = '100%';
 
       if (!res.ok) {
-        const err = await res.json();
+        const err = (await res.json()) as { error?: string };
         throw new Error(err.error || 'Upload failed');
       }
 

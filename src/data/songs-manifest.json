@@ -7,7 +7,8 @@
     "globalOffset": 0,
     "isDialect": false,
     "hasTranslation": false,
-    "itunesCountry": "no"
+    "itunesCountry": "no",
+    "shareCode": "tw0aCO"
   },
   {
     "id": "a-vida-e-desafio",
@@ -16,7 +17,8 @@
     "artist": "Racionais MC's",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": true
+    "hasTranslation": true,
+    "shareCode": "0HiTVy"
   },
   {
     "id": "yame-becane",
@@ -26,7 +28,8 @@
     "globalOffset": 0,
     "isDialect": false,
     "hasTranslation": false,
-    "itunesCountry": "fr"
+    "itunesCountry": "fr",
+    "shareCode": "eVtAhb"
   },
   {
     "id": "ic3peak-boo-hoo",
@@ -36,7 +39,8 @@
     "itunesTrack": "Плак-плак",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": true
+    "hasTranslation": true,
+    "shareCode": "FCKF9T"
   },
   {
     "id": "kero-kero-bonito-break",
@@ -45,7 +49,8 @@
     "artist": "Kero Kero Bonito",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "qWUNhI"
   },
   {
     "id": "system-of-a-down-chop-suey",
@@ -55,7 +60,8 @@
     "globalOffset": 0,
     "isDialect": false,
     "hasTranslation": false,
-    "itunesTrack": "Chop Suey"
+    "itunesTrack": "Chop Suey",
+    "shareCode": "8ZOLFi"
   },
   {
     "id": "luckhaos-e-a-uniao-flasco",
@@ -64,7 +70,8 @@
     "artist": "LUCKHAOS",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "JMgDf3"
   },
   {
     "id": "bmth-go-to-hell",
@@ -73,7 +80,8 @@
     "artist": "Bring Me The Horizon",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "luniC3"
   },
   {
     "id": "inori",
@@ -84,7 +92,8 @@
     "isDialect": false,
     "hasTranslation": false,
     "itunesArtist": "Creepy Corpse Corp",
-    "itunesTrack": "INORI"
+    "itunesTrack": "INORI",
+    "shareCode": "zyah72"
   },
   {
     "id": "kyary-kirakira-killer",
@@ -93,7 +102,8 @@
     "artist": "きゃりーぱみゅぱみゅ",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "l6dvas"
   },
   {
     "id": "qw4rtz-joel-legendre",
@@ -104,7 +114,8 @@
     "itunesTrack": "M'en Revenant de Sainte-Hélène",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "UMy8UY"
   },
   {
     "id": "きゃりーぱみゅぱみゅ-もんだいガール",
@@ -113,7 +124,8 @@
     "artist": "きゃりーぱみゅぱみゅ",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "wC4YMJ"
   },
   {
     "id": "jessi-nunu-nana",
@@ -122,7 +134,8 @@
     "artist": "Jessi (제시)",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "V5Nz7N"
   },
   {
     "id": "atarashii-gakko",
@@ -131,7 +144,8 @@
     "artist": "ATARASHII GAKKO!",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "65NPVc"
   },
   {
     "id": "videoclub-roi",
@@ -140,7 +154,8 @@
     "artist": "VIDEOCLUB",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "aeaLtv"
   },
   {
     "id": "martelin-so-fe",
@@ -149,7 +164,8 @@
     "artist": "MARTELIN",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "juFPd4"
   },
   {
     "id": "grafgravers-van-de-g-no-de-h",
@@ -158,7 +174,15 @@
     "artist": "Grafgravers",
     "globalOffset": 0,
     "isDialect": false,
-    "hasTranslation": false
+    "hasTranslation": false,
+    "shareCode": "VOGuGF",
+    "support": true,
+    "supportItems": [
+      {
+        "itemName": "Phatmark Collective",
+        "itemLink": "https://phatmarkcollective.bandcamp.com/"
+      }
+    ]
   },
   {
     "id": "zaterdag",
@@ -166,8 +190,9 @@
     "title": "Zaterdag",
     "artist": "Krapoel in Axe",
     "globalOffset": 0,
-    "isDialect": true,
+    "isDialect": false,
     "hasTranslation": true,
-    "itunesCountry": "be"
+    "itunesCountry": "be",
+    "shareCode": "xHULu4"
   }
 ]

@@ -26,9 +26,14 @@ export interface PlayerElements {
   // Active Song Header
   activeArtwork: HTMLImageElement;
   activeTitle: HTMLElement;
+  activeTitleText?: HTMLElement;
+  trackShareBtn?: HTMLButtonElement;
   activeArtist: HTMLElement;
   badgeTranslation: HTMLElement;
   badgeDialect: HTMLElement;
+  supportContainer?: HTMLElement;
+  supportBtn?: HTMLButtonElement;
+  supportMenu?: HTMLElement;
 
   // Transport Deck
   btnPlayPause: HTMLButtonElement;
@@ -171,10 +176,38 @@ export function initKaraokeTheater(els: PlayerElements) {
     });
 
     // Update active metadata in header
-    els.activeTitle.textContent = song.title;
+    if (els.activeTitleText) {
+      els.activeTitleText.textContent = song.title;
+    } else {
+      els.activeTitle.textContent = song.title;
+    }
+    if (els.trackShareBtn) {
+      els.trackShareBtn.classList.remove('copied');
+    }
     els.activeArtist.textContent = song.artist;
     els.badgeTranslation.style.display = song.hasTranslation && !song.isDialect ? 'inline-flex' : 'none';
     els.badgeDialect.style.display = song.hasTranslation && song.isDialect ? 'inline-flex' : 'none';
+
+    // Update Support the Artist button & menu
+    if (els.supportContainer) {
+      const hasSupport = !!song.support;
+      els.supportContainer.style.display = hasSupport ? 'block' : 'none';
+      if (els.supportMenu) {
+        els.supportMenu.style.display = 'none';
+        if (hasSupport) {
+          const items = song.supportItems || (Array.isArray(song.support) ? song.support : [{
+            itemName: 'Phatmark Collective',
+            itemLink: 'https://phatmarkcollective.bandcamp.com/'
+          }]);
+          els.supportMenu.innerHTML = items.map(item => `
+            <a href="${item.itemLink}" target="_blank" rel="noopener noreferrer" class="support-menu-item">
+              <span>${item.itemName}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          `).join('');
+        }
+      }
+    }
 
     fetchAlbumArt(
       song.itunesArtist || song.artist,
@@ -300,9 +333,11 @@ export function initKaraokeTheater(els: PlayerElements) {
         body: JSON.stringify({ file_name: activeSong.videoFile, action, ...(krId ? { kr_id: krId } : {}) }),
       });
       if (res.ok) {
-        const data = await res.json() as { totalLikes: number; totalDislikes: number };
+        const data = await res.json() as { liked: boolean; disliked: boolean; totalLikes: number; totalDislikes: number };
+        currentVote = data.liked ? 'like' : data.disliked ? 'dislike' : null;
         els.likeCount.textContent = String(data.totalLikes || 0);
         els.dislikeCount.textContent = String(data.totalDislikes || 0);
+        updateVoteStyles();
       } else {
         currentVote = prev;
         updateVoteStyles();
@@ -393,6 +428,12 @@ export function initKaraokeTheater(els: PlayerElements) {
       if (els.timeDuration) els.timeDuration.textContent = dur;
       if (els.timeCurrent) els.timeCurrent.textContent = formatTime(els.video.currentTime);
       if (els.timecodeDisplay) els.timecodeDisplay.textContent = `${formatTime(els.video.currentTime)} / ${dur}`;
+    }
+    if (els.video.videoWidth && els.video.videoHeight) {
+      const container = els.video.closest('.video-frame-container') as HTMLElement;
+      if (container) {
+        container.style.aspectRatio = `${els.video.videoWidth} / ${els.video.videoHeight}`;
+      }
     }
   };
 
@@ -532,6 +573,69 @@ export function initKaraokeTheater(els: PlayerElements) {
     }
   });
 
+  // Global Copy Protection: block all copying unless triggered by our share button
+  let isInternalCopy = false;
+  document.addEventListener('copy', (e) => {
+    if (!isInternalCopy) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return false;
+    }
+  }, true);
+
+  // In-Theme Share Button next to Title
+  let shareCopiedTimer: ReturnType<typeof setTimeout> | null = null;
+  if (els.trackShareBtn) {
+    els.trackShareBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!activeSong) return;
+      const code = activeSong.shareCode || activeSong.id;
+      const shareText = `karaoke.nixlabs.tech/${code}`;
+
+      isInternalCopy = true;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareText);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = shareText;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+      } catch (err) {
+        console.warn('Clipboard write error:', err);
+      } finally {
+        setTimeout(() => { isInternalCopy = false; }, 100);
+      }
+
+      els.trackShareBtn!.classList.add('copied');
+      if (shareCopiedTimer) clearTimeout(shareCopiedTimer);
+      shareCopiedTimer = setTimeout(() => {
+        els.trackShareBtn!.classList.remove('copied');
+        shareCopiedTimer = null;
+      }, 1300); // exactly 1.3s
+    });
+  }
+
+  // Top-Right "Support the Artist" Button & Dropdown Menu
+  if (els.supportBtn && els.supportMenu) {
+    els.supportBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = els.supportMenu!.style.display === 'flex';
+      els.supportMenu!.style.display = isOpen ? 'none' : 'flex';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (els.supportContainer && !els.supportContainer.contains(e.target as Node)) {
+        els.supportMenu!.style.display = 'none';
+      }
+    });
+  }
+
   // Initial Boot
   loadCatalog().then(catalog => {
     allSongs = sortSongs(catalog.filter(s => s.isOnR2 && s.hasLyrics));
@@ -543,7 +647,7 @@ export function initKaraokeTheater(els: PlayerElements) {
     const targetTime = parseFloat(urlParams.get('t') || urlParams.get('time') || '0');
 
     if (filteredSongs.length > 0) {
-      const initialSong = (targetSongId && filteredSongs.find(s => s.id === targetSongId)) || filteredSongs[0];
+      const initialSong = (targetSongId && filteredSongs.find(s => s.id === targetSongId || s.shareCode === targetSongId)) || filteredSongs[0];
       selectSong(initialSong).then(() => {
         if (targetTime > 0) {
           els.video.currentTime = targetTime;

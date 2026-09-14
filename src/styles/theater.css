@@ -33,6 +33,24 @@
   overflow: hidden;
   color: var(--theater-text);
   font-family: var(--font-sans);
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+.theater-app *, .theater-app *::before, .theater-app *::after {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+.theater-app ::selection {
+  background: transparent !important;
+  color: inherit !important;
 }
 
 /* ==========================================================================
@@ -320,10 +338,139 @@
   gap: 8px;
 }
 
+.track-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theater-surface);
+  border: 1px solid var(--theater-border);
+  color: var(--theater-text-muted);
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  height: 22px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.track-share-btn:hover {
+  background: var(--theater-surface-hover);
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.track-share-btn.copied {
+  background: var(--accent-brass-dim);
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.track-share-btn .share-copied-label {
+  display: none;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.track-share-btn.copied .share-icon {
+  display: none;
+}
+
+.track-share-btn.copied .share-copied-label {
+  display: inline-block;
+}
+
 .active-hero-text p {
   font-size: 12px;
   color: var(--theater-text-muted);
   font-weight: 400;
+}
+
+.theater-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.support-dropdown-container {
+  position: relative;
+}
+
+.support-artist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--theater-surface);
+  border: 1px solid var(--theater-border);
+  color: var(--accent-brass);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.support-artist-btn:hover {
+  background: var(--theater-surface-hover);
+  border-color: var(--accent-brass);
+  color: var(--accent-brass-hover);
+}
+
+.support-artist-btn svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+}
+
+.support-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 190px;
+  background: var(--theater-sidebar-bg);
+  border: 1px solid var(--theater-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.support-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--theater-text);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.support-menu-item:hover {
+  background: var(--theater-surface-hover);
+  color: var(--accent-brass);
+}
+
+.support-menu-item svg {
+  width: 11px;
+  height: 11px;
+  color: var(--theater-text-muted);
+  flex-shrink: 0;
+}
+
+.support-menu-item:hover svg {
+  color: var(--accent-brass);
 }
 
 .mobile-queue-toggle {
@@ -357,9 +504,9 @@
 
 .video-frame-container {
   position: relative;
-  width: 100%;
+  width: auto;
   max-width: 620px;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: var(--video-aspect, 16 / 9);
   max-height: 100%;
   display: flex;
   align-items: center;
@@ -378,6 +525,7 @@
   object-fit: contain;
   background: #000;
   cursor: pointer;
+  display: block;
 }
 
 /* Center Play Overlay Button: Boring on purpose, no scale, no lift */
@@ -410,10 +558,13 @@
 
 /* ==========================================================================
    CONSTRAINED LYRICS STAGE: Centered, Tight Line-Height, Small Gap
+   Fixed invariant height: guarantees zero mutation of player viewport space
    ========================================================================== */
 .lyrics-stage-container {
   flex-shrink: 0;
-  min-height: 112px;
+  height: 128px;
+  min-height: 128px;
+  max-height: 128px;
   width: 100%;
   max-width: 620px;
   margin: 0 auto;
@@ -421,15 +572,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   font-family: var(--font-lyrics);
   color: var(--theater-text);
   opacity: 0;
   transition: opacity 0.25s ease;
-  padding: 8px 12px 10px 12px;
+  padding: 6px 12px;
   box-sizing: border-box;
   text-align: center;
   z-index: 4;
+  overflow: hidden;
 }
 
 .k-line {

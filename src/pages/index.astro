@@ -18,6 +18,34 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" href="https://cdn.sudothy.me/fonts/ZenKurenaido-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="preload" href="https://cdn.sudothy.me/fonts/NotoSansJP-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <script is:inline>
+    // 1. Disable text selection and drag
+    document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+
+    // 2. Disable context menu (right click)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 3. Disable DevTools inspection hotkeys
+    document.addEventListener('keydown', e => {
+      if (
+        e.key === 'F12' ||
+        ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    });
+
+    // 4. Suppress console output
+    try {
+      console.log = () => {};
+      console.debug = () => {};
+      console.info = () => {};
+    } catch (_) {}
+  </script>
 </head>
 <body>
 
@@ -63,16 +91,38 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
           <img id="active-track-art" class="active-artwork-hero" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%23c5a14c'><rect width='44' height='44' rx='4'/></svg>" alt="Album Cover" />
           <div class="active-hero-text">
             <h1 id="active-track-title">
-              Select a Track
+              <span id="active-track-title-text">Select a Track</span>
+              <button class="track-share-btn" id="track-share-btn" title="Share Song" aria-label="Share Song">
+                <svg class="share-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                  <polyline points="16 6 12 2 8 6"></polyline>
+                  <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+                <span class="share-copied-label" id="share-copied-label">Copied</span>
+              </button>
               <span class="badge badge-trans" id="badge-translation" style="display: none;">SUB</span>
               <span class="badge badge-dialect" id="badge-dialect" style="display: none;">DIALECT</span>
             </h1>
             <p id="active-track-artist">Waiting for media...</p>
           </div>
         </div>
-        <button class="mobile-queue-toggle" id="mobile-queue-btn" title="Toggle Queue" aria-label="Toggle Queue">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
-        </button>
+
+        <div class="theater-header-right">
+          <div class="support-dropdown-container" id="support-dropdown-container" style="display: none;">
+            <button class="support-artist-btn" id="support-artist-btn" title="Support the Artist" aria-label="Support the Artist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+              <span>Support the Artist</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="support-menu" id="support-menu" style="display: none;"></div>
+          </div>
+
+          <button class="mobile-queue-toggle" id="mobile-queue-btn" title="Toggle Queue" aria-label="Toggle Queue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
+          </button>
+        </div>
       </header>
 
       <!-- 16:9 Video Frame -->
@@ -174,9 +224,14 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
 
         activeArtwork: document.getElementById('active-track-art') as HTMLImageElement,
         activeTitle: document.getElementById('active-track-title') as HTMLElement,
+        activeTitleText: document.getElementById('active-track-title-text') as HTMLElement,
+        trackShareBtn: document.getElementById('track-share-btn') as HTMLButtonElement,
         activeArtist: document.getElementById('active-track-artist') as HTMLElement,
         badgeTranslation: document.getElementById('badge-translation') as HTMLElement,
         badgeDialect: document.getElementById('badge-dialect') as HTMLElement,
+        supportContainer: document.getElementById('support-dropdown-container') as HTMLElement,
+        supportBtn: document.getElementById('support-artist-btn') as HTMLButtonElement,
+        supportMenu: document.getElementById('support-menu') as HTMLElement,
 
         btnPlayPause: document.getElementById('deck-play-btn') as HTMLButtonElement,
         playIcon: document.getElementById('deck-play-icon') as unknown as SVGElement,

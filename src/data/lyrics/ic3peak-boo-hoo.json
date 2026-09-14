@@ -37,7 +37,7 @@
     },
     {
       "verseStart": 8.2,
-      "verseEnd": 12.0,
+      "verseEnd": 12,
       "words": [
         {
           "word": "Плак- ",
@@ -423,11 +423,11 @@
         {
           "word": "Всё ",
           "start": 33.8,
-          "end": 34.0
+          "end": 34
         },
         {
           "word": "равно ",
-          "start": 34.0,
+          "start": 34,
           "end": 34.2
         },
         {
@@ -469,12 +469,12 @@
       "translation": "Still won't be able to foresee my own death (boo-hoo)"
     },
     {
-      "verseStart": 37.0,
+      "verseStart": 37,
       "verseEnd": 42.35,
       "words": [
         {
           "word": "Ла- ",
-          "start": 37.0,
+          "start": 37,
           "end": 37.656
         },
         {
@@ -986,11 +986,11 @@
         {
           "word": "этой ",
           "start": 93.66,
-          "end": 94.0
+          "end": 94
         },
         {
           "word": "оплаканной ",
-          "start": 94.0,
+          "start": 94,
           "end": 95.36
         },
         {
@@ -1008,11 +1008,11 @@
         {
           "word": "Плак- ",
           "start": 99.48,
-          "end": 100.0
+          "end": 100
         },
         {
           "word": "плак, ",
-          "start": 100.0,
+          "start": 100,
           "end": 100.66
         },
         {
@@ -1045,11 +1045,11 @@
         {
           "word": "плак- ",
           "start": 105.5,
-          "end": 106.0
+          "end": 106
         },
         {
           "word": "плак",
-          "start": 106.0,
+          "start": 106,
           "end": 106.7
         }
       ],
@@ -1315,11 +1315,11 @@
         {
           "word": "была ( ",
           "start": 123.68,
-          "end": 124.0
+          "end": 124
         },
         {
           "word": "плак- ",
-          "start": 124.0,
+          "start": 124,
           "end": 124.13
         },
         {
@@ -1372,11 +1372,11 @@
         {
           "word": "жила ( ",
           "start": 126.62,
-          "end": 127.0
+          "end": 127
         },
         {
           "word": "плак- ",
-          "start": 127.0,
+          "start": 127,
           "end": 127.14
         },
         {
@@ -1689,12 +1689,12 @@
       "translation": "I'm not obedient, I make it worse"
     },
     {
-      "verseStart": 152.0,
+      "verseStart": 152,
       "verseEnd": 154.75,
       "words": [
         {
           "word": "Делаю ",
-          "start": 152.0,
+          "start": 152,
           "end": 152.5
         },
         {
@@ -1988,12 +1988,12 @@
       "translation": "I'd like to hug you like back then"
     },
     {
-      "verseStart": 176.0,
+      "verseStart": 176,
       "verseEnd": 181.5,
       "words": [
         {
           "word": "Но ",
-          "start": 176.0,
+          "start": 176,
           "end": 176.44
         },
         {
@@ -2108,5 +2108,6 @@
       ],
       "translation": "Flowers will sprout in this wept-over earth"
     }
-  ]
+  ],
+  "shareCode": "FCKF9T"
 }

@@ -4,7 +4,7 @@
   "title": "Zaterdag",
   "artist": "Krapoel in Axe",
   "globalOffset": 0,
-  "isDialect": true,
+  "isDialect": false,
   "hasTranslation": true,
   "lyricsData": [
     {
@@ -3474,5 +3474,6 @@
       ],
       "translation": "Want zaterdag is het krapoeltjesdag"
     }
-  ]
+  ],
+  "shareCode": "xHULu4"
 }
