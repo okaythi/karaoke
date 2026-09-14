@@ -6,6 +6,7 @@ import { createRenderEngine, type RenderEngineController } from '../renderer/ren
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
 import { collectFingerprint } from '../fingerprint/fingerprint';
+import { VocalProcessor } from './vocalProcessor';
 
 export interface PlayerElements {
   // Sidebar & Search Pill
@@ -46,6 +47,11 @@ export interface PlayerElements {
   volBtn: HTMLButtonElement;
   volIcon: HTMLElement;
   volInput: HTMLInputElement;
+  btnVocal?: HTMLButtonElement;
+  vocalIconOn?: SVGElement;
+  vocalIconOff?: SVGElement;
+  vocalPill?: HTMLElement;
+  vocalPillText?: HTMLElement;
   btnLike: HTMLButtonElement;
   btnDislike: HTMLButtonElement;
   likeCount: HTMLElement;
@@ -62,6 +68,30 @@ export function initKaraokeTheater(els: PlayerElements) {
   let backlightController: { destroy: () => void } | null = null;
   let prevVolume = 0.7;
   let isDraggingScrubber = false;
+
+  const updateVocalUI = (isMuted: boolean) => {
+    if (els.btnVocal) {
+      els.btnVocal.classList.toggle('active', isMuted);
+      els.btnVocal.setAttribute('aria-pressed', String(isMuted));
+    }
+    if (els.vocalIconOn && els.vocalIconOff) {
+      els.vocalIconOn.style.display = isMuted ? 'none' : 'block';
+      els.vocalIconOff.style.display = isMuted ? 'block' : 'none';
+    }
+    if (els.vocalPillText) {
+      els.vocalPillText.textContent = isMuted ? 'Restore Vocals' : 'Remove Vocals';
+    }
+    if (els.vocalPill) {
+      els.vocalPill.classList.toggle('karaoke-active', isMuted);
+    }
+  };
+
+  const vocalProcessor = new VocalProcessor({
+    video: els.video,
+    onStateChange: (isMuted) => {
+      updateVocalUI(isMuted);
+    }
+  });
 
   const formatTime = (secs: number): string => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -230,6 +260,7 @@ export function initKaraokeTheater(els: PlayerElements) {
     }
 
     // Load lyrics and media
+    vocalProcessor.setTrackHasStems(!!song.hasStems);
     els.video.src = song.videoUrl;
     els.video.load();
     els.video.currentTime = 0;
@@ -414,7 +445,11 @@ export function initKaraokeTheater(els: PlayerElements) {
   });
   els.video.addEventListener('click', togglePlay);
 
-  els.video.addEventListener('play', () => { updatePlayStateIcons(true); onVideoPlay(); });
+  els.video.addEventListener('play', () => {
+    updatePlayStateIcons(true);
+    onVideoPlay();
+    vocalProcessor.initAudio();
+  });
   els.video.addEventListener('pause', () => { updatePlayStateIcons(false); onVideoPause(); });
   els.video.addEventListener('error', () => {
     console.error('Video playback error:', els.video.error);
@@ -502,6 +537,30 @@ export function initKaraokeTheater(els: PlayerElements) {
     updateVolumeIcon(els.video.volume, els.video.muted);
   });
 
+  // Vocal Toggle Button & Pointer-Following Pilletje
+  if (els.btnVocal) {
+    els.btnVocal.addEventListener('click', () => {
+      vocalProcessor.toggle();
+    });
+
+    if (els.vocalPill) {
+      els.btnVocal.addEventListener('mouseenter', () => {
+        updateVocalUI(vocalProcessor.isVoiceMuted());
+        els.vocalPill?.classList.add('visible');
+      });
+
+      els.btnVocal.addEventListener('mousemove', (e: MouseEvent) => {
+        if (!els.vocalPill) return;
+        els.vocalPill.style.left = `${e.clientX}px`;
+        els.vocalPill.style.top = `${e.clientY - 12}px`;
+      });
+
+      els.btnVocal.addEventListener('mouseleave', () => {
+        els.vocalPill?.classList.remove('visible');
+      });
+    }
+  }
+
   // Like & Dislike
   els.btnLike.addEventListener('click', () => castVote('like'));
   els.btnDislike.addEventListener('click', () => castVote('dislike'));
@@ -567,6 +626,9 @@ export function initKaraokeTheater(els: PlayerElements) {
     } else if (e.code === 'KeyM') {
       e.preventDefault();
       els.volBtn.click();
+    } else if (e.code === 'KeyV') {
+      e.preventDefault();
+      vocalProcessor.toggle();
     } else if (e.code === 'KeyF') {
       e.preventDefault();
       els.btnFullscreen.click();
