@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { SaveLyricsPayload, SongMetadata } from '../src/types/karaoke';
 import { validateSongContract } from '../src/core/contracts';
+import { sortSongs } from '../src/catalog/sorter';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,6 +85,9 @@ const server = http.createServer(async (req, res) => {
 
         if (payload.itunesArtist) meta.itunesArtist = payload.itunesArtist;
         if (payload.itunesTrack) meta.itunesTrack = payload.itunesTrack;
+        if (payload.itunesCountry) meta.itunesCountry = payload.itunesCountry;
+        if (payload.sortTitle) meta.sortTitle = payload.sortTitle;
+        if (payload.coverUrl) meta.coverUrl = payload.coverUrl;
 
         const existingIdx = manifest.findIndex(m => m.id === payload.id);
         if (existingIdx >= 0) {
@@ -92,7 +96,7 @@ const server = http.createServer(async (req, res) => {
           manifest.push(meta);
         }
 
-        manifest.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+        manifest = sortSongs(manifest);
         fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
 
         console.log(`[Sync Server] ✅ Saved lyrics for: "${payload.title}" (${payload.id}) -> ${songFilePath}`);

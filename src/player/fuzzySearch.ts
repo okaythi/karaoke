@@ -1,4 +1,5 @@
 import type { SongCatalogItem } from '../types/karaoke';
+import { kanaToRomaji, getSortKey } from '../catalog/sorter';
 
 export interface FuzzySearchResult {
   item: SongCatalogItem;
@@ -10,7 +11,9 @@ export interface FuzzySearchResult {
  */
 function normalizeForSearch(text: string): string {
   if (!text) return '';
-  return text
+  const romaji = kanaToRomaji(text);
+  const combined = romaji && romaji !== text ? `${text} ${romaji}` : text;
+  return combined
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
@@ -92,10 +95,12 @@ export function fuzzyFilterSongs(
     }
   }
 
-  // Sort by best score first, then alphabetically by title
+  // Sort by best score first, then alphabetically by phonetic title
   results.sort((a, b) => {
     if (a.score !== b.score) return a.score - b.score;
-    return a.item.title.localeCompare(b.item.title);
+    const keyA = getSortKey(a.item);
+    const keyB = getSortKey(b.item);
+    return keyA.localeCompare(keyB, undefined, { numeric: true, sensitivity: 'base' });
   });
 
   return results.map(r => r.item);

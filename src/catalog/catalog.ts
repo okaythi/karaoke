@@ -1,6 +1,7 @@
 import type { SongMetadata, SongCatalogItem, SongLyricFile, R2VideoItem } from '../types/karaoke';
 import manifestData from '../data/songs-manifest.json';
 import { parseSongInfoFromFilename, canonicalSongId } from '../core/tokenizer';
+import { sortSongs } from './sorter';
 
 // Vite lazy-load mapping for all individual lyric files committed to git
 const lyricModules = import.meta.glob('../data/lyrics/*.json');
@@ -86,7 +87,7 @@ export async function loadCatalog(): Promise<SongCatalogItem[]> {
     }
   }
 
-  return catalog;
+  return sortSongs(catalog);
 }
 
 /**
