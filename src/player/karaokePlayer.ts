@@ -46,6 +46,10 @@ export interface PlayerElements {
   volBtn: HTMLButtonElement;
   volIcon: HTMLElement;
   volInput: HTMLInputElement;
+  btnVoice?: HTMLButtonElement;
+  voiceIconOn?: SVGElement;
+  voiceIconOff?: SVGElement;
+  voicePointerPill?: HTMLElement;
   btnLike: HTMLButtonElement;
   btnDislike: HTMLButtonElement;
   likeCount: HTMLElement;
@@ -62,6 +66,32 @@ export function initKaraokeTheater(els: PlayerElements) {
   let backlightController: { destroy: () => void } | null = null;
   let prevVolume = 0.7;
   let isDraggingScrubber = false;
+  let isKaraokeMode = false;
+  let instrumentalAudio: HTMLAudioElement | null = null;
+
+  const updateVoiceButtonState = () => {
+    if (!els.btnVoice) return;
+    if (activeSong && activeSong.instrumentalUrl) {
+      els.btnVoice.style.display = 'inline-flex';
+      if (isKaraokeMode) {
+        els.btnVoice.classList.add('karaoke-active');
+        if (els.voiceIconOn) els.voiceIconOn.style.display = 'none';
+        if (els.voiceIconOff) els.voiceIconOff.style.display = 'block';
+        if (els.voicePointerPill) els.voicePointerPill.textContent = 'Restore Vocals';
+      } else {
+        els.btnVoice.classList.remove('karaoke-active');
+        if (els.voiceIconOn) els.voiceIconOn.style.display = 'block';
+        if (els.voiceIconOff) els.voiceIconOff.style.display = 'none';
+        if (els.voicePointerPill) els.voicePointerPill.textContent = 'Remove Vocals';
+      }
+    } else {
+      els.btnVoice.style.display = 'none';
+      if (els.voicePointerPill) {
+        els.voicePointerPill.classList.remove('visible');
+        els.voicePointerPill.style.display = 'none';
+      }
+    }
+  };
 
   const formatTime = (secs: number): string => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -228,6 +258,22 @@ export function initKaraokeTheater(els: PlayerElements) {
       backlightController.destroy();
       backlightController = null;
     }
+
+    // Reset instrumental stem playback
+    if (instrumentalAudio) {
+      instrumentalAudio.pause();
+      instrumentalAudio.src = '';
+      instrumentalAudio = null;
+    }
+    isKaraokeMode = false;
+    els.video.muted = false;
+
+    if (song.instrumentalUrl) {
+      instrumentalAudio = new Audio(song.instrumentalUrl);
+      instrumentalAudio.preload = 'auto';
+      instrumentalAudio.volume = els.video.volume;
+    }
+    updateVoiceButtonState();
 
     // Load lyrics and media
     els.video.src = song.videoUrl;
@@ -406,6 +452,51 @@ export function initKaraokeTheater(els: PlayerElements) {
     clearViewTimer();
   };
 
+  // Vocal Toggle & Floating Pointer Pilletje
+  const toggleKaraokeMode = () => {
+    if (!activeSong?.instrumentalUrl || !instrumentalAudio) return;
+    isKaraokeMode = !isKaraokeMode;
+    if (isKaraokeMode) {
+      instrumentalAudio.currentTime = els.video.currentTime;
+      instrumentalAudio.volume = els.video.volume;
+      instrumentalAudio.muted = false;
+      if (!els.video.paused) {
+        instrumentalAudio.play().catch(e => console.warn('Stem play prevented:', e));
+      }
+      els.video.muted = true;
+    } else {
+      els.video.muted = false;
+      instrumentalAudio.muted = true;
+      instrumentalAudio.pause();
+    }
+    updateVoiceButtonState();
+  };
+
+  if (els.btnVoice) {
+    els.btnVoice.addEventListener('click', toggleKaraokeMode);
+
+    if (els.voicePointerPill) {
+      const pill = els.voicePointerPill;
+      els.btnVoice.addEventListener('mouseenter', (e) => {
+        pill.textContent = isKaraokeMode ? 'Restore Vocals' : 'Remove Vocals';
+        pill.style.display = 'block';
+        pill.style.left = `${e.clientX}px`;
+        pill.style.top = `${e.clientY}px`;
+        requestAnimationFrame(() => pill.classList.add('visible'));
+      });
+      els.btnVoice.addEventListener('mousemove', (e) => {
+        pill.style.left = `${e.clientX}px`;
+        pill.style.top = `${e.clientY}px`;
+      });
+      els.btnVoice.addEventListener('mouseleave', () => {
+        pill.classList.remove('visible');
+        setTimeout(() => {
+          if (!pill.classList.contains('visible')) pill.style.display = 'none';
+        }, 150);
+      });
+    }
+  }
+
   // Setup Event Listeners
   els.btnPlayPause.addEventListener('click', togglePlay);
   els.centerPlayBtn.addEventListener('click', (e) => {
@@ -414,12 +505,36 @@ export function initKaraokeTheater(els: PlayerElements) {
   });
   els.video.addEventListener('click', togglePlay);
 
-  els.video.addEventListener('play', () => { updatePlayStateIcons(true); onVideoPlay(); });
-  els.video.addEventListener('pause', () => { updatePlayStateIcons(false); onVideoPause(); });
+  els.video.addEventListener('play', () => {
+    updatePlayStateIcons(true);
+    onVideoPlay();
+    if (isKaraokeMode && instrumentalAudio) {
+      instrumentalAudio.currentTime = els.video.currentTime;
+      instrumentalAudio.play().catch(e => console.warn('Stem play failed:', e));
+    }
+  });
+
+  els.video.addEventListener('pause', () => {
+    updatePlayStateIcons(false);
+    onVideoPause();
+    if (instrumentalAudio) {
+      instrumentalAudio.pause();
+    }
+  });
+
+  els.video.addEventListener('ended', () => {
+    if (instrumentalAudio) {
+      instrumentalAudio.pause();
+    }
+  });
+
   els.video.addEventListener('error', () => {
     console.error('Video playback error:', els.video.error);
     updatePlayStateIcons(false);
     onVideoPause();
+    if (instrumentalAudio) {
+      instrumentalAudio.pause();
+    }
   });
 
   const onDurationReady = () => {
@@ -453,6 +568,17 @@ export function initKaraokeTheater(els: PlayerElements) {
       if (!isDraggingScrubber) {
         els.progressBar.value = String(pct);
       }
+
+      // Stem sync guard
+      if (isKaraokeMode && instrumentalAudio && !els.video.paused) {
+        const drift = Math.abs(instrumentalAudio.currentTime - els.video.currentTime);
+        if (drift > 0.05) {
+          instrumentalAudio.currentTime = els.video.currentTime;
+        }
+        if (instrumentalAudio.paused) {
+          instrumentalAudio.play().catch(console.warn);
+        }
+      }
     }
   });
 
@@ -461,7 +587,11 @@ export function initKaraokeTheater(els: PlayerElements) {
     const pct = parseFloat((e.target as HTMLInputElement).value);
     els.progressBar.style.setProperty('--progress', `${pct}%`);
     if (els.video.duration) {
-      els.video.currentTime = (pct / 100) * els.video.duration;
+      const targetTime = (pct / 100) * els.video.duration;
+      els.video.currentTime = targetTime;
+      if (isKaraokeMode && instrumentalAudio) {
+        instrumentalAudio.currentTime = targetTime;
+      }
       if (els.timeCurrent) els.timeCurrent.textContent = formatTime(els.video.currentTime);
     }
   });
@@ -484,22 +614,41 @@ export function initKaraokeTheater(els: PlayerElements) {
   els.volInput.addEventListener('input', (e) => {
     const val = parseFloat((e.target as HTMLInputElement).value);
     els.video.volume = val;
-    els.video.muted = (val === 0);
+    if (instrumentalAudio) instrumentalAudio.volume = val;
+    if (isKaraokeMode) {
+      els.video.muted = true;
+      if (instrumentalAudio) instrumentalAudio.muted = (val === 0);
+    } else {
+      els.video.muted = (val === 0);
+    }
     if (val > 0) prevVolume = val;
-    updateVolumeIcon(val, els.video.muted);
+    updateVolumeIcon(val, (val === 0));
   });
 
   els.volBtn.addEventListener('click', () => {
-    if (els.video.muted || els.video.volume === 0) {
-      els.video.muted = false;
-      els.video.volume = prevVolume || 0.7;
-      els.volInput.value = String(els.video.volume);
+    const isCurrentlyMuted = isKaraokeMode ? (instrumentalAudio?.muted ?? false) : els.video.muted;
+    if (isCurrentlyMuted || (isKaraokeMode ? instrumentalAudio?.volume === 0 : els.video.volume === 0)) {
+      const restoreVol = prevVolume || 0.7;
+      if (isKaraokeMode && instrumentalAudio) {
+        instrumentalAudio.muted = false;
+        instrumentalAudio.volume = restoreVol;
+        els.video.muted = true;
+      } else {
+        els.video.muted = false;
+        els.video.volume = restoreVol;
+      }
+      els.volInput.value = String(restoreVol);
+      updateVolumeIcon(restoreVol, false);
     } else {
-      prevVolume = els.video.volume;
-      els.video.muted = true;
+      prevVolume = isKaraokeMode && instrumentalAudio ? instrumentalAudio.volume : els.video.volume;
+      if (isKaraokeMode && instrumentalAudio) {
+        instrumentalAudio.muted = true;
+      } else {
+        els.video.muted = true;
+      }
       els.volInput.value = '0';
+      updateVolumeIcon(0, true);
     }
-    updateVolumeIcon(els.video.volume, els.video.muted);
   });
 
   // Like & Dislike
