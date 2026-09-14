@@ -32,7 +32,9 @@ export interface PlayerElements {
   btnPlayPause: HTMLButtonElement;
   playIcon: SVGElement;
   pauseIcon: SVGElement;
-  timecodeDisplay: HTMLElement;
+  timecodeDisplay?: HTMLElement;
+  timeCurrent?: HTMLElement;
+  timeDuration?: HTMLElement;
   progressBar: HTMLInputElement;
   volBtn: HTMLButtonElement;
   volIcon: HTMLElement;
@@ -84,16 +86,27 @@ export function initKaraokeTheater(els: PlayerElements) {
     }
   };
 
+  const CARD_PALETTES = [
+    '#c5a14c', // Brass / Gold
+    '#4b5366', // Slate / Steel
+    '#a66887', // Rose / Berry
+    '#8a6448', // Warm Caramel
+    '#547770', // Sage / Muted Teal
+    '#556d8a', // Denim Blue
+    '#7d7367', // Taupe / Sand
+    '#6e6284'  // Lavender / Purple
+  ];
+
   const renderSidebar = (songs: SongCatalogItem[]) => {
     els.sidebarList.innerHTML = '';
-    els.songCountBadge.textContent = `${songs.length} track${songs.length === 1 ? '' : 's'}`;
+    els.songCountBadge.textContent = `${songs.length} track${songs.length === 1 ? '' : 's'} in queue`;
 
     if (songs.length === 0) {
       els.sidebarList.innerHTML = `
         <div class="empty-search-state">
           <div class="empty-search-icon">🔍</div>
           <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">No matching songs</div>
-          <div style="font-size: 12px; color: var(--text-muted);">Try a different keyword or artist name</div>
+          <div style="font-size: 12px; color: var(--theater-text-muted);">Try a different keyword or artist name</div>
         </div>
       `;
       return;
@@ -112,14 +125,16 @@ export function initKaraokeTheater(els: PlayerElements) {
       if (song.hasTranslation) {
         badgesHTML += song.isDialect
           ? `<span class="badge badge-dialect" title="Dialect Vernacular">Dialect</span>`
-          : `<span class="badge badge-trans" title="Localized Translation">Sub</span>`;
+          : `<span class="badge badge-trans" title="Localized Translation">SUB</span>`;
       }
 
       const trackNum = String(idx + 1).padStart(2, '0');
+      const fallbackColor = encodeURIComponent(CARD_PALETTES[idx % CARD_PALETTES.length]);
+      const placeholderSrc = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='${fallbackColor}'><rect width='44' height='44' rx='4'/></svg>`;
 
       item.innerHTML = `
         <span class="song-card-num">${trackNum}</span>
-        <img class="song-card-art" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%231a1a24'><rect width='44' height='44' rx='6'/><circle cx='22' cy='22' r='10' fill='%23262636'/></svg>" alt="" />
+        <img class="song-card-art" src="${placeholderSrc}" alt="" />
         <div class="song-card-info">
           <div class="song-card-title">${song.title}</div>
           <div class="song-card-artist">${song.artist}</div>
@@ -176,7 +191,10 @@ export function initKaraokeTheater(els: PlayerElements) {
     els.video.load();
     els.video.currentTime = 0;
     els.progressBar.value = '0';
-    els.timecodeDisplay.textContent = '0:00 / 0:00';
+    els.progressBar.style.setProperty('--progress', '0%');
+    if (els.timeCurrent) els.timeCurrent.textContent = '0:00';
+    if (els.timeDuration) els.timeDuration.textContent = '0:00';
+    if (els.timecodeDisplay) els.timecodeDisplay.textContent = '0:00 / 0:00';
 
     const lyricFile = await loadLyrics(song.id);
     const verses = lyricFile?.lyricsData || [];
@@ -272,11 +290,30 @@ export function initKaraokeTheater(els: PlayerElements) {
     updatePlayStateIcons(false);
   });
 
+  const onDurationReady = () => {
+    if (els.video.duration) {
+      const dur = formatTime(els.video.duration);
+      if (els.timeDuration) els.timeDuration.textContent = dur;
+      if (els.timeCurrent) els.timeCurrent.textContent = formatTime(els.video.currentTime);
+      if (els.timecodeDisplay) els.timecodeDisplay.textContent = `${formatTime(els.video.currentTime)} / ${dur}`;
+    }
+  };
+
+  els.video.addEventListener('loadedmetadata', onDurationReady);
+  els.video.addEventListener('durationchange', onDurationReady);
+
   els.video.addEventListener('timeupdate', () => {
     if (els.video.duration) {
-      els.timecodeDisplay.textContent = `${formatTime(els.video.currentTime)} / ${formatTime(els.video.duration)}`;
+      const cur = formatTime(els.video.currentTime);
+      const dur = formatTime(els.video.duration);
+      if (els.timeCurrent) els.timeCurrent.textContent = cur;
+      if (els.timeDuration) els.timeDuration.textContent = dur;
+      if (els.timecodeDisplay) els.timecodeDisplay.textContent = `${cur} / ${dur}`;
+
+      const pct = (els.video.currentTime / els.video.duration) * 100;
+      els.progressBar.style.setProperty('--progress', `${pct}%`);
       if (!isDraggingScrubber) {
-        els.progressBar.value = String((els.video.currentTime / els.video.duration) * 100);
+        els.progressBar.value = String(pct);
       }
     }
   });
@@ -284,8 +321,10 @@ export function initKaraokeTheater(els: PlayerElements) {
   els.progressBar.addEventListener('input', (e) => {
     isDraggingScrubber = true;
     const pct = parseFloat((e.target as HTMLInputElement).value);
+    els.progressBar.style.setProperty('--progress', `${pct}%`);
     if (els.video.duration) {
       els.video.currentTime = (pct / 100) * els.video.duration;
+      if (els.timeCurrent) els.timeCurrent.textContent = formatTime(els.video.currentTime);
     }
   });
 
@@ -402,8 +441,26 @@ export function initKaraokeTheater(els: PlayerElements) {
     filteredSongs = allSongs;
     renderSidebar(filteredSongs);
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetSongId = urlParams.get('song');
+    const targetTime = parseFloat(urlParams.get('t') || urlParams.get('time') || '0');
+
     if (filteredSongs.length > 0) {
-      selectSong(filteredSongs[0]);
+      const initialSong = (targetSongId && filteredSongs.find(s => s.id === targetSongId)) || filteredSongs[0];
+      selectSong(initialSong).then(() => {
+        if (targetTime > 0) {
+          els.video.currentTime = targetTime;
+          if (els.video.duration) {
+            const cur = formatTime(targetTime);
+            const dur = formatTime(els.video.duration);
+            if (els.timeCurrent) els.timeCurrent.textContent = cur;
+            if (els.timeDuration) els.timeDuration.textContent = dur;
+            const pct = (targetTime / els.video.duration) * 100;
+            els.progressBar.style.setProperty('--progress', `${pct}%`);
+            els.progressBar.value = String(pct);
+          }
+        }
+      });
     }
   });
 }
