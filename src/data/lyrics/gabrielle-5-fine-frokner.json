@@ -117,7 +117,7 @@
     },
     {
       "verseStart": 22.647,
-      "verseEnd": 27.673,
+      "verseEnd": 27.055,
       "words": [
         {
           "word": "Vi ",
@@ -152,7 +152,7 @@
         {
           "word": "allting",
           "start": 24.813,
-          "end": 27.673
+          "end": 26.655
         }
       ]
     },
@@ -316,7 +316,7 @@
     },
     {
       "verseStart": 38.563,
-      "verseEnd": 43.342,
+      "verseEnd": 43.162,
       "words": [
         {
           "word": "Vi ",
@@ -351,7 +351,7 @@
         {
           "word": "allting",
           "start": 40.824,
-          "end": 43.342
+          "end": 42.762
         }
       ]
     },
@@ -403,7 +403,7 @@
     },
     {
       "verseStart": 46.663,
-      "verseEnd": 51.35,
+      "verseEnd": 50.592,
       "words": [
         {
           "word": "Det ",
@@ -443,7 +443,7 @@
         {
           "word": "ned",
           "start": 49.392,
-          "end": 51.35
+          "end": 50.192
         }
       ]
     },
@@ -495,7 +495,7 @@
     },
     {
       "verseStart": 54.656,
-      "verseEnd": 59.435,
+      "verseEnd": 58.595,
       "words": [
         {
           "word": "D ",
@@ -545,7 +545,7 @@
         {
           "word": "med",
           "start": 57.395,
-          "end": 59.435
+          "end": 58.195
         }
       ]
     },
@@ -592,7 +592,7 @@
     },
     {
       "verseStart": 62.824,
-      "verseEnd": 66.656,
+      "verseEnd": 65.56,
       "words": [
         {
           "word": "Sku ",
@@ -622,13 +622,13 @@
         {
           "word": "himmelen",
           "start": 64.374,
-          "end": 66.656
+          "end": 65.16
         }
       ]
     },
     {
       "verseStart": 66.656,
-      "verseEnd": 70.899,
+      "verseEnd": 70.954,
       "words": [
         {
           "word": "Om ",
@@ -683,13 +683,13 @@
         {
           "word": "det",
           "start": 70.654,
-          "end": 70.899
+          "end": 70.954
         }
       ]
     },
     {
       "verseStart": 70.899,
-      "verseEnd": 75.365,
+      "verseEnd": 74.6,
       "words": [
         {
           "word": "Ingen ",
@@ -729,7 +729,7 @@
         {
           "word": "med",
           "start": 73.4,
-          "end": 75.365
+          "end": 74.2
         }
       ]
     },
@@ -1038,7 +1038,7 @@
         {
           "word": "dag",
           "start": 97.29,
-          "end": 99.42
+          "end": 99.068
         }
       ]
     },
@@ -1177,7 +1177,7 @@
     },
     {
       "verseStart": 110.726,
-      "verseEnd": 115.361,
+      "verseEnd": 114.172,
       "words": [
         {
           "word": "Det ",
@@ -1217,7 +1217,7 @@
         {
           "word": "ned",
           "start": 113.402,
-          "end": 115.361
+          "end": 113.772
         }
       ]
     },
@@ -1269,7 +1269,7 @@
     },
     {
       "verseStart": 118.66,
-      "verseEnd": 123.428,
+      "verseEnd": 122.628,
       "words": [
         {
           "word": "D ",
@@ -1319,7 +1319,7 @@
         {
           "word": "med",
           "start": 121.428,
-          "end": 123.428
+          "end": 122.228
         }
       ]
     },
@@ -1366,7 +1366,7 @@
     },
     {
       "verseStart": 126.694,
-      "verseEnd": 130.647,
+      "verseEnd": 129.52,
       "words": [
         {
           "word": "Sku ",
@@ -1396,7 +1396,7 @@
         {
           "word": "himmelen",
           "start": 128.334,
-          "end": 130.647
+          "end": 129.12
         }
       ]
     },
@@ -1457,13 +1457,13 @@
         {
           "word": "det",
           "start": 134.541,
-          "end": 134.867
+          "end": 134.847
         }
       ]
     },
     {
       "verseStart": 134.867,
-      "verseEnd": 139.337,
+      "verseEnd": 138.568,
       "words": [
         {
           "word": "Ingen ",
@@ -1503,7 +1503,7 @@
         {
           "word": "med",
           "start": 137.368,
-          "end": 139.337
+          "end": 138.168
         }
       ]
     },
@@ -1544,13 +1544,13 @@
         {
           "word": "befaler",
           "start": 142.122,
-          "end": 142.655
+          "end": 142.62
         }
       ]
     },
     {
       "verseStart": 142.655,
-      "verseEnd": 146.581,
+      "verseEnd": 145.495,
       "words": [
         {
           "word": "Sku ",
@@ -1580,13 +1580,13 @@
         {
           "word": "himmelen",
           "start": 144.373,
-          "end": 146.581
+          "end": 145.095
         }
       ]
     },
     {
       "verseStart": 146.581,
-      "verseEnd": 150.911,
+      "verseEnd": 150.925,
       "words": [
         {
           "word": "Om ",
@@ -1641,13 +1641,13 @@
         {
           "word": "det",
           "start": 150.625,
-          "end": 150.911
+          "end": 150.925
         }
       ]
     },
     {
       "verseStart": 150.911,
-      "verseEnd": 155.374,
+      "verseEnd": 154.573,
       "words": [
         {
           "word": "Ingen ",
@@ -1687,7 +1687,7 @@
         {
           "word": "med",
           "start": 153.373,
-          "end": 155.374
+          "end": 154.173
         }
       ]
     },
@@ -1826,7 +1826,7 @@
     },
     {
       "verseStart": 166.697,
-      "verseEnd": 171.344,
+      "verseEnd": 170.576,
       "words": [
         {
           "word": "Det ",
@@ -1866,7 +1866,7 @@
         {
           "word": "ned",
           "start": 169.376,
-          "end": 171.344
+          "end": 170.176
         }
       ]
     },
@@ -2015,7 +2015,7 @@
     },
     {
       "verseStart": 182.609,
-      "verseEnd": 186.58,
+      "verseEnd": 185.528,
       "words": [
         {
           "word": "Sku ",
@@ -2045,13 +2045,13 @@
         {
           "word": "himmelen",
           "start": 184.328,
-          "end": 186.58
+          "end": 185.128
         }
       ]
     },
     {
       "verseStart": 186.58,
-      "verseEnd": 190.927,
+      "verseEnd": 190.935,
       "words": [
         {
           "word": "Om ",
@@ -2106,13 +2106,13 @@
         {
           "word": "det",
           "start": 190.635,
-          "end": 190.927
+          "end": 190.935
         }
       ]
     },
     {
       "verseStart": 190.927,
-      "verseEnd": 195.309,
+      "verseEnd": 194.545,
       "words": [
         {
           "word": "Ingen ",
@@ -2152,7 +2152,7 @@
         {
           "word": "med",
           "start": 193.345,
-          "end": 195.309
+          "end": 194.145
         }
       ]
     },
@@ -2199,7 +2199,7 @@
     },
     {
       "verseStart": 198.668,
-      "verseEnd": 202.59,
+      "verseEnd": 201.429,
       "words": [
         {
           "word": "Sku ",
@@ -2229,13 +2229,13 @@
         {
           "word": "himmelen",
           "start": 200.627,
-          "end": 202.59
+          "end": 201.029
         }
       ]
     },
     {
       "verseStart": 202.59,
-      "verseEnd": 206.925,
+      "verseEnd": 206.936,
       "words": [
         {
           "word": "Om ",
@@ -2290,13 +2290,13 @@
         {
           "word": "det",
           "start": 206.636,
-          "end": 206.925
+          "end": 206.936
         }
       ]
     },
     {
       "verseStart": 206.925,
-      "verseEnd": 211.388,
+      "verseEnd": 210.588,
       "words": [
         {
           "word": "Ingen ",
@@ -2336,7 +2336,7 @@
         {
           "word": "med",
           "start": 209.388,
-          "end": 0
+          "end": 210.188
         }
       ]
     }

@@ -55,7 +55,7 @@
         {
           "word": "vivo",
           "start": 11.108,
-          "end": 12.048
+          "end": 11.702
         }
       ]
     },
@@ -117,7 +117,7 @@
         {
           "word": "vendo",
           "start": 15.858,
-          "end": 16.755
+          "end": 16.452
         }
       ]
     },
@@ -221,7 +221,7 @@
         {
           "word": "sobreviver",
           "start": 22.953,
-          "end": 23.89
+          "end": 23.739
         }
       ]
     },
@@ -340,7 +340,7 @@
         {
           "word": "sucedido",
           "start": 30.473,
-          "end": 31.574
+          "end": 31.451
         }
       ]
     },
@@ -397,7 +397,7 @@
         {
           "word": "rico",
           "start": 34.075,
-          "end": 34.976
+          "end": 34.701
         }
       ]
     },
@@ -587,7 +587,7 @@
         {
           "word": "gastava",
           "start": 45.614,
-          "end": 46.681
+          "end": 46.56
         }
       ]
     },
@@ -634,7 +634,7 @@
         {
           "word": "vish",
           "start": 48.68,
-          "end": 49.789
+          "end": 49.754
         }
       ]
     },
@@ -1968,7 +1968,7 @@
         {
           "word": "coração",
           "start": 131.779,
-          "end": 133.257
+          "end": 133.013
         }
       ]
     },
@@ -2146,7 +2146,7 @@
         {
           "word": "parar",
           "start": 144.664,
-          "end": 146.179
+          "end": 145.994
         }
       ]
     },
@@ -3195,7 +3195,7 @@
     },
     {
       "verseStart": 218.687,
-      "verseEnd": 221.836,
+      "verseEnd": 221.364,
       "translation": "Is it instinct or conscience",
       "words": [
         {
@@ -3216,7 +3216,7 @@
         {
           "word": "consciência",
           "start": 219.954,
-          "end": 221.836
+          "end": 220.964
         }
       ]
     },
@@ -3268,7 +3268,7 @@
         {
           "word": "sobrevivência",
           "start": 224.016,
-          "end": 225.411
+          "end": 225.378
         }
       ]
     },
@@ -3399,7 +3399,7 @@
         {
           "word": "meta",
           "start": 232.383,
-          "end": 233.206
+          "end": 232.977
         }
       ]
     },
@@ -3473,7 +3473,7 @@
         {
           "word": "sonho",
           "start": 236.775,
-          "end": 237.875
+          "end": 237.593
         }
       ]
     },
@@ -4616,7 +4616,7 @@
         {
           "word": "envolvido",
           "start": 315.568,
-          "end": 316.747
+          "end": 316.61
         }
       ]
     },
@@ -4977,7 +4977,7 @@
         {
           "word": "engatilhar?",
           "start": 341.112,
-          "end": 342.298
+          "end": 342.282
         }
       ]
     },
@@ -5029,7 +5029,7 @@
         {
           "word": "acreditar",
           "start": 344.814,
-          "end": 345.884
+          "end": 345.792
         }
       ]
     },
@@ -5071,7 +5071,7 @@
         {
           "word": "parar",
           "start": 347.557,
-          "end": 349.146
+          "end": 348.919
         }
       ]
     },
@@ -5156,7 +5156,7 @@
     },
     {
       "verseStart": 356.244,
-      "verseEnd": 358.216,
+      "verseEnd": 358.232,
       "translation": "It's what keeps the brothers alive",
       "words": [
         {
@@ -5192,7 +5192,7 @@
         {
           "word": "vivos",
           "start": 357.932,
-          "end": 358.216
+          "end": 358.232
         }
       ]
     },
@@ -5261,7 +5261,7 @@
         {
           "word": "não?",
           "start": 361.962,
-          "end": 362.697
+          "end": 362.524
         }
       ]
     },
@@ -5273,7 +5273,7 @@
         {
           "word": "Errado!",
           "start": 362.697,
-          "end": 364.782
+          "end": 364.411
         }
       ]
     },
@@ -5320,7 +5320,7 @@
         {
           "word": "situação",
           "start": 366.43,
-          "end": 367.911
+          "end": 367.696
         }
       ]
     },
@@ -5467,7 +5467,7 @@
     },
     {
       "verseStart": 378.158,
-      "verseEnd": 383.157,
+      "verseEnd": 382.737,
       "translation": "You always think you're incapable of solving it",
       "words": [
         {
@@ -5503,7 +5503,7 @@
         {
           "word": "resolver",
           "start": 381.487,
-          "end": 383.157
+          "end": 382.337
         }
       ]
     },
@@ -5562,7 +5562,7 @@
         {
           "word": "criadora",
           "start": 387.222,
-          "end": 388.728
+          "end": 388.584
         }
       ]
     },
@@ -5595,7 +5595,7 @@
     },
     {
       "verseStart": 391.508,
-      "verseEnd": 393.273,
+      "verseEnd": 392.936,
       "translation": "Because it doesn't exist yet",
       "words": [
         {
@@ -5616,7 +5616,7 @@
         {
           "word": "existe",
           "start": 392.006,
-          "end": 393.273
+          "end": 392.536
         }
       ]
     },
@@ -5649,7 +5649,7 @@
     },
     {
       "verseStart": 395.559,
-      "verseEnd": 398.629,
+      "verseEnd": 398.257,
       "translation": "It's the reality you can interfere with",
       "words": [
         {
@@ -5685,7 +5685,7 @@
         {
           "word": "interferir",
           "start": 396.911,
-          "end": 398.629
+          "end": 397.857
         }
       ]
     },
@@ -5861,7 +5861,7 @@
     },
     {
       "verseStart": 412.545,
-      "verseEnd": 416.465,
+      "verseEnd": 415.456,
       "translation": "Hustle today, victory tomorrow",
       "words": [
         {
@@ -5882,13 +5882,13 @@
         {
           "word": "amanhã",
           "start": 414.142,
-          "end": 416.465
+          "end": 415.056
         }
       ]
     },
     {
       "verseStart": 416.465,
-      "verseEnd": 419.629,
+      "verseEnd": 431.551,
       "translation": "Never forget that, brother",
       "words": [
         {
@@ -5909,7 +5909,7 @@
         {
           "word": "irmão",
           "start": 417.629,
-          "end": 0
+          "end": 431.151
         }
       ]
     }

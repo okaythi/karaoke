@@ -45,8 +45,11 @@ export function initSyncEngine(
         const prevV = state.localLyrics[stampedV - 1];
         if (prevV.words.length > 0) {
           const lastW = prevV.words[prevV.words.length - 1];
-          lastW.end = Math.max(lastW.start, time);
-          prevV.verseEnd = Math.max(prevV.verseStart, time);
+          // Only clip if next verse started earlier than estimated hold; never stretch across breaks!
+          if (time > lastW.start && time < (lastW.end || 0)) {
+            lastW.end = time;
+            prevV.verseEnd = time;
+          }
         }
       }
 
@@ -55,9 +58,17 @@ export function initSyncEngine(
       if (state.currentW >= verse.words.length) {
         const lastWord = verse.words[stampedW];
         if (lastWord && (!lastWord.end || lastWord.end <= lastWord.start)) {
-          lastWord.end = parseFloat((time + 1.5).toFixed(3));
+          let innerDurSum = 0;
+          let innerCount = 0;
+          for (let j = 0; j < verse.words.length - 1; j++) {
+            const d = verse.words[j].end - verse.words[j].start;
+            if (d > 0.05 && d < 4.0) { innerDurSum += d; innerCount++; }
+          }
+          const avgDur = innerCount > 0 ? (innerDurSum / innerCount) : 0.4;
+          const naturalHold = Math.max(0.8, Math.min(1.8, avgDur * 2.0));
+          lastWord.end = parseFloat((time + naturalHold).toFixed(3));
         }
-        verse.verseEnd = parseFloat(((lastWord?.end || time) + 0.5).toFixed(3));
+        verse.verseEnd = parseFloat(((lastWord?.end || time) + 0.4).toFixed(3));
         state.currentW = 0;
         state.currentV++;
       }

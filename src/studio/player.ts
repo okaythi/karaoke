@@ -111,10 +111,13 @@ export function initPlayer(els: StudioElements) {
 
         let progress = 0;
         if (w.start > 0 || w.end > 0) {
-          if (adjustedTime >= w.end) {
+          const wEnd = (w.end && w.end > w.start) ? w.end : (w.start + 1.2);
+          if (adjustedTime < w.start) {
+            progress = 0;
+          } else if (adjustedTime >= wEnd) {
             progress = 100;
-          } else if (adjustedTime > w.start && w.end > w.start) {
-            progress = Math.min(100, Math.max(0, ((adjustedTime - w.start) / (w.end - w.start)) * 100));
+          } else if (adjustedTime > w.start && wEnd > w.start) {
+            progress = Math.min(100, Math.max(0, ((adjustedTime - w.start) / (wEnd - w.start)) * 100));
           }
         }
         el.style.setProperty('--wipe-progress', `${progress}%`);

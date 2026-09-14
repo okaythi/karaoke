@@ -74,17 +74,27 @@ export function validateSongContract(payload: unknown): { valid: boolean; errors
  * Auto-heals unclosed word endpoints and verse boundaries before contract validation.
  */
 export function autoHealTimings(verses: Verse[]): Verse[] {
-  verses.forEach((verse) => {
+  verses.forEach((verse, vIdx) => {
+    let innerDurSum = 0;
+    let innerCount = 0;
+    for (let j = 0; j < verse.words.length - 1; j++) {
+      const d = verse.words[j].end - verse.words[j].start;
+      if (d > 0.05 && d < 4.0) { innerDurSum += d; innerCount++; }
+    }
+    const avgDur = innerCount > 0 ? (innerDurSum / innerCount) : 0.4;
+    const nextV = verses[vIdx + 1];
+    const nextStart = (nextV && nextV.words && nextV.words.length > 0) ? nextV.words[0].start : null;
+
     let maxWordEnd = 0;
     verse.words.forEach((w, idx) => {
       if (w.start > 0 && (!w.end || w.end <= w.start)) {
         const next = verse.words[idx + 1];
         if (next && next.start > w.start) {
           w.end = next.start;
-        } else if (verse.verseEnd > w.start) {
-          w.end = verse.verseEnd;
         } else {
-          w.end = parseFloat((w.start + 1.5).toFixed(3));
+          const naturalHold = Math.max(0.8, Math.min(1.8, avgDur * 2.0));
+          const limit = (nextStart !== null && nextStart > w.start) ? (nextStart - w.start) : naturalHold;
+          w.end = parseFloat((w.start + Math.min(limit, naturalHold)).toFixed(3));
         }
       }
       if (w.end && w.end > maxWordEnd) {
@@ -96,8 +106,11 @@ export function autoHealTimings(verses: Verse[]): Verse[] {
       if (verse.verseStart <= 0 && verse.words[0].start > 0) {
         verse.verseStart = verse.words[0].start;
       }
-      if (verse.verseEnd <= verse.verseStart) {
-        verse.verseEnd = parseFloat((Math.max(verse.verseStart + 1.0, maxWordEnd)).toFixed(3));
+      const naturalEnd = parseFloat((maxWordEnd + 0.4).toFixed(3));
+      if (nextStart !== null && nextStart > maxWordEnd) {
+        verse.verseEnd = Math.min(nextStart, naturalEnd);
+      } else {
+        verse.verseEnd = Math.max(verse.verseStart + 0.5, naturalEnd);
       }
     }
   });
