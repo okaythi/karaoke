@@ -6,7 +6,7 @@ import { createRenderEngine, type RenderEngineController } from '../renderer/ren
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
 import { collectFingerprint } from '../fingerprint/fingerprint';
-import { VocalProcessor, type VocalMode } from './vocalProcessor';
+import { VocalProcessor } from './vocalProcessor';
 
 export interface PlayerElements {
   // Sidebar & Search Pill
@@ -50,7 +50,6 @@ export interface PlayerElements {
   btnVocal?: HTMLButtonElement;
   vocalIconOn?: SVGElement;
   vocalIconOff?: SVGElement;
-  vocalIconHarmony?: SVGElement;
   vocalPill?: HTMLElement;
   vocalPillText?: HTMLElement;
   btnLike: HTMLButtonElement;
@@ -70,41 +69,27 @@ export function initKaraokeTheater(els: PlayerElements) {
   let prevVolume = 0.7;
   let isDraggingScrubber = false;
 
-  const updateVocalUI = (mode: VocalMode) => {
-    if (!els.btnVocal) return;
-    const isNandemonaiya = activeSong?.id === 'radwimps-nandemonaiya';
-
-    els.btnVocal.classList.remove('active', 'harmony-active');
-    if (mode === 'karaoke') {
-      els.btnVocal.classList.add('active');
-    } else if (mode === 'harmony') {
-      els.btnVocal.classList.add('harmony-active');
+  const updateVocalUI = (isMuted: boolean) => {
+    if (els.btnVocal) {
+      els.btnVocal.classList.toggle('active', isMuted);
+      els.btnVocal.setAttribute('aria-pressed', String(isMuted));
     }
-
-    if (els.vocalIconOn) els.vocalIconOn.style.display = mode === 'original' ? 'block' : 'none';
-    if (els.vocalIconOff) els.vocalIconOff.style.display = mode === 'karaoke' ? 'block' : 'none';
-    if (els.vocalIconHarmony) els.vocalIconHarmony.style.display = mode === 'harmony' ? 'block' : 'none';
-
+    if (els.vocalIconOn && els.vocalIconOff) {
+      els.vocalIconOn.style.display = isMuted ? 'none' : 'block';
+      els.vocalIconOff.style.display = isMuted ? 'block' : 'none';
+    }
     if (els.vocalPillText) {
-      if (mode === 'original') {
-        els.vocalPillText.textContent = 'Remove Vocals';
-      } else if (mode === 'karaoke') {
-        els.vocalPillText.textContent = isNandemonaiya ? 'Harmonize' : 'Restore Vocals';
-      } else {
-        els.vocalPillText.textContent = 'Restore Vocals';
-      }
+      els.vocalPillText.textContent = isMuted ? 'Restore Vocals' : 'Remove Vocals';
     }
-
     if (els.vocalPill) {
-      els.vocalPill.classList.toggle('karaoke-active', mode === 'karaoke');
-      els.vocalPill.classList.toggle('harmony-active', mode === 'harmony');
+      els.vocalPill.classList.toggle('karaoke-active', isMuted);
     }
   };
 
   const vocalProcessor = new VocalProcessor({
     video: els.video,
-    onStateChange: (mode) => {
-      updateVocalUI(mode);
+    onStateChange: (isMuted) => {
+      updateVocalUI(isMuted);
     }
   });
 
@@ -276,7 +261,6 @@ export function initKaraokeTheater(els: PlayerElements) {
 
     // Load lyrics and media
     vocalProcessor.setTrackHasStems(!!song.hasStems);
-    updateVocalUI(vocalProcessor.getMode());
     els.video.src = song.videoUrl;
     els.video.load();
     els.video.currentTime = 0;
@@ -553,23 +537,15 @@ export function initKaraokeTheater(els: PlayerElements) {
     updateVolumeIcon(els.video.volume, els.video.muted);
   });
 
-  const handleVocalToggle = () => {
-    const isNandemonaiya = activeSong?.id === 'radwimps-nandemonaiya';
-    if (isNandemonaiya) {
-      vocalProcessor.cycleMode();
-    } else {
-      const current = vocalProcessor.getMode();
-      vocalProcessor.setMode(current === 'original' ? 'karaoke' : 'original');
-    }
-  };
-
   // Vocal Toggle Button & Pointer-Following Pilletje
   if (els.btnVocal) {
-    els.btnVocal.addEventListener('click', handleVocalToggle);
+    els.btnVocal.addEventListener('click', () => {
+      vocalProcessor.toggle();
+    });
 
     if (els.vocalPill) {
       els.btnVocal.addEventListener('mouseenter', () => {
-        updateVocalUI(vocalProcessor.getMode());
+        updateVocalUI(vocalProcessor.isVoiceMuted());
         els.vocalPill?.classList.add('visible');
       });
 
@@ -652,7 +628,7 @@ export function initKaraokeTheater(els: PlayerElements) {
       els.volBtn.click();
     } else if (e.code === 'KeyV') {
       e.preventDefault();
-      handleVocalToggle();
+      vocalProcessor.toggle();
     } else if (e.code === 'KeyF') {
       e.preventDefault();
       els.btnFullscreen.click();
