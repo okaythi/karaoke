@@ -1,6 +1,7 @@
 import type { SongCatalogItem } from '../types/karaoke';
 import { loadCatalog, loadLyrics } from '../catalog/catalog';
 import { fetchAlbumArt } from '../catalog/itunes';
+import { sortSongs } from '../catalog/sorter';
 import { createRenderEngine, type RenderEngineController } from '../renderer/renderEngine';
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
@@ -145,7 +146,10 @@ export function initKaraokeTheater(els: PlayerElements) {
 
       // Fetch artwork for card
       const imgEl = item.querySelector('.song-card-art') as HTMLImageElement;
-      fetchAlbumArt(queryArtist, queryTrack, imgEl);
+      fetchAlbumArt(queryArtist, queryTrack, imgEl, {
+        country: song.itunesCountry,
+        coverUrl: song.coverUrl
+      });
 
       item.addEventListener('click', () => {
         selectSong(song);
@@ -175,7 +179,11 @@ export function initKaraokeTheater(els: PlayerElements) {
     fetchAlbumArt(
       song.itunesArtist || song.artist,
       song.itunesTrack || song.title,
-      els.activeArtwork
+      els.activeArtwork,
+      {
+        country: song.itunesCountry,
+        coverUrl: song.coverUrl
+      }
     );
 
     // Tear down existing render controllers
@@ -526,7 +534,7 @@ export function initKaraokeTheater(els: PlayerElements) {
 
   // Initial Boot
   loadCatalog().then(catalog => {
-    allSongs = catalog.filter(s => s.isOnR2 && s.hasLyrics);
+    allSongs = sortSongs(catalog.filter(s => s.isOnR2 && s.hasLyrics));
     filteredSongs = allSongs;
     renderSidebar(filteredSongs);
 

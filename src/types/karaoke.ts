@@ -20,6 +20,9 @@ export interface SongMetadata {
   artist: string;
   itunesArtist?: string;
   itunesTrack?: string;
+  itunesCountry?: string;
+  sortTitle?: string;
+  coverUrl?: string;
   globalOffset: number;
   hasTranslation: boolean;
   isDialect: boolean;
@@ -43,6 +46,9 @@ export interface SaveLyricsPayload {
   artist: string;
   itunesArtist?: string;
   itunesTrack?: string;
+  itunesCountry?: string;
+  sortTitle?: string;
+  coverUrl?: string;
   globalOffset: number;
   isDialect?: boolean;
   hasTranslation?: boolean;
