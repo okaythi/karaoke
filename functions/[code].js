@@ -1,4 +1,4 @@
-// Cloudflare Pages dynamic shortlink router for karaoke.nixlabs.tech/[6-digit-code]
+// Cloudflare Pages dynamic shortlink router
 export async function onRequest({ request, params, env }) {
   const code = params.code;
 
