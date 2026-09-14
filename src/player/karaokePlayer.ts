@@ -340,8 +340,9 @@ export function initKaraokeTheater(els: PlayerElements) {
 
   // Fullscreen
   els.btnFullscreen.addEventListener('click', () => {
+    const stageEl = (document.querySelector('.theater-stage') as HTMLElement) || els.videoContainer;
     if (!document.fullscreenElement) {
-      els.videoContainer.requestFullscreen().catch(console.warn);
+      stageEl.requestFullscreen().catch(console.warn);
     } else {
       document.exitFullscreen().catch(console.warn);
     }

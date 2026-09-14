@@ -45,6 +45,11 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
   let animationFrameId: number | null = null;
   let isDestroyed = false;
 
+  const getVerseCharCount = (verse: Verse): number => {
+    if (!verse) return 0;
+    return verse.words.reduce((sum, w) => sum + w.word.length, 0);
+  };
+
   const renderVerseWordsHTML = (verse: Verse, lineKey: string): string => {
     if (!verse) return '';
     const wordsHTML = verse.words.map((w, wIdx) => {
@@ -72,33 +77,58 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
 
     const time = videoElement.currentTime - globalOffset;
 
-    // Determine currently active singing verse
     let activeV = -1;
-    for (let i = 0; i < lyricsData.length; i++) {
-      const v = lyricsData[i];
-      if (time >= v.verseStart && time <= v.verseEnd) {
-        activeV = i;
-        break;
-      }
-    }
-
-    // Determine visibility for Top line (Even verses) and Bottom line (Odd verses)
-    // A verse is strictly visible ONLY within [verseStart - 4.0s, verseEnd + 0.6s]
-    let targetTop = -1;
-    let targetBottom = -1;
+    let recentV = -1;
+    let upcomingV = -1;
 
     if (lyricsData.length > 0) {
       for (let i = 0; i < lyricsData.length; i++) {
         const v = lyricsData[i];
-        const isEligible = time >= (v.verseStart - LEAD_IN_SECONDS) && time <= (v.verseEnd + FADE_OUT_GRACE);
-
-        if (isEligible) {
-          if (i % 2 === 0) {
-            targetTop = i;
-          } else {
-            targetBottom = i;
+        if (time >= v.verseStart && time <= v.verseEnd) {
+          activeV = i;
+          break;
+        }
+        if (time > v.verseEnd && time <= v.verseEnd + FADE_OUT_GRACE) {
+          recentV = i;
+        }
+        if (time < v.verseStart) {
+          if (upcomingV === -1) {
+            upcomingV = i;
           }
         }
+      }
+    }
+
+    // Determine the focus verse:
+    // 1. Actively singing verse
+    // 2. Verse that just ended within grace period (0.6s)
+    // 3. Upcoming verse strictly within 4.0s lead-in window
+    // 4. Otherwise -1 (instrumental break / intro)
+    let focusV = -1;
+    if (activeV !== -1) {
+      focusV = activeV;
+    } else if (recentV !== -1) {
+      focusV = recentV;
+    } else if (upcomingV !== -1 && time >= (lyricsData[upcomingV].verseStart - LEAD_IN_SECONDS)) {
+      focusV = upcomingV;
+    }
+
+    // Topological Alternating Dual-Line Target Resolution:
+    // Even verses on Top line, Odd verses on Bottom line
+    let targetTop = -1;
+    let targetBottom = -1;
+
+    if (focusV !== -1 && lyricsData.length > 0) {
+      if (focusV % 2 === 0) {
+        // Even verse is Active/Upcoming on Top line
+        targetTop = focusV;
+        // Pre-buffer next Odd verse on Bottom line
+        targetBottom = focusV + 1 < lyricsData.length ? focusV + 1 : -1;
+      } else {
+        // Odd verse is Active/Upcoming on Bottom line
+        targetBottom = focusV;
+        // Pre-buffer next Even verse on Top line
+        targetTop = focusV + 1 < lyricsData.length ? focusV + 1 : -1;
       }
     }
 
@@ -108,7 +138,10 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       if (targetTop !== -1 && lyricsData[targetTop]) {
         topLineElement.innerHTML = renderVerseWordsHTML(lyricsData[targetTop], 'top');
         cachedTopWords = Array.from(topLineElement.querySelectorAll('.word-wrapper'));
+        topLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetTop]) > 28);
         topLineElement.style.display = 'flex';
+      } else if (focusV === -1) {
+        // In instrumental gap, container opacity is 0; keep elements intact for smooth fade-out
       } else {
         topLineElement.innerHTML = '';
         cachedTopWords = [];
@@ -122,7 +155,10 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       if (targetBottom !== -1 && lyricsData[targetBottom]) {
         bottomLineElement.innerHTML = renderVerseWordsHTML(lyricsData[targetBottom], 'bot');
         cachedBottomWords = Array.from(bottomLineElement.querySelectorAll('.word-wrapper'));
+        bottomLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetBottom]) > 28);
         bottomLineElement.style.display = 'flex';
+      } else if (focusV === -1) {
+        // In instrumental gap, container opacity is 0; keep elements intact for smooth fade-out
       } else {
         bottomLineElement.innerHTML = '';
         cachedBottomWords = [];
@@ -130,15 +166,16 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       }
     }
 
-    // Container visibility: strictly visible if either line is currently in its 4s lead-in/active window
+    // Container visibility: show only when lyrics are active or in 4s lead-in
     if (targetTop !== -1 || targetBottom !== -1) {
       containerElement.style.opacity = '1';
 
-      // Top line state & wipe progress
+      // Top line state & continuous syllable wipe
       if (targetTop !== -1 && lyricsData[targetTop]) {
-        const isTopActive = targetTop === activeV;
-        topLineElement.classList.toggle('k-line-active', isTopActive);
-        topLineElement.classList.toggle('k-line-idle', !isTopActive);
+        const isTopActive = (targetTop === activeV);
+        const isTopRecent = (targetTop === recentV);
+        topLineElement.classList.toggle('k-line-active', isTopActive || isTopRecent);
+        topLineElement.classList.toggle('k-line-idle', !isTopActive && !isTopRecent);
 
         const vTop = lyricsData[targetTop];
         for (let j = 0; j < vTop.words.length; j++) {
@@ -147,7 +184,9 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
           if (!el) continue;
 
           let progress = 0;
-          if (isTopActive) {
+          if (isTopRecent) {
+            progress = 100;
+          } else if (isTopActive) {
             if (time >= w.end) {
               progress = 100;
             } else if (time > w.start && w.end > w.start) {
@@ -158,11 +197,12 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         }
       }
 
-      // Bottom line state & wipe progress
+      // Bottom line state & continuous syllable wipe
       if (targetBottom !== -1 && lyricsData[targetBottom]) {
-        const isBottomActive = targetBottom === activeV;
-        bottomLineElement.classList.toggle('k-line-active', isBottomActive);
-        bottomLineElement.classList.toggle('k-line-idle', !isBottomActive);
+        const isBottomActive = (targetBottom === activeV);
+        const isBottomRecent = (targetBottom === recentV);
+        bottomLineElement.classList.toggle('k-line-active', isBottomActive || isBottomRecent);
+        bottomLineElement.classList.toggle('k-line-idle', !isBottomActive && !isBottomRecent);
 
         const vBot = lyricsData[targetBottom];
         for (let j = 0; j < vBot.words.length; j++) {
@@ -171,7 +211,9 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
           if (!el) continue;
 
           let progress = 0;
-          if (isBottomActive) {
+          if (isBottomRecent) {
+            progress = 100;
+          } else if (isBottomActive) {
             if (time >= w.end) {
               progress = 100;
             } else if (time > w.start && w.end > w.start) {
@@ -182,7 +224,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         }
       }
     } else {
-      // Instrumental break or intro: completely fade out lyrics
+      // Instrumental break, guitar solo, or intro > 4s: completely hide lyrics
       containerElement.style.opacity = '0';
     }
 
