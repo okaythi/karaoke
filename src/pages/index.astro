@@ -24,18 +24,15 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
   <div class="theater-app">
 
     <!-- Left Sidebar: Songs List & Search Pill -->
-    <aside class="theater-sidebar">
+    <aside class="theater-sidebar" id="theater-sidebar">
       
       <!-- Top Brand Header -->
       <div class="sidebar-header">
         <div class="brand-container">
           <div class="brand-logo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;"><circle cx="12" cy="12" r="10"/><path d="M9 18V6l10 6-10 6z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg>
           </div>
-          <div class="brand-title">
-            KARAOKE
-            <span class="brand-badge">THEATER</span>
-          </div>
+          <div class="brand-title">KARAOKE THEATER</div>
         </div>
       </div>
 
@@ -43,12 +40,11 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
       <div class="search-pill-container">
         <div class="search-pill">
           <svg class="search-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-pill-input" placeholder="Search songs or artists... (/)" autocomplete="off" spellcheck="false" />
-          <kbd class="search-pill-kbd">/</kbd>
+          <input type="text" id="search-pill-input" placeholder="Search songs or artists..." autocomplete="off" spellcheck="false" />
           <button class="search-pill-clear" id="search-pill-clear" title="Clear Search">✕</button>
         </div>
         <div class="search-meta-row">
-          <span id="song-count-badge">Loading songs...</span>
+          <span id="song-count-badge">Loading tracks...</span>
         </div>
       </div>
 
@@ -64,77 +60,87 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
       <!-- Track Hero Bar -->
       <header class="theater-header">
         <div class="active-track-hero">
-          <img id="active-track-art" class="active-artwork-hero" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%231a1a24'><rect width='44' height='44' rx='8'/></svg>" alt="Album Cover" />
+          <img id="active-track-art" class="active-artwork-hero" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%23c5a14c'><rect width='44' height='44' rx='4'/></svg>" alt="Album Cover" />
           <div class="active-hero-text">
             <h1 id="active-track-title">
               Select a Track
-              <span class="badge badge-trans" id="badge-translation" style="display: none;">Sub</span>
-              <span class="badge badge-dialect" id="badge-dialect" style="display: none;">Dialect</span>
+              <span class="badge badge-trans" id="badge-translation" style="display: none;">SUB</span>
+              <span class="badge badge-dialect" id="badge-dialect" style="display: none;">DIALECT</span>
             </h1>
             <p id="active-track-artist">Waiting for media...</p>
           </div>
         </div>
+        <button class="mobile-queue-toggle" id="mobile-queue-btn" title="Toggle Queue" aria-label="Toggle Queue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
+        </button>
       </header>
 
-      <!-- Expansive Video Frame with Ambient Dynamic Backlight -->
+      <!-- 16:9 Video Frame -->
       <section class="video-stage-wrapper" id="video-stage-wrapper">
-        <!-- Ambient Backlight Canvas Container -->
-        <div class="backlight-canvas-container" id="backlight-container"></div>
-
-        <!-- Video Player -->
+        <div class="backlight-canvas-container" id="backlight-container" style="display: none;"></div>
         <div class="video-frame-container">
           <video id="theater-video" playsinline preload="auto"></video>
           <button class="center-play-overlay" id="center-play-btn" title="Play Video" aria-label="Play Video">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 19 12 7 20 7 4"/></svg>
           </button>
         </div>
       </section>
 
-      <!-- Spacious High-Precision Lyrics Stage -->
+      <!-- Constrained Lyrics Stage (Centered) -->
       <section class="lyrics-stage-container" id="lyrics-stage-container">
         <div id="k-line-top" class="k-line k-line-top"></div>
         <div id="k-line-bottom" class="k-line k-line-bottom"></div>
       </section>
 
-      <!-- Glass Transport Control Deck -->
+      <!-- Flat Transport Control Deck -->
       <footer class="transport-deck-theater">
-        <button class="deck-play-btn" id="deck-play-btn" title="Play / Pause (Space or K)">
-          <svg id="deck-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          <svg id="deck-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        </button>
-
-        <div class="timecode-label" id="deck-timecode">0:00 / 0:00</div>
-
-        <input type="range" class="progress-scrubber" id="deck-progress-scrubber" value="0" min="0" max="100" step="0.1" title="Seek" />
-
-        <div class="volume-deck-group">
-          <button class="deck-icon-btn" id="deck-vol-btn" title="Mute / Unmute (M)">
-            <svg id="deck-vol-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-          </button>
-          <input type="range" class="volume-slider" id="deck-volume-slider" min="0" max="1" step="0.05" value="0.7" title="Volume" />
+        <!-- Scrubber Row: [1:31] [ -------●------- ] [4:09] -->
+        <div class="deck-scrubber-row">
+          <span class="timecode-label timecode-current" id="deck-time-current">0:00</span>
+          <input type="range" class="progress-scrubber" id="deck-progress-scrubber" value="0" min="0" max="100" step="0.1" title="Seek" />
+          <span class="timecode-label timecode-duration" id="deck-time-duration">0:00</span>
+          <span id="deck-timecode" style="display: none;">0:00 / 0:00</span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 4px;">
-          <button class="deck-icon-btn" id="deck-like-btn" title="Like">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-            <span id="deck-like-count">0</span>
-          </button>
-          <button class="deck-icon-btn" id="deck-dislike-btn" title="Dislike">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg>
-            <span id="deck-dislike-count">0</span>
-          </button>
+        <!-- Controls Row -->
+        <div class="deck-controls-row">
+          <div class="deck-controls-left">
+            <button class="deck-play-btn" id="deck-play-btn" title="Play / Pause (Space or K)">
+              <svg id="deck-play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 19 12 7 20 7 4"/></svg>
+              <svg id="deck-pause-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+
+            <button class="deck-vote-btn" id="deck-like-btn" title="Like">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              <span class="vote-count" id="deck-like-count">0</span>
+            </button>
+
+            <button class="deck-vote-btn" id="deck-dislike-btn" title="Dislike">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"/></svg>
+              <span class="vote-count" id="deck-dislike-count">0</span>
+            </button>
+          </div>
+
+          <div class="deck-controls-right">
+            <div class="volume-deck-group">
+              <button class="deck-icon-btn" id="deck-vol-btn" title="Mute / Unmute (M)">
+                <svg id="deck-vol-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+              </button>
+              <input type="range" class="volume-slider" id="deck-volume-slider" min="0" max="1" step="0.05" value="0.7" title="Volume" />
+            </div>
+
+            <button class="deck-icon-btn" id="deck-shuffle-btn" title="Shuffle Play">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+            </button>
+
+            <button class="deck-icon-btn" id="deck-fullscreen-btn" title="Fullscreen (F)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+          </div>
         </div>
-
-        <button class="deck-icon-btn" id="deck-shuffle-btn" title="Shuffle Play">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
-        </button>
-
-        <button class="deck-icon-btn" id="deck-fullscreen-btn" title="Fullscreen (F)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-        </button>
       </footer>
     </main>
 
@@ -144,6 +150,14 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
     import { initKaraokeTheater } from '../player/karaokePlayer';
 
     document.addEventListener('DOMContentLoaded', () => {
+      const appEl = document.querySelector('.theater-app');
+      const queueBtn = document.getElementById('mobile-queue-btn');
+      if (queueBtn && appEl) {
+        queueBtn.addEventListener('click', () => {
+          appEl.classList.toggle('sidebar-open');
+        });
+      }
+
       initKaraokeTheater({
         sidebarList: document.getElementById('sidebar-song-list') as HTMLElement,
         searchPillInput: document.getElementById('search-pill-input') as HTMLInputElement,
@@ -168,6 +182,8 @@ const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
         playIcon: document.getElementById('deck-play-icon') as unknown as SVGElement,
         pauseIcon: document.getElementById('deck-pause-icon') as unknown as SVGElement,
         timecodeDisplay: document.getElementById('deck-timecode') as HTMLElement,
+        timeCurrent: document.getElementById('deck-time-current') as HTMLElement,
+        timeDuration: document.getElementById('deck-time-duration') as HTMLElement,
         progressBar: document.getElementById('deck-progress-scrubber') as HTMLInputElement,
         volBtn: document.getElementById('deck-vol-btn') as HTMLButtonElement,
         volIcon: document.getElementById('deck-vol-icon') as HTMLElement,
