@@ -1,0 +1,194 @@
+---
+// Standalone Karaoke Theater
+import '../styles/global.css';
+import '../styles/theater.css';
+
+const pageTitle = "Karaoke Theater // High-Precision Lyrics Player";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>{pageTitle}</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://cdn.sudothy.me/fonts/ZenKurenaido-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="https://cdn.sudothy.me/fonts/NotoSansJP-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+</head>
+<body>
+
+  <div class="theater-app">
+
+    <!-- Left Sidebar: Songs List & Search Pill -->
+    <aside class="theater-sidebar">
+      
+      <!-- Top Brand Header -->
+      <div class="sidebar-header">
+        <div class="brand-container">
+          <div class="brand-logo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;"><circle cx="12" cy="12" r="10"/><path d="M9 18V6l10 6-10 6z"/></svg>
+          </div>
+          <div class="brand-title">
+            KARAOKE
+            <span class="brand-badge">THEATER</span>
+          </div>
+        </div>
+
+        <a href="/admin/karaoke" class="btn-studio-link" title="Open Studio Sync Workstation">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Studio
+        </a>
+      </div>
+
+      <!-- Fuzzy Search Pill Container -->
+      <div class="search-pill-container">
+        <div class="search-pill">
+          <svg class="search-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-pill-input" placeholder="Search songs or artists... (/)" autocomplete="off" spellcheck="false" />
+          <kbd class="search-pill-kbd">/</kbd>
+          <button class="search-pill-clear" id="search-pill-clear" title="Clear Search">✕</button>
+        </div>
+        <div class="search-meta-row">
+          <span id="song-count-badge">Loading songs...</span>
+          <span style="opacity: 0.6;">Fuzzy matching</span>
+        </div>
+      </div>
+
+      <!-- Scrollable Song List -->
+      <div class="sidebar-song-list" id="sidebar-song-list">
+        <!-- Rendered dynamically by TypeScript -->
+      </div>
+    </aside>
+
+    <!-- Center Stage: Expansive Video & High-Precision Lyrics -->
+    <main class="theater-stage">
+
+      <!-- Track Hero Bar -->
+      <header class="theater-header">
+        <div class="active-track-hero">
+          <img id="active-track-art" class="active-artwork-hero" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%231a1a24'><rect width='44' height='44' rx='8'/></svg>" alt="Album Cover" />
+          <div class="active-hero-text">
+            <h1 id="active-track-title">
+              Select a Track
+              <span class="badge badge-trans" id="badge-translation" style="display: none;">Sub</span>
+              <span class="badge badge-dialect" id="badge-dialect" style="display: none;">Dialect</span>
+            </h1>
+            <p id="active-track-artist">Waiting for media...</p>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <a href="/admin/karaoke" class="btn-studio-link" style="padding: 7px 12px; font-size: 13px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Edit Timings in Studio
+          </a>
+        </div>
+      </header>
+
+      <!-- Expansive Video Frame with Ambient Dynamic Backlight -->
+      <section class="video-stage-wrapper" id="video-stage-wrapper">
+        <!-- Ambient Backlight Canvas Container -->
+        <div class="backlight-canvas-container" id="backlight-container"></div>
+
+        <!-- Video Player -->
+        <div class="video-frame-container">
+          <video id="theater-video" crossorigin="anonymous" playsinline preload="auto"></video>
+        </div>
+      </section>
+
+      <!-- Spacious High-Precision Lyrics Stage -->
+      <section class="lyrics-stage-container" id="lyrics-stage-container">
+        <div id="k-line-top" class="k-line k-line-top"></div>
+        <div id="k-line-bottom" class="k-line k-line-bottom"></div>
+      </section>
+
+      <!-- Glass Transport Control Deck -->
+      <footer class="transport-deck-theater">
+        <button class="deck-play-btn" id="deck-play-btn" title="Play / Pause (Space or K)">
+          <svg id="deck-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="deck-pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+
+        <div class="timecode-label" id="deck-timecode">0:00 / 0:00</div>
+
+        <input type="range" class="progress-scrubber" id="deck-progress-scrubber" value="0" min="0" max="100" step="0.1" title="Seek" />
+
+        <div class="volume-deck-group">
+          <button class="deck-icon-btn" id="deck-vol-btn" title="Mute / Unmute (M)">
+            <svg id="deck-vol-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+          <input type="range" class="volume-slider" id="deck-volume-slider" min="0" max="1" step="0.05" value="0.7" title="Volume" />
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <button class="deck-icon-btn" id="deck-like-btn" title="Like">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+            <span id="deck-like-count">0</span>
+          </button>
+          <button class="deck-icon-btn" id="deck-dislike-btn" title="Dislike">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg>
+            <span id="deck-dislike-count">0</span>
+          </button>
+        </div>
+
+        <button class="deck-icon-btn" id="deck-shuffle-btn" title="Shuffle Play">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+        </button>
+
+        <button class="deck-icon-btn" id="deck-fullscreen-btn" title="Fullscreen (F)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        </button>
+      </footer>
+    </main>
+
+  </div>
+
+  <script>
+    import { initKaraokeTheater } from '../player/karaokePlayer';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initKaraokeTheater({
+        sidebarList: document.getElementById('sidebar-song-list') as HTMLElement,
+        searchPillInput: document.getElementById('search-pill-input') as HTMLInputElement,
+        searchPillClear: document.getElementById('search-pill-clear') as HTMLButtonElement,
+        songCountBadge: document.getElementById('song-count-badge') as HTMLElement,
+
+        videoContainer: document.getElementById('video-stage-wrapper') as HTMLElement,
+        backlightContainer: document.getElementById('backlight-container') as HTMLElement,
+        video: document.getElementById('theater-video') as HTMLVideoElement,
+        lyricsContainer: document.getElementById('lyrics-stage-container') as HTMLElement,
+        lineTop: document.getElementById('k-line-top') as HTMLElement,
+        lineBottom: document.getElementById('k-line-bottom') as HTMLElement,
+
+        activeArtwork: document.getElementById('active-track-art') as HTMLImageElement,
+        activeTitle: document.getElementById('active-track-title') as HTMLElement,
+        activeArtist: document.getElementById('active-track-artist') as HTMLElement,
+        badgeTranslation: document.getElementById('badge-translation') as HTMLElement,
+        badgeDialect: document.getElementById('badge-dialect') as HTMLElement,
+
+        btnPlayPause: document.getElementById('deck-play-btn') as HTMLButtonElement,
+        playIcon: document.getElementById('deck-play-icon') as unknown as SVGElement,
+        pauseIcon: document.getElementById('deck-pause-icon') as unknown as SVGElement,
+        timecodeDisplay: document.getElementById('deck-timecode') as HTMLElement,
+        progressBar: document.getElementById('deck-progress-scrubber') as HTMLInputElement,
+        volBtn: document.getElementById('deck-vol-btn') as HTMLButtonElement,
+        volIcon: document.getElementById('deck-vol-icon') as HTMLElement,
+        volInput: document.getElementById('deck-volume-slider') as HTMLInputElement,
+        btnLike: document.getElementById('deck-like-btn') as HTMLButtonElement,
+        btnDislike: document.getElementById('deck-dislike-btn') as HTMLButtonElement,
+        likeCount: document.getElementById('deck-like-count') as HTMLElement,
+        dislikeCount: document.getElementById('deck-dislike-count') as HTMLElement,
+        btnShuffle: document.getElementById('deck-shuffle-btn') as HTMLButtonElement,
+        btnFullscreen: document.getElementById('deck-fullscreen-btn') as HTMLButtonElement
+      });
+    });
+  </script>
+</body>
+</html>
