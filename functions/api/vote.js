@@ -1,170 +1,238 @@
-async function getUsername(request, env, explicitToken = null) {
-  if (!env.DB) return null;
-  const authHeader = request.headers.get('Authorization');
-  const token = explicitToken || (authHeader ? authHeader.replace(/^Bearer\s+/i, '').trim() : null);
-  if (token) {
-    try {
-      const user = await env.DB.prepare('SELECT username FROM users WHERE id = ?').bind(token).first();
-      if (user && user.username) return user.username;
-    } catch (e) {}
+// ─── Identity Resolution ──────────────────────────────────────────────────────
+
+/**
+ * Resolves the caller's identity.
+ * Priority: 1) logged-in session/token  2) kr_id (anonymous fingerprint)
+ * Returns { username, krId } — exactly one will be set.
+ */
+async function resolveIdentity(request, env, bodyToken, bodyKrId) {
+  // 1. Logged-in user via Authorization header or session cookie
+  if (env.DB) {
+    const authHeader = request.headers.get('Authorization');
+    const token = bodyToken || (authHeader ? authHeader.replace(/^Bearer\s+/i, '').trim() : null);
+    if (token) {
+      try {
+        const user = await env.DB.prepare('SELECT username FROM users WHERE id = ?').bind(token).first();
+        if (user?.username) return { username: user.username, krId: null };
+      } catch {}
+    }
+
+    const cookieStr = request.headers.get('cookie') || '';
+    const match = cookieStr.match(/sudothy_session=([^;]+)/);
+    if (match) {
+      try {
+        const session = JSON.parse(decodeURIComponent(match[1]));
+        if (session?.user?.username) return { username: session.user.username, krId: null };
+        if (session?.token) {
+          const user = await env.DB.prepare('SELECT username FROM users WHERE id = ?').bind(session.token).first();
+          if (user?.username) return { username: user.username, krId: null };
+        }
+      } catch {}
+    }
   }
 
-  const cookieStr = request.headers.get('cookie') || '';
-  const match = cookieStr.match(/sudothy_session=([^;]+)/);
-  if (match) {
-    try {
-      const session = JSON.parse(decodeURIComponent(match[1]));
-      if (session?.user?.username) {
-        return session.user.username;
-      }
-      if (session?.token) {
-        const user = await env.DB.prepare('SELECT username FROM users WHERE id = ?').bind(session.token).first();
-        if (user && user.username) return user.username;
-      }
-    } catch (e) {}
+  // 2. Anonymous fingerprint identity
+  if (bodyKrId && /^kr-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(bodyKrId)) {
+    return { username: null, krId: bodyKrId };
   }
 
-  return 'guest-' + (request.headers.get('cf-connecting-ip') || 'anon');
+  return { username: null, krId: null };
 }
+
+// ─── GET /api/vote ────────────────────────────────────────────────────────────
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const fileName = url.searchParams.get('file_name');
-  
+  const queryKrId = url.searchParams.get('kr_id');
+
   if (!fileName) {
-    return new Response(JSON.stringify({ error: 'Missing file_name' }), { 
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Response.json({ error: 'Missing file_name' }, { status: 400 });
   }
 
   if (!env.DB) {
-    return new Response(JSON.stringify({ liked: false, disliked: false, totalLikes: 0, totalDislikes: 0 }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Response.json({ liked: false, disliked: false, totalLikes: 0, totalDislikes: 0, views: 0 });
   }
 
-  const username = await getUsername(request, env, url.searchParams.get('token'));
+  const { username, krId } = await resolveIdentity(
+    request, env,
+    url.searchParams.get('token'),
+    queryKrId
+  );
 
-  let totalLikes = 0;
-  let totalDislikes = 0;
+  // Fetch aggregate song counts
+  const sysRes = await env.DB
+    .prepare('SELECT likes, dislikes, views FROM song_votes WHERE file_name = ?')
+    .bind(fileName)
+    .first();
+
   let userLiked = false;
   let userDisliked = false;
 
   try {
-    const sysRes = await env.DB.prepare('SELECT likes, dislikes FROM song_votes WHERE file_name = ?').bind(fileName).first();
-    if (sysRes) {
-      totalLikes = sysRes.likes;
-      totalDislikes = sysRes.dislikes;
-    }
-
     if (username) {
-      const usrRes = await env.DB.prepare('SELECT action FROM user_song_votes WHERE username = ? AND file_name = ?').bind(username, fileName).first();
-      if (usrRes) {
-        if (usrRes.action === 'like') userLiked = true;
-        if (usrRes.action === 'dislike') userDisliked = true;
-      }
+      const usrRes = await env.DB
+        .prepare('SELECT action FROM user_song_votes WHERE username = ? AND file_name = ?')
+        .bind(username, fileName)
+        .first();
+      if (usrRes?.action === 'like')    userLiked = true;
+      if (usrRes?.action === 'dislike') userDisliked = true;
+    } else if (krId) {
+      const usrRes = await env.DB
+        .prepare('SELECT action FROM user_song_votes WHERE kr_id = ? AND file_name = ?')
+        .bind(krId, fileName)
+        .first();
+      if (usrRes?.action === 'like')    userLiked = true;
+      if (usrRes?.action === 'dislike') userDisliked = true;
     }
-    
-    return new Response(JSON.stringify({ 
-      liked: userLiked, 
-      disliked: userDisliked,
-      totalLikes, 
-      totalDislikes 
-    }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  } catch {}
+
+  return Response.json({
+    liked:         userLiked,
+    disliked:      userDisliked,
+    totalLikes:    sysRes?.likes    ?? 0,
+    totalDislikes: sysRes?.dislikes ?? 0,
+    views:         sysRes?.views    ?? 0,
+  });
 }
+
+// ─── POST /api/vote ───────────────────────────────────────────────────────────
 
 export async function onRequestPost({ request, env }) {
   if (!env.DB) {
-    return new Response(JSON.stringify({ error: 'Database not bound' }), { 
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Response.json({ error: 'Database not bound' }, { status: 503 });
   }
 
   let body;
   try {
     body = await request.json();
-  } catch (e) {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), { 
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
+  } catch {
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { file_name, action, token: bodyToken } = body;
+  const { file_name, action, token: bodyToken, kr_id: bodyKrId, count_view: countView } = body;
 
+  // ── View increment (5.47s threshold enforced client-side) ──────────────────
+  if (countView === true && file_name) {
+    try {
+      await env.DB
+        .prepare('INSERT INTO song_votes (file_name, likes, dislikes, views) VALUES (?, 0, 0, 0) ON CONFLICT(file_name) DO NOTHING')
+        .bind(file_name)
+        .run();
+      await env.DB
+        .prepare('UPDATE song_votes SET views = views + 1 WHERE file_name = ?')
+        .bind(file_name)
+        .run();
+
+      // Also increment the anonymous user's personal view counter
+      const { krId: vidKrId } = await resolveIdentity(request, env, bodyToken, bodyKrId);
+      if (vidKrId) {
+        await env.DB
+          .prepare('UPDATE anonymous_users SET views = views + 1, last_seen = CURRENT_TIMESTAMP WHERE kr_id = ?')
+          .bind(vidKrId)
+          .run();
+      }
+    } catch {}
+    return Response.json({ ok: true });
+  }
+
+  // ── Vote ───────────────────────────────────────────────────────────────────
   if (!file_name || !action) {
-    return new Response(JSON.stringify({ error: 'Missing params' }), { 
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Response.json({ error: 'Missing params' }, { status: 400 });
   }
-
   if (action !== 'like' && action !== 'dislike') {
-    return new Response(JSON.stringify({ error: 'Invalid action' }), { 
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Response.json({ error: 'Invalid action' }, { status: 400 });
   }
 
-  const username = await getUsername(request, env, bodyToken);
+  const { username, krId } = await resolveIdentity(request, env, bodyToken, bodyKrId);
+
+  if (!username && !krId) {
+    return Response.json({ error: 'Unidentified' }, { status: 401 });
+  }
 
   try {
-    const usrRes = await env.DB.prepare('SELECT action FROM user_song_votes WHERE username = ? AND file_name = ?').bind(username, file_name).first();
-    const prevAction = usrRes ? usrRes.action : null;
+    // Fetch existing vote
+    let prevAction = null;
+    if (username) {
+      const r = await env.DB
+        .prepare('SELECT action FROM user_song_votes WHERE username = ? AND file_name = ?')
+        .bind(username, file_name)
+        .first();
+      prevAction = r?.action ?? null;
+    } else {
+      const r = await env.DB
+        .prepare('SELECT action FROM user_song_votes WHERE kr_id = ? AND file_name = ?')
+        .bind(krId, file_name)
+        .first();
+      prevAction = r?.action ?? null;
+    }
 
     let likeDelta = 0;
     let dislikeDelta = 0;
 
     if (prevAction === action) {
-      await env.DB.prepare('DELETE FROM user_song_votes WHERE username = ? AND file_name = ?').bind(username, file_name).run();
-      if (action === 'like') likeDelta = -1;
+      // Toggle off
+      if (username) {
+        await env.DB
+          .prepare('DELETE FROM user_song_votes WHERE username = ? AND file_name = ?')
+          .bind(username, file_name)
+          .run();
+      } else {
+        await env.DB
+          .prepare('DELETE FROM user_song_votes WHERE kr_id = ? AND file_name = ?')
+          .bind(krId, file_name)
+          .run();
+      }
+      if (action === 'like')    likeDelta = -1;
       if (action === 'dislike') dislikeDelta = -1;
     } else {
-      await env.DB.prepare('INSERT OR REPLACE INTO user_song_votes (username, file_name, action, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP)').bind(username, file_name, action).run();
-      
+      // Upsert vote
+      if (username) {
+        await env.DB
+          .prepare('INSERT OR REPLACE INTO user_song_votes (username, file_name, action, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP)')
+          .bind(username, file_name, action)
+          .run();
+      } else {
+        await env.DB
+          .prepare('INSERT INTO user_song_votes (username, file_name, action, timestamp, kr_id) VALUES (NULL, ?, ?, CURRENT_TIMESTAMP, ?) ON CONFLICT(kr_id, file_name) DO UPDATE SET action = excluded.action, timestamp = excluded.timestamp')
+          .bind(file_name, action, krId)
+          .run();
+      }
       if (action === 'like') {
         likeDelta = 1;
         if (prevAction === 'dislike') dislikeDelta = -1;
-      }
-      if (action === 'dislike') {
+      } else {
         dislikeDelta = 1;
         if (prevAction === 'like') likeDelta = -1;
       }
     }
 
-    await env.DB.prepare('INSERT OR IGNORE INTO song_votes (file_name, likes, dislikes) VALUES (?, 0, 0)').bind(file_name).run();
+    // Ensure song_votes row exists, then apply deltas
+    await env.DB
+      .prepare('INSERT INTO song_votes (file_name, likes, dislikes, views) VALUES (?, 0, 0, 0) ON CONFLICT(file_name) DO NOTHING')
+      .bind(file_name)
+      .run();
 
     if (likeDelta !== 0 || dislikeDelta !== 0) {
-      await env.DB.prepare('UPDATE song_votes SET likes = MAX(0, likes + ?), dislikes = MAX(0, dislikes + ?) WHERE file_name = ?').bind(likeDelta, dislikeDelta, file_name).run();
+      await env.DB
+        .prepare('UPDATE song_votes SET likes = MAX(0, likes + ?), dislikes = MAX(0, dislikes + ?) WHERE file_name = ?')
+        .bind(likeDelta, dislikeDelta, file_name)
+        .run();
     }
 
-    const sysRes = await env.DB.prepare('SELECT likes, dislikes FROM song_votes WHERE file_name = ?').bind(file_name).first();
-    
-    const isLiked = prevAction !== action && action === 'like';
-    const isDisliked = prevAction !== action && action === 'dislike';
+    const sysRes = await env.DB
+      .prepare('SELECT likes, dislikes, views FROM song_votes WHERE file_name = ?')
+      .bind(file_name)
+      .first();
 
-    return new Response(JSON.stringify({ 
-      liked: isLiked, 
-      disliked: isDisliked,
-      totalLikes: sysRes ? sysRes.likes : 0, 
-      totalDislikes: sysRes ? sysRes.dislikes : 0 
-    }), {
-      headers: { 'Content-Type': 'application/json' }
+    return Response.json({
+      liked:         prevAction !== action && action === 'like',
+      disliked:      prevAction !== action && action === 'dislike',
+      totalLikes:    sysRes?.likes    ?? 0,
+      totalDislikes: sysRes?.dislikes ?? 0,
+      views:         sysRes?.views    ?? 0,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 }
