@@ -31,6 +31,7 @@ export interface SongMetadata {
   globalOffset: number;
   hasTranslation: boolean;
   isDialect: boolean;
+  instrumentalFile?: string;
   support?: boolean | SupportItem[];
   supportItems?: SupportItem[];
   shareCode?: string;
@@ -44,6 +45,7 @@ export interface SongCatalogItem extends SongMetadata {
   isOnR2: boolean;
   hasLyrics: boolean;
   videoUrl: string;
+  instrumentalUrl?: string | null;
   lyricsUrl?: string | null;
 }
 

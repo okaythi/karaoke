@@ -56,11 +56,14 @@ export async function loadCatalog(): Promise<SongCatalogItem[]> {
   // 1. Process all songs registered in the Git manifest
   const catalog: SongCatalogItem[] = localSongs.map(song => {
     const isOnR2 = r2KeySet ? r2KeySet.has(song.videoFile) : true;
+    const instKey = song.instrumentalFile || `${song.videoFile.replace(/\.[^/.]+$/, '')} (Instrumental).m4a`;
+    const hasInst = song.instrumentalFile ? true : (r2KeySet ? r2KeySet.has(instKey) : false);
     return {
       ...song,
       isOnR2,
       hasLyrics: true,
-      videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`
+      videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`,
+      instrumentalUrl: hasInst ? `https://cdn.sudothy.me/${encodeURIComponent(instKey)}` : null
     };
   });
 

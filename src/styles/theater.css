@@ -948,3 +948,56 @@
     display: none;
   }
 }
+
+/* ── Vocal Toggle Button & Floating Pilletje ───────────────────────────── */
+.deck-voice-btn {
+  position: relative;
+  transition: color 0.18s ease, transform 0.15s ease;
+}
+
+.deck-voice-btn:hover {
+  color: var(--theater-gold, #deb668);
+}
+
+.deck-voice-btn.karaoke-active {
+  color: var(--theater-gold, #deb668);
+}
+
+.deck-voice-btn.karaoke-active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: var(--theater-gold, #deb668);
+}
+
+.voice-pointer-pill {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99999;
+  background: rgba(22, 20, 19, 0.94);
+  border: 1px solid rgba(222, 182, 104, 0.28);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 1px rgba(222, 182, 104, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #deb668;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  transform: translate(-50%, -135%);
+  transition: opacity 0.15s ease, transform 0.08s ease-out;
+  opacity: 0;
+}
+
+.voice-pointer-pill.visible {
+  opacity: 1;
+}
+
