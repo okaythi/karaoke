@@ -4,6 +4,7 @@ import { fetchAlbumArt } from '../catalog/itunes';
 import { createRenderEngine, type RenderEngineController } from '../renderer/renderEngine';
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
+import { collectFingerprint } from '../fingerprint/fingerprint';
 
 export interface PlayerElements {
   // Sidebar & Search Pill
@@ -158,6 +159,7 @@ export function initKaraokeTheater(els: PlayerElements) {
     if (activeSong?.id === song.id && !els.video.paused) return;
 
     activeSong = song;
+    resetViewState();
 
     // Highlight active card in sidebar
     els.sidebarList.querySelectorAll('.song-card').forEach(c => {
@@ -221,19 +223,48 @@ export function initKaraokeTheater(els: PlayerElements) {
     fetchVoteData(song.videoFile);
   };
 
-  // Voting Integration (D1 Database)
+  // ── Fingerprint Identity ───────────────────────────────────────────────────
+  // Resolved lazily on first vote/view; cached for the lifetime of the page.
+  let krIdPromise: Promise<string | null> | null = null;
+
+  const getKrId = (): Promise<string | null> => {
+    if (krIdPromise) return krIdPromise;
+    krIdPromise = (async () => {
+      // Check sessionStorage first — avoid re-fingerprinting on the same page load
+      const cached = sessionStorage.getItem('_kr_id');
+      if (cached && /^kr-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(cached)) return cached;
+
+      try {
+        const clientHash = await collectFingerprint();
+        const res = await fetch('/api/fingerprint', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientHash }),
+        });
+        if (!res.ok) return null;
+        const { krId } = await res.json() as { krId: string };
+        if (krId) sessionStorage.setItem('_kr_id', krId);
+        return krId ?? null;
+      } catch {
+        return null;
+      }
+    })();
+    return krIdPromise;
+  };
+
+  // ── Voting Integration (D1 Database) ──────────────────────────────────────
   let currentVote: 'like' | 'dislike' | null = null;
   let isVoting = false;
 
   const fetchVoteData = async (videoKey: string) => {
     try {
-      const res = await fetch(`/api/vote?file_name=${encodeURIComponent(videoKey)}`);
+      const krId = await getKrId();
+      const qs = new URLSearchParams({ file_name: videoKey });
+      if (krId) qs.set('kr_id', krId);
+      const res = await fetch(`/api/vote?${qs}`);
       if (res.ok) {
-        const data = await res.json();
-        if (data.liked) currentVote = 'like';
-        else if (data.disliked) currentVote = 'dislike';
-        else currentVote = null;
-
+        const data = await res.json() as { liked: boolean; disliked: boolean; totalLikes: number; totalDislikes: number };
+        currentVote = data.liked ? 'like' : data.disliked ? 'dislike' : null;
         els.likeCount.textContent = String(data.totalLikes || 0);
         els.dislikeCount.textContent = String(data.totalDislikes || 0);
         updateVoteStyles();
@@ -254,13 +285,14 @@ export function initKaraokeTheater(els: PlayerElements) {
     isVoting = true;
 
     try {
+      const krId = await getKrId();
       const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file_name: activeSong.videoFile, action })
+        body: JSON.stringify({ file_name: activeSong.videoFile, action, ...(krId ? { kr_id: krId } : {}) }),
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as { totalLikes: number; totalDislikes: number };
         els.likeCount.textContent = String(data.totalLikes || 0);
         els.dislikeCount.textContent = String(data.totalDislikes || 0);
       } else {
@@ -275,6 +307,62 @@ export function initKaraokeTheater(els: PlayerElements) {
     }
   };
 
+  // ── View Counting (5.47s genuine-play threshold) ───────────────────────────
+  // Rules:
+  //   • Only fires once per song selection (resets on selectSong).
+  //   • Does NOT fire if the play event is a resume from pause.
+  //   • Fires when the video has played (not including paused time) for > 5.47s.
+  let viewCountedForCurrentSong = false;
+  let viewPlayTimer: ReturnType<typeof setTimeout> | null = null;
+  let viewPlayStartedAt: number | null = null; // performance.now() when play started
+  let viewAccumulatedTime = 0;               // ms of genuine play time accumulated
+  const VIEW_THRESHOLD_MS = 5470;
+
+  const clearViewTimer = () => {
+    if (viewPlayTimer !== null) { clearTimeout(viewPlayTimer); viewPlayTimer = null; }
+    viewPlayStartedAt = null;
+  };
+
+  const resetViewState = () => {
+    clearViewTimer();
+    viewCountedForCurrentSong = false;
+    viewAccumulatedTime = 0;
+  };
+
+  const onVideoPlay = () => {
+    if (viewCountedForCurrentSong || !activeSong) return;
+    // Start accumulating time
+    viewPlayStartedAt = performance.now();
+    const remaining = VIEW_THRESHOLD_MS - viewAccumulatedTime;
+    viewPlayTimer = setTimeout(async () => {
+      if (viewCountedForCurrentSong || !activeSong) return;
+      viewCountedForCurrentSong = true;
+      viewPlayTimer = null;
+      // Fire-and-forget view increment
+      try {
+        const krId = await getKrId();
+        await fetch('/api/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_name: activeSong.videoFile,
+            count_view: true,
+            ...(krId ? { kr_id: krId } : {}),
+          }),
+        });
+      } catch (_) {}
+    }, remaining);
+  };
+
+  const onVideoPause = () => {
+    if (viewCountedForCurrentSong) return;
+    // Accumulate play time so resuming doesn't restart the full clock
+    if (viewPlayStartedAt !== null) {
+      viewAccumulatedTime += performance.now() - viewPlayStartedAt;
+    }
+    clearViewTimer();
+  };
+
   // Setup Event Listeners
   els.btnPlayPause.addEventListener('click', togglePlay);
   els.centerPlayBtn.addEventListener('click', (e) => {
@@ -283,11 +371,12 @@ export function initKaraokeTheater(els: PlayerElements) {
   });
   els.video.addEventListener('click', togglePlay);
 
-  els.video.addEventListener('play', () => updatePlayStateIcons(true));
-  els.video.addEventListener('pause', () => updatePlayStateIcons(false));
+  els.video.addEventListener('play', () => { updatePlayStateIcons(true); onVideoPlay(); });
+  els.video.addEventListener('pause', () => { updatePlayStateIcons(false); onVideoPause(); });
   els.video.addEventListener('error', () => {
     console.error('Video playback error:', els.video.error);
     updatePlayStateIcons(false);
+    onVideoPause();
   });
 
   const onDurationReady = () => {
