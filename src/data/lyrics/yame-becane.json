@@ -104,7 +104,7 @@
         {
           "word": "élan",
           "start": 9.267,
-          "end": 10.003
+          "end": 9.893
         }
       ]
     },
@@ -464,7 +464,7 @@
     },
     {
       "verseStart": 25.831,
-      "verseEnd": 29.87,
+      "verseEnd": 29.966,
       "words": [
         {
           "word": "En ",
@@ -559,7 +559,7 @@
         {
           "word": "grands",
           "start": 29.666,
-          "end": 29.87
+          "end": 29.966
         }
       ]
     },
@@ -726,13 +726,13 @@
         {
           "word": "pavaner",
           "start": 36.82,
-          "end": 37.635
+          "end": 37.51
         }
       ]
     },
     {
       "verseStart": 37.635,
-      "verseEnd": 41.177,
+      "verseEnd": 39.646,
       "words": [
         {
           "word": "Remballe ",
@@ -762,7 +762,7 @@
         {
           "word": "cc",
           "start": 38.652,
-          "end": 41.177
+          "end": 39.246
         }
       ]
     },
@@ -886,7 +886,7 @@
     },
     {
       "verseStart": 54.123,
-      "verseEnd": 61.014,
+      "verseEnd": 59.804,
       "words": [
         {
           "word": "J'sors ",
@@ -941,7 +941,7 @@
         {
           "word": "beuh",
           "start": 58.524,
-          "end": 61.014
+          "end": 59.404
         }
       ]
     },
@@ -1354,7 +1354,7 @@
     },
     {
       "verseStart": 88.972,
-      "verseEnd": 92.525,
+      "verseEnd": 91.294,
       "words": [
         {
           "word": "L'akra ",
@@ -1374,7 +1374,7 @@
         {
           "word": "focaliser",
           "start": 89.788,
-          "end": 92.525
+          "end": 90.894
         }
       ]
     },
@@ -1462,7 +1462,7 @@
     },
     {
       "verseStart": 101.627,
-      "verseEnd": 109.474,
+      "verseEnd": 108.492,
       "words": [
         {
           "word": "J'sors ",
@@ -1492,7 +1492,7 @@
         {
           "word": "ouh",
           "start": 106.292,
-          "end": 109.474
+          "end": 108.092
         }
       ]
     },
@@ -1549,7 +1549,7 @@
     },
     {
       "verseStart": 118.09,
-      "verseEnd": 125.47,
+      "verseEnd": 124.143,
       "words": [
         {
           "word": "Cane, ",
@@ -1594,7 +1594,7 @@
         {
           "word": "beuh",
           "start": 122.093,
-          "end": 125.47
+          "end": 123.743
         }
       ]
     },
@@ -2139,7 +2139,7 @@
     },
     {
       "verseStart": 172.91,
-      "verseEnd": 175.815,
+      "verseEnd": 175.015,
       "words": [
         {
           "word": "Bah ",
@@ -2159,7 +2159,7 @@
         {
           "word": "ouais",
           "start": 173.815,
-          "end": 0
+          "end": 174.615
         }
       ]
     }

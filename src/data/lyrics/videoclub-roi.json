@@ -9,7 +9,7 @@
   "lyricsData": [
     {
       "verseStart": 23.129,
-      "verseEnd": 25.214,
+      "verseEnd": 25.085,
       "words": [
         {
           "word": "T'en",
@@ -44,7 +44,7 @@
         {
           "word": "moi",
           "start": 24.187,
-          "end": 25.214
+          "end": 24.685
         }
       ]
     },
@@ -147,13 +147,13 @@
         {
           "word": "corps",
           "start": 30.77,
-          "end": 32.034
+          "end": 31.556
         }
       ]
     },
     {
       "verseStart": 32.034,
-      "verseEnd": 34.197,
+      "verseEnd": 34.212,
       "words": [
         {
           "word": "Je",
@@ -213,7 +213,7 @@
         {
           "word": "rêves",
           "start": 33.912,
-          "end": 34.197
+          "end": 34.212
         }
       ]
     },
@@ -1046,7 +1046,7 @@
     },
     {
       "verseStart": 80.754,
-      "verseEnd": 83.298,
+      "verseEnd": 83.311,
       "words": [
         {
           "word": "La",
@@ -1106,7 +1106,7 @@
         {
           "word": "jours",
           "start": 83.011,
-          "end": 83.298
+          "end": 83.311
         }
       ]
     },
@@ -1178,7 +1178,7 @@
     },
     {
       "verseStart": 85.596,
-      "verseEnd": 90.289,
+      "verseEnd": 90.303,
       "words": [
         {
           "word": "Je",
@@ -1298,7 +1298,7 @@
         {
           "word": "lèvres",
           "start": 90.003,
-          "end": 90.289
+          "end": 90.303
         }
       ]
     },
@@ -1426,7 +1426,7 @@
     },
     {
       "verseStart": 94.973,
-      "verseEnd": 95.834,
+      "verseEnd": 95.89,
       "words": [
         {
           "word": "Avec",
@@ -1451,7 +1451,7 @@
         {
           "word": "roi",
           "start": 95.59,
-          "end": 95.834
+          "end": 95.89
         }
       ]
     },
@@ -1509,7 +1509,7 @@
     },
     {
       "verseStart": 97.804,
-      "verseEnd": 112.221,
+      "verseEnd": 99.321,
       "words": [
         {
           "word": "Toi",
@@ -1529,7 +1529,7 @@
         {
           "word": "roi",
           "start": 98.423,
-          "end": 112.221
+          "end": 98.921
         }
       ]
     },
@@ -1717,7 +1717,7 @@
     },
     {
       "verseStart": 129.882,
-      "verseEnd": 131.944,
+      "verseEnd": 131.996,
       "words": [
         {
           "word": "J'suis",
@@ -1777,13 +1777,13 @@
         {
           "word": "filles",
           "start": 131.696,
-          "end": 131.944
+          "end": 131.996
         }
       ]
     },
     {
       "verseStart": 131.944,
-      "verseEnd": 138.6,
+      "verseEnd": 136.39,
       "words": [
         {
           "word": "Je",
@@ -1838,13 +1838,13 @@
         {
           "word": "grésillent",
           "start": 133.732,
-          "end": 138.6
+          "end": 135.99
         }
       ]
     },
     {
       "verseStart": 138.6,
-      "verseEnd": 140.826,
+      "verseEnd": 140.837,
       "words": [
         {
           "word": "J'suis",
@@ -1904,13 +1904,13 @@
         {
           "word": "filles",
           "start": 140.537,
-          "end": 140.826
+          "end": 140.837
         }
       ]
     },
     {
       "verseStart": 140.826,
-      "verseEnd": 147.76,
+      "verseEnd": 143.935,
       "words": [
         {
           "word": "Je",
@@ -1965,7 +1965,7 @@
         {
           "word": "grésillent",
           "start": 142.557,
-          "end": 147.76
+          "end": 143.535
         }
       ]
     },
@@ -2114,7 +2114,7 @@
     },
     {
       "verseStart": 160.998,
-      "verseEnd": 166.425,
+      "verseEnd": 166.507,
       "words": [
         {
           "word": "Aime-moi",
@@ -2159,7 +2159,7 @@
         {
           "word": "vermeille",
           "start": 164.425,
-          "end": 0
+          "end": 166.107
         }
       ]
     }

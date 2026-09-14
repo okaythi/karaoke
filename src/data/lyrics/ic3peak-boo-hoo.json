@@ -10,7 +10,7 @@
   "lyricsData": [
     {
       "verseStart": 2.275,
-      "verseEnd": 8.196,
+      "verseEnd": 7.313,
       "words": [
         {
           "word": "Плак- ",
@@ -30,7 +30,7 @@
         {
           "word": "плак",
           "start": 5.615,
-          "end": 8.196
+          "end": 6.913
         }
       ],
       "translation": "Boo-hoo, boo-hoo"
@@ -319,7 +319,7 @@
     },
     {
       "verseStart": 27.359,
-      "verseEnd": 30.543,
+      "verseEnd": 30.639,
       "words": [
         {
           "word": "Я ",
@@ -369,7 +369,7 @@
         {
           "word": "плак)",
           "start": 30.339,
-          "end": 30.543
+          "end": 30.639
         }
       ],
       "translation": "All my life, like a good girl, I lived by the rules (boo-hoo)"
@@ -557,7 +557,7 @@
         {
           "word": "а",
           "start": 47.025,
-          "end": 48.416
+          "end": 48.238
         }
       ],
       "translation": "La-la-la-la-la-a-a-a"
@@ -626,7 +626,7 @@
         {
           "word": "хуже",
           "start": 53.533,
-          "end": 54.554
+          "end": 54.372
         }
       ],
       "translation": "I'm not obedient, I make it worse"
@@ -764,7 +764,7 @@
         {
           "word": "хуже",
           "start": 65.608,
-          "end": 66.708
+          "end": 66.427
         }
       ],
       "translation": "I'm not obedient, I make it worse"
@@ -959,14 +959,14 @@
         {
           "word": "дне",
           "start": 89.422,
-          "end": 91.015
+          "end": 90.624
         }
       ],
       "translation": "Your ice-cold bones are somewhere down at the bottom"
     },
     {
       "verseStart": 91.015,
-      "verseEnd": 99.312,
+      "verseEnd": 96.54,
       "words": [
         {
           "word": "Прорастут ",
@@ -996,14 +996,14 @@
         {
           "word": "земле",
           "start": 95.226,
-          "end": 99.312
+          "end": 96.14
         }
       ],
       "translation": "Flowers will sprout in this wept-over earth"
     },
     {
       "verseStart": 99.312,
-      "verseEnd": 105.437,
+      "verseEnd": 103.882,
       "words": [
         {
           "word": "Плак- ",
@@ -1023,7 +1023,7 @@
         {
           "word": "плак",
           "start": 102.824,
-          "end": 105.437
+          "end": 103.482
         }
       ],
       "translation": "Boo-hoo, boo-hoo"
@@ -1104,7 +1104,7 @@
     },
     {
       "verseStart": 112.303,
-      "verseEnd": 115.338,
+      "verseEnd": 115.353,
       "words": [
         {
           "word": "Очень ",
@@ -1149,7 +1149,7 @@
         {
           "word": "плак)",
           "start": 115.053,
-          "end": 115.338
+          "end": 115.353
         }
       ],
       "translation": "Got really angry at you, you gotta forgive me (boo-hoo)"
@@ -1545,7 +1545,7 @@
         {
           "word": "хуже",
           "start": 138.682,
-          "end": 139.577
+          "end": 139.482
         }
       ],
       "translation": "I'm not obedient, I make it worse"
@@ -1614,7 +1614,7 @@
         {
           "word": "гранату",
           "start": 144.576,
-          "end": 145.761
+          "end": 145.543
         }
       ],
       "translation": "Instead of a star, I grab a grenade"
@@ -1683,7 +1683,7 @@
         {
           "word": "хуже",
           "start": 150.751,
-          "end": 151.73
+          "end": 151.584
         }
       ],
       "translation": "I'm not obedient, I make it worse"
@@ -1720,14 +1720,14 @@
         {
           "word": "папа",
           "start": 153.736,
-          "end": 154.798
+          "end": 154.538
         }
       ],
       "translation": "I don't do it like dad ordered"
     },
     {
       "verseStart": 154.798,
-      "verseEnd": 158.178,
+      "verseEnd": 157.818,
       "words": [
         {
           "word": "Вместо ",
@@ -1752,7 +1752,7 @@
         {
           "word": "гранату",
           "start": 156.792,
-          "end": 158.178
+          "end": 157.418
         }
       ],
       "translation": "Instead of a star, I grab a grenade"
@@ -1900,7 +1900,7 @@
     },
     {
       "verseStart": 167.36,
-      "verseEnd": 170.104,
+      "verseEnd": 170.197,
       "words": [
         {
           "word": "Ла- ",
@@ -1940,7 +1940,7 @@
         {
           "word": "а",
           "start": 169.897,
-          "end": 170.104
+          "end": 170.197
         }
       ],
       "translation": "La-la-la-la-la-a-a-a"
@@ -2066,14 +2066,14 @@
         {
           "word": "дне",
           "start": 186.773,
-          "end": 188.161
+          "end": 188.007
         }
       ],
       "translation": "Your ice-cold bones are somewhere down at the bottom"
     },
     {
       "verseStart": 188.161,
-      "verseEnd": 194.461,
+      "verseEnd": 193.743,
       "words": [
         {
           "word": "Прорастут ",
@@ -2103,7 +2103,7 @@
         {
           "word": "земле",
           "start": 192.461,
-          "end": 193.14
+          "end": 193.343
         }
       ],
       "translation": "Flowers will sprout in this wept-over earth"

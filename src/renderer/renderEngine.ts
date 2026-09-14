@@ -191,10 +191,13 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
           if (isTopRecent) {
             progress = 100;
           } else if (isTopActive) {
-            if (time >= w.end) {
+            const wEnd = (w.end && w.end > w.start) ? w.end : (w.start + 1.2);
+            if (time < w.start) {
+              progress = 0;
+            } else if (time >= wEnd) {
               progress = 100;
-            } else if (time > w.start && w.end > w.start) {
-              progress = Math.min(100, Math.max(0, ((time - w.start) / (w.end - w.start)) * 100));
+            } else if (time > w.start && wEnd > w.start) {
+              progress = Math.min(100, Math.max(0, ((time - w.start) / (wEnd - w.start)) * 100));
             }
           }
           el.style.setProperty('--wipe-progress', `${progress}%`);
@@ -218,10 +221,13 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
           if (isBottomRecent) {
             progress = 100;
           } else if (isBottomActive) {
-            if (time >= w.end) {
+            const wEnd = (w.end && w.end > w.start) ? w.end : (w.start + 1.2);
+            if (time < w.start) {
+              progress = 0;
+            } else if (time >= wEnd) {
               progress = 100;
-            } else if (time > w.start && w.end > w.start) {
-              progress = Math.min(100, Math.max(0, ((time - w.start) / (w.end - w.start)) * 100));
+            } else if (time > w.start && wEnd > w.start) {
+              progress = Math.min(100, Math.max(0, ((time - w.start) / (wEnd - w.start)) * 100));
             }
           }
           el.style.setProperty('--wipe-progress', `${progress}%`);

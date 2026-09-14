@@ -213,7 +213,7 @@
         {
           "word": "table?",
           "start": 50.394,
-          "end": 51.379
+          "end": 51.084
         }
       ]
     },
@@ -331,7 +331,7 @@
     },
     {
       "verseStart": 55.317,
-      "verseEnd": 57.156,
+      "verseEnd": 57.213,
       "words": [
         {
           "word": "Hide ",
@@ -386,7 +386,7 @@
         {
           "word": "to",
           "start": 56.913,
-          "end": 57.156
+          "end": 57.213
         }
       ]
     },
@@ -453,7 +453,7 @@
     },
     {
       "verseStart": 58.81,
-      "verseEnd": 61.927,
+      "verseEnd": 61.082,
       "words": [
         {
           "word": "I ",
@@ -478,13 +478,13 @@
         {
           "word": "trust",
           "start": 59.928,
-          "end": 61.927
+          "end": 60.682
         }
       ]
     },
     {
       "verseStart": 61.927,
-      "verseEnd": 69.657,
+      "verseEnd": 69.271,
       "words": [
         {
           "word": "In ",
@@ -509,13 +509,13 @@
         {
           "word": "suicide",
           "start": 66.837,
-          "end": 69.657
+          "end": 68.871
         }
       ]
     },
     {
       "verseStart": 69.657,
-      "verseEnd": 84.523,
+      "verseEnd": 76.741,
       "words": [
         {
           "word": "I ",
@@ -550,7 +550,7 @@
         {
           "word": "die!",
           "start": 75.267,
-          "end": 84.523
+          "end": 76.341
         }
       ]
     },
@@ -622,7 +622,7 @@
         {
           "word": "makeup",
           "start": 86.301,
-          "end": 87.367
+          "end": 86.927
         }
       ]
     },
@@ -755,7 +755,7 @@
         {
           "word": "table?",
           "start": 90.23,
-          "end": 91.19
+          "end": 91.03
         }
       ]
     },
@@ -812,7 +812,7 @@
     },
     {
       "verseStart": 93.141,
-      "verseEnd": 94.907,
+      "verseEnd": 94.962,
       "words": [
         {
           "word": "Grab ",
@@ -867,7 +867,7 @@
         {
           "word": "to",
           "start": 94.662,
-          "end": 94.907
+          "end": 94.962
         }
       ]
     },
@@ -995,7 +995,7 @@
     },
     {
       "verseStart": 98.429,
-      "verseEnd": 101.627,
+      "verseEnd": 100.694,
       "words": [
         {
           "word": "I ",
@@ -1020,13 +1020,13 @@
         {
           "word": "trust",
           "start": 99.508,
-          "end": 101.627
+          "end": 100.294
         }
       ]
     },
     {
       "verseStart": 101.627,
-      "verseEnd": 109.303,
+      "verseEnd": 108.837,
       "words": [
         {
           "word": "In ",
@@ -1051,13 +1051,13 @@
         {
           "word": "suicide",
           "start": 106.403,
-          "end": 109.303
+          "end": 108.437
         }
       ]
     },
     {
       "verseStart": 109.303,
-      "verseEnd": 116.867,
+      "verseEnd": 115.792,
       "words": [
         {
           "word": "I ",
@@ -1092,7 +1092,7 @@
         {
           "word": "die",
           "start": 114.99,
-          "end": 116.867
+          "end": 115.392
         }
       ]
     },
@@ -1129,7 +1129,7 @@
     },
     {
       "verseStart": 124.311,
-      "verseEnd": 139.25,
+      "verseEnd": 132.482,
       "words": [
         {
           "word": "I ",
@@ -1164,7 +1164,7 @@
         {
           "word": "die",
           "start": 129.856,
-          "end": 139.25
+          "end": 132.082
         }
       ]
     },
@@ -1218,7 +1218,7 @@
     },
     {
       "verseStart": 144.727,
-      "verseEnd": 146.605,
+      "verseEnd": 146.47,
       "words": [
         {
           "word": "Father (",
@@ -1228,7 +1228,7 @@
         {
           "word": "father)",
           "start": 145.668,
-          "end": 146.605
+          "end": 146.07
         }
       ]
     },
@@ -1331,7 +1331,7 @@
         {
           "word": "me?",
           "start": 154.915,
-          "end": 155.895
+          "end": 155.861
         }
       ]
     },
@@ -1435,7 +1435,7 @@
     },
     {
       "verseStart": 168.937,
-      "verseEnd": 178.235,
+      "verseEnd": 177.345,
       "words": [
         {
           "word": "Trust ",
@@ -1465,13 +1465,13 @@
         {
           "word": "suicide",
           "start": 175.423,
-          "end": 178.235
+          "end": 176.945
         }
       ]
     },
     {
       "verseStart": 178.235,
-      "verseEnd": 185.388,
+      "verseEnd": 184.687,
       "words": [
         {
           "word": "I ",
@@ -1506,7 +1506,7 @@
         {
           "word": "die",
           "start": 183.309,
-          "end": 185.388
+          "end": 184.287
         }
       ]
     },
@@ -1543,7 +1543,7 @@
     },
     {
       "verseStart": 192.478,
-      "verseEnd": 200.282,
+      "verseEnd": 200.364,
       "words": [
         {
           "word": "I ",
@@ -1578,7 +1578,7 @@
         {
           "word": "die",
           "start": 198.282,
-          "end": 0
+          "end": 199.964
         }
       ]
     }

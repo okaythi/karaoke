@@ -148,7 +148,7 @@
     },
     {
       "verseStart": 12.516,
-      "verseEnd": 13.619,
+      "verseEnd": 13.635,
       "words": [
         {
           "word": "TrickNyck",
@@ -173,7 +173,7 @@
         {
           "word": "jugg",
           "start": 13.335,
-          "end": 13.619
+          "end": 13.635
         }
       ]
     },
@@ -261,7 +261,7 @@
         {
           "word": "fumo",
           "start": 16.973,
-          "end": 17.464
+          "end": 17.407
         }
       ]
     },
@@ -1284,7 +1284,7 @@
     },
     {
       "verseStart": 64.876,
-      "verseEnd": 66.484,
+      "verseEnd": 66.491,
       "words": [
         {
           "word": "Se",
@@ -1324,7 +1324,7 @@
         {
           "word": "é",
           "start": 66.191,
-          "end": 66.484
+          "end": 66.491
         }
       ]
     },
@@ -1746,7 +1746,7 @@
     },
     {
       "verseStart": 85.712,
-      "verseEnd": 87.372,
+      "verseEnd": 87.387,
       "words": [
         {
           "word": "Se",
@@ -1786,7 +1786,7 @@
         {
           "word": "é",
           "start": 87.087,
-          "end": 87.372
+          "end": 87.387
         }
       ]
     },
@@ -2663,7 +2663,7 @@
     },
     {
       "verseStart": 134.08,
-      "verseEnd": 138.605,
+      "verseEnd": 135.95,
       "words": [
         {
           "word": "Aquele",
@@ -2683,13 +2683,13 @@
         {
           "word": "fé",
           "start": 135.18,
-          "end": 138.605
+          "end": 135.55
         }
       ]
     },
     {
       "verseStart": 138.605,
-      "verseEnd": 140.767,
+      "verseEnd": 140.145,
       "words": [
         {
           "word": "Só",
@@ -2699,7 +2699,7 @@
         {
           "word": "fé",
           "start": 138.767,
-          "end": 0
+          "end": 139.745
         }
       ]
     }

@@ -167,7 +167,7 @@
     },
     {
       "verseStart": 33.346,
-      "verseEnd": 35.471,
+      "verseEnd": 35.528,
       "words": [
         {
           "word": "'",
@@ -217,7 +217,7 @@
         {
           "word": "vettig",
           "start": 35.228,
-          "end": 35.471
+          "end": 35.528
         }
       ],
       "translation": "Ik was mijn haar want het is weer vettig"
@@ -328,7 +328,7 @@
     },
     {
       "verseStart": 39.816,
-      "verseEnd": 41.37,
+      "verseEnd": 41.506,
       "words": [
         {
           "word": "En ",
@@ -363,7 +363,7 @@
         {
           "word": "ritse",
           "start": 41.206,
-          "end": 41.37
+          "end": 41.506
         }
       ],
       "translation": "En binnen het uurtje ben ik weg"
@@ -880,7 +880,7 @@
     },
     {
       "verseStart": 62.721,
-      "verseEnd": 64.68,
+      "verseEnd": 64.694,
       "words": [
         {
           "word": "Bob ",
@@ -920,7 +920,7 @@
         {
           "word": "vies",
           "start": 64.394,
-          "end": 64.68
+          "end": 64.694
         }
       ],
       "translation": "Bob hier Bob daar, het is allemaal iets vies"
@@ -1107,7 +1107,7 @@
         {
           "word": "Jupilerajee",
           "start": 76.246,
-          "end": 77.55
+          "end": 77.48
         }
       ],
       "translation": "Joepiao, Jupilerajee"
@@ -1166,7 +1166,7 @@
     },
     {
       "verseStart": 79.634,
-      "verseEnd": 81.639,
+      "verseEnd": 81.317,
       "words": [
         {
           "word": "Joepiao, ",
@@ -1176,7 +1176,7 @@
         {
           "word": "Jupilerajee",
           "start": 80.419,
-          "end": 81.639
+          "end": 80.917
         }
       ],
       "translation": "Joepiao, Jupilerajee"
@@ -1611,7 +1611,7 @@
     },
     {
       "verseStart": 100.403,
-      "verseEnd": 102.198,
+      "verseEnd": 102.335,
       "words": [
         {
           "word": "Ge ",
@@ -1656,7 +1656,7 @@
         {
           "word": "belette",
           "start": 102.035,
-          "end": 102.198
+          "end": 102.335
         }
       ],
       "translation": "Je moet niet proberen van het mij te beletten"
@@ -2012,7 +2012,7 @@
         {
           "word": "Jupilerajee",
           "start": 118.209,
-          "end": 119.468
+          "end": 119.347
         }
       ],
       "translation": "Joepiao, Jupilerajee"
@@ -2199,7 +2199,7 @@
         {
           "word": "Jupilerajee",
           "start": 130.751,
-          "end": 131.85
+          "end": 131.377
         }
       ],
       "translation": "Joepiao, Jupilerajee"
@@ -2436,7 +2436,7 @@
     },
     {
       "verseStart": 142.391,
-      "verseEnd": 144.605,
+      "verseEnd": 144.618,
       "words": [
         {
           "word": "Azzek ",
@@ -2496,7 +2496,7 @@
         {
           "word": "hum",
           "start": 144.318,
-          "end": 144.605
+          "end": 144.618
         }
       ],
       "translation": "Als ik denk dat het is gedaan, valt nog een flats op mijn hemd"
@@ -3301,7 +3301,7 @@
         {
           "word": "Jupilerajee",
           "start": 185.131,
-          "end": 186.272
+          "end": 185.789
         }
       ],
       "translation": "Joepiao, Jupilerajee"
@@ -3444,7 +3444,7 @@
     },
     {
       "verseStart": 198.85,
-      "verseEnd": 201.92,
+      "verseEnd": 201.49,
       "words": [
         {
           "word": "Want ",
@@ -3469,7 +3469,7 @@
         {
           "word": "krapoelekesdag",
           "start": 199.92,
-          "end": 0
+          "end": 201.09
         }
       ],
       "translation": "Want zaterdag is het krapoeltjesdag"
