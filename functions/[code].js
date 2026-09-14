@@ -2,6 +2,18 @@
 export async function onRequest({ request, params, env }) {
   const code = params.code;
 
+  const ua = request.headers.get('user-agent') || '';
+  if (/facebookexternalhit|Facebot|facebookcatalog|meta-externalagent|Twitterbot|Discordbot|TelegramBot|WhatsApp|LinkedInBot|Slackbot|SkypeUriPreview|Applebot|Googlebot|bingbot|bot|crawl|spider|preview|fetcher/i.test(ua)) {
+    return new Response('', {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/plain',
+        'X-Robots-Tag': 'noindex, nofollow, nosnippet, noimageindex, noarchive',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    });
+  }
+
   // Only match 6-character alphanumeric codes
   if (!code || !/^[A-Za-z0-9]{6}$/.test(code)) {
     return env.ASSETS ? env.ASSETS.fetch(request) : new Response('Not found', { status: 404 });
