@@ -1,286 +1,191 @@
-# Standalone Karaoke Engine Blueprint
+# 08. Standalone Engine Blueprint & Headless SDK Extraction
 
-## 1. Vision & Isolation Strategy
+> Blueprint for decoupling the core presentation, synchronization, and linguistic engine into a framework-agnostic headless SDK (`@nixlabs/karaoke-core`).
 
-While currently embedded inside the `gewoonthy` Astro/Cloudflare application, the **Karaoke Engine** is architecturally decoupled into pure, portable components:
+---
 
-```
-[ Karaoke Engine Standalone ]
-  ├── core/
-  │   ├── types.ts           <-- Pure TypeScript interfaces
-  │   ├── tokenizer.ts       <-- Zero-dependency regex tokenizer & CJK processor
-  │   ├── timing.ts          <-- Contract validation & auto-healing algorithms
-  │   └── clock.ts           <-- 60 FPS requestAnimationFrame tick manager
-  ├── renderer/
-  │   ├── dual-line.ts       <-- Alternating look-ahead topological display
-  │   ├── syllable-wipe.css  <-- GPU hardware-accelerated clip-path styles
-  │   └── backlight.ts       <-- Ambient canvas sampling
-  ├── studio/
-  │   ├── sync-machine.ts    <-- Spacebar tap-to-sync state machine
-  │   └── transport.ts       <-- J/K/L keyboard controls & offset adjustments
-  └── server/
-      └── sync-daemon.ts     <-- Standalone Node/Bun/Deno local persistence daemon
+## 🧩 Architectural Decoupling Strategy
+
+The core presentation, synchronization, and typography subsystems in Karaoke Theater are architected with **zero dependencies on Astro, Cloudflare, or UI frameworks**. They can be extracted cleanly into an independent, headless TypeScript library suitable for npm distribution or embedding into React, Vue, Svelte, Electron, or Tauri applications.
+
+```mermaid
+graph TD
+    subgraph CoreSDK ["@nixlabs/karaoke-core (Zero Framework Runtime)"]
+        Contracts["Core Contracts & Invariants\n(validateSongContract, autoHealTimings)"]
+        NLPTokenizer["Linguistic NLP Tokenizer\n(parseRawLyrics, Ruby, Compound Kana)"]
+        PunctCleaner["Punctuation Engine\n(cleanVersePunctuation)"]
+        RenderEngine["60 FPS Presentation Engine\n(Topological Alternating Dual-Line)"]
+        SyncMachine["Tap-to-Sync State Machine\n(Headless Keystroke Controller)"]
+        PhoneticSort["Phonetic Romaji Sorter\n(Hepburn Transliteration Engine)"]
+        FuzzyMatcher["Phonetic Fuzzy Search\n(Fuzzy Scoring & Ranking)"]
+    end
+
+    subgraph Adapters ["Pluggable Adapters"]
+        MediaAdapter["Media Source Adapters\n(HTML5 Video, Audio, HLS.js, Dash.js)"]
+        PersistenceAdapter["Persistence Adapters\n(Local Disk, REST, R2/S3, IndexedDB)"]
+    end
+
+    subgraph Targets ["Deployment Environments"]
+        AstroApp["Karaoke Theater (Astro 5 Web App)"]
+        ReactApp["React / Next.js Web App"]
+        DesktopApp["Desktop App (Tauri / Electron)"]
+        MobileApp["Mobile Web / Capacitor"]
+    end
+
+    CoreSDK --> Adapters
+    Adapters --> AstroApp
+    Adapters --> ReactApp
+    Adapters --> DesktopApp
+    Adapters --> MobileApp
 ```
 
 ---
 
-## 2. Zero-Dependency Standalone Player Implementation
+## 📦 Package Modularization Plan
 
-A minimal standalone implementation can be instantiated in any standard web page or webview in under 100 lines of JavaScript.
+### Proposed Package: `@nixlabs/karaoke-core`
 
-### Minimal HTML / CSS Blueprint
+```
+@nixlabs/karaoke-core/
+├── contracts/             # Schemas, validation rules, timing auto-healer
+├── tokenizer/             # CJK tokenizer, Yomitan ruby parser, slugifier
+├── punctuation/           # Punctuation auto-merging state machine
+├── renderer/              # 60 FPS dual-line render loop & clip-path wiper
+├── studio/                # Headless tap-to-sync state machine
+├── sorter/                # Hepburn Romaji transliteration & comparator keys
+├── search/                # Phonetic fuzzy search
+└── types/                 # Canonical Word, Verse, SongMetadata models
+```
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Standalone Karaoke Player</title>
-  <style>
-    body {
-      background: #111;
-      color: #fff;
-      font-family: 'Noto Sans JP', system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px;
-    }
-    .player-box {
-      position: relative;
-      width: 800px;
-      max-width: 100%;
-    }
-    video {
-      width: 100%;
-      border-radius: 8px;
-    }
-    .lyrics-container {
-      margin-top: 16px;
-      height: 110px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      font-size: 26px;
-      font-weight: bold;
-    }
-    .k-line {
-      width: 100%;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      transition: opacity 0.2s ease;
-    }
-    .k-top { justify-content: flex-start; padding-left: 5%; }
-    .k-bot { justify-content: flex-end; padding-right: 5%; }
-    .k-idle { opacity: 0.55; }
-    .k-active { opacity: 1.0; }
-    
-    /* Dual-Layer Continuous Syllable Wipe */
-    .word-wrapper {
-      position: relative;
-      display: inline-block;
-      margin: 0 2px;
-    }
-    .word-base {
-      color: rgba(255, 255, 255, 0.45);
-    }
-    .word-highlight {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      color: #FF7744;
-      text-shadow: 0 0 6px rgba(255, 119, 68, 0.8);
-      pointer-events: none;
-      clip-path: inset(0 calc(100% - var(--wipe-progress, 0%)) 0 0);
-      will-change: clip-path;
+### Zero-Dependency Guarantee
+The proposed package depends solely on standard Web APIs:
+- `requestAnimationFrame` and `cancelAnimationFrame`
+- `Intl` and `String.prototype.normalize`
+- Web Crypto API (`crypto.subtle`)
+
+---
+
+## 🔌 Headless API Specifications
+
+### 1. Presentation Controller (`createKaraokeEngine`)
+Decouples visual presentation from specific DOM element structures:
+
+```typescript
+export interface KaraokeEngineConfig {
+  mediaElement: HTMLMediaElement; // HTMLVideoElement or HTMLAudioElement
+  containerElement: HTMLElement;
+  topLineElement: HTMLElement;
+  bottomLineElement: HTMLElement;
+  lyricsData: Verse[];
+  globalOffset?: number;
+  leadInSeconds?: number;        // Defaults to 4.0
+  fadeOutGrace?: number;         // Defaults to 0.6
+  onVerseChange?: (activeVerseIndex: number) => void;
+}
+
+export interface KaraokeEngineController {
+  destroy: () => void;
+  setLyrics: (lyrics: Verse[]) => void;
+  setOffset: (offset: number) => void;
+  getCurrentVerseIndex: () => number;
+}
+
+export function createKaraokeEngine(config: KaraokeEngineConfig): KaraokeEngineController;
+```
+
+### 2. Headless Synchronization State Machine (`createSyncSession`)
+Provides synchronization logic independent of any UI buttons or cards:
+
+```typescript
+export interface SyncSessionConfig {
+  mediaElement: HTMLMediaElement;
+  initialLyrics: Verse[];
+  globalOffset?: number;
+  onWordStamped?: (vIdx: number, wIdx: number, timestamp: number) => void;
+  onVerseCompleted?: (vIdx: number, verse: Verse) => void;
+  onStateChange?: (state: SyncSessionState) => void;
+}
+
+export interface SyncSessionController {
+  tap: () => void;               // Invoked on Spacebar or UI tap
+  undo: () => void;              // Invoked on Backspace
+  deleteVerse: () => void;       // Invoked on Shift+Backspace
+  nudge: (deltaSeconds: number) => void; // Invoked on [ or ]
+  setTarget: (vIdx: number, wIdx: number) => void;
+  getPayload: () => SaveLyricsPayload;
+}
+
+export function createSyncSession(config: SyncSessionConfig): SyncSessionController;
+```
+
+### 3. Pluggable Persistence Adapter Interface
+```typescript
+export interface PersistenceAdapter {
+  saveLyrics(payload: SaveLyricsPayload): Promise<{ success: boolean; error?: string }>;
+  loadLyrics(songId: string): Promise<SongLyricFile | null>;
+}
+
+// Built-in adapter implementations:
+export class RestPersistenceAdapter implements PersistenceAdapter { ... }
+export class IndexedDBPersistenceAdapter implements PersistenceAdapter { ... }
+export class LocalStoragePersistenceAdapter implements PersistenceAdapter { ... }
+```
+
+---
+
+## 💻 Framework Integration Recipes
+
+### React Hook Integration Pattern
+```tsx
+import React, { useEffect, useRef } from 'react';
+import { createKaraokeEngine, type Verse } from '@nixlabs/karaoke-core';
+
+export function KaraokePlayer({ videoUrl, verses }: { videoUrl: string; verses: Verse[] }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const topLineRef = useRef<HTMLDivElement>(null);
+  const bottomLineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!videoRef.current || !containerRef.current || !topLineRef.current || !bottomLineRef.current) {
+      return;
     }
 
-    /* Yomitan Ruby Furigana */
-    .yomitan-ruby { position: relative; }
-    .yomitan-ruby::before {
-      content: attr(data-furi);
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.5em;
-      opacity: 0.85;
-    }
-  </style>
-</head>
-<body>
-  <div class="player-box">
-    <video id="vid" controls src="https://cdn.sudothy.me/VIDEOCLUB%20-%20Roi.mp4"></video>
-    <div class="lyrics-container">
-      <div id="line-top" class="k-line k-top"></div>
-      <div id="line-bot" class="k-line k-bot"></div>
-    </div>
-  </div>
-
-  <script type="module">
-    import { createKaraokeEngine } from './karaoke-engine.js';
-
-    const vid = document.getElementById('vid');
-    const lineTop = document.getElementById('line-top');
-    const lineBot = document.getElementById('line-bot');
-
-    const res = await fetch('./lyrics.json');
-    const songData = await res.json();
-
-    createKaraokeEngine({
-      videoElement: vid,
-      topLineElement: lineTop,
-      bottomLineElement: lineBot,
-      lyricsData: songData.lyricsData,
-      globalOffset: songData.globalOffset || 0
+    const engine = createKaraokeEngine({
+      mediaElement: videoRef.current,
+      containerElement: containerRef.current,
+      topLineElement: topLineRef.current,
+      bottomLineElement: bottomLineRef.current,
+      lyricsData: verses,
     });
-  </script>
-</body>
-</html>
-```
 
----
+    return () => engine.destroy();
+  }, [verses]);
 
-## 3. Pure JavaScript Engine Controller (`karaoke-engine.js`)
-
-```javascript
-export function createKaraokeEngine({
-  videoElement,
-  topLineElement,
-  bottomLineElement,
-  lyricsData = [],
-  globalOffset = 0
-}) {
-  let currentTop = -2;
-  let currentBot = -2;
-  let cachedTopWrappers = [];
-  let cachedBotWrappers = [];
-  let animId = null;
-
-  function buildVerseHTML(verse, key) {
-    if (!verse) return '';
-    return verse.words.map((w, i) => {
-      const display = w.furigana
-        ? `<span class="yomitan-ruby" data-furi="${w.furigana}">${w.word}</span>`
-        : w.word;
-      return `
-        <span class="word-wrapper" id="w-${key}-${i}">
-          <span class="word-base">${display}</span>
-          <span class="word-highlight" aria-hidden="true">${display}</span>
-        </span>
-      `;
-    }).join('');
-  }
-
-  function tick() {
-    const time = videoElement.currentTime - globalOffset;
-    let activeV = -1;
-    let upcomingV = -1;
-
-    for (let i = 0; i < lyricsData.length; i++) {
-      const v = lyricsData[i];
-      if (time >= v.verseStart && time <= v.verseEnd) {
-        activeV = i;
-        break;
-      }
-      if (time < v.verseStart) {
-        upcomingV = i;
-        break;
-      }
-    }
-
-    const focusV = activeV !== -1 ? activeV : upcomingV;
-    let targetTop = -1;
-    let targetBot = -1;
-
-    if (focusV !== -1) {
-      if (focusV % 2 === 0) {
-        targetTop = focusV;
-        targetBot = focusV + 1 < lyricsData.length ? focusV + 1 : -1;
-      } else {
-        targetBot = focusV;
-        targetTop = focusV + 1 < lyricsData.length ? focusV + 1 : -1;
-      }
-    }
-
-    // Top line mount
-    if (targetTop !== currentTop) {
-      currentTop = targetTop;
-      topLineElement.innerHTML = targetTop !== -1 ? buildVerseHTML(lyricsData[targetTop], 'top') : '';
-      cachedTopWrappers = Array.from(topLineElement.querySelectorAll('.word-wrapper'));
-    }
-
-    // Bottom line mount
-    if (targetBot !== currentBot) {
-      currentBot = targetBot;
-      bottomLineElement.innerHTML = targetBot !== -1 ? buildVerseHTML(lyricsData[targetBot], 'bot') : '';
-      cachedBotWrappers = Array.from(bottomLineElement.querySelectorAll('.word-wrapper'));
-    }
-
-    // Syllable wipe interpolation
-    if (targetTop !== -1 && lyricsData[targetTop]) {
-      const isActive = targetTop === activeV;
-      topLineElement.classList.toggle('k-active', isActive);
-      topLineElement.classList.toggle('k-idle', !isActive);
-
-      const words = lyricsData[targetTop].words;
-      for (let j = 0; j < words.length; j++) {
-        const w = words[j];
-        const el = cachedTopWrappers[j];
-        if (!el) continue;
-        let p = 0;
-        if (isActive) {
-          if (time >= w.end) p = 100;
-          else if (time > w.start && w.end > w.start) {
-            p = Math.min(100, Math.max(0, ((time - w.start) / (w.end - w.start)) * 100));
-          }
-        }
-        el.style.setProperty('--wipe-progress', `${p}%`);
-      }
-    }
-
-    if (targetBot !== -1 && lyricsData[targetBot]) {
-      const isActive = targetBot === activeV;
-      bottomLineElement.classList.toggle('k-active', isActive);
-      bottomLineElement.classList.toggle('k-idle', !isActive);
-
-      const words = lyricsData[targetBot].words;
-      for (let j = 0; j < words.length; j++) {
-        const w = words[j];
-        const el = cachedBotWrappers[j];
-        if (!el) continue;
-        let p = 0;
-        if (isActive) {
-          if (time >= w.end) p = 100;
-          else if (time > w.start && w.end > w.start) {
-            p = Math.min(100, Math.max(0, ((time - w.start) / (w.end - w.start)) * 100));
-          }
-        }
-        el.style.setProperty('--wipe-progress', `${p}%`);
-      }
-    }
-
-    animId = requestAnimationFrame(tick);
-  }
-
-  animId = requestAnimationFrame(tick);
-
-  return {
-    destroy: () => cancelAnimationFrame(animId),
-    setOffset: (newOffset) => { globalOffset = newOffset; },
-    setLyrics: (newLyrics) => {
-      lyricsData = newLyrics;
-      currentTop = -2;
-      currentBot = -2;
-    }
-  };
+  return (
+    <div className="karaoke-viewport">
+      <video ref={videoRef} src={videoUrl} controls />
+      <div ref={containerRef} className="lyrics-stage-container">
+        <div ref={topLineRef} className="k-line k-line-top" />
+        <div ref={bottomLineRef} className="k-line k-line-bottom" />
+      </div>
+    </div>
+  );
 }
 ```
 
 ---
 
-## 4. Standalone Microservices & Packaging
+## 🔮 Future Technical Roadmap
 
-1. **NPM Package Target**: `@karaoke/engine` (client player & tokenizer)
-2. **CLI Daemon Target**: `karaoke-sync-daemon` (standalone binary compiled via `bun build --compile scripts/sync-server.ts`)
-3. **Electron / Desktop**: Can be directly embedded into Tauri or Electron with local MP4 playback from disk, saving directly to local `.json` files without requiring an internet connection.
+### 1. Real-Time Pitch Detection & Vocal Scoring
+- **Web Audio Worklet**: Integrate a low-latency Web Audio Worklet running the YIN or autocorrelation algorithm on microphone input.
+- **Pitch Contour Matching**: Compare user pitch curves against MIDI/pitch metadata in real time, rendering note guide bars and gamified accuracy scores.
+
+### 2. Multi-Track Stems & Backing Vocal Isolation
+- **Demucs 4-Stem Model**: Extend the Python alignment pipeline to output complete stems (`vocals.wav`, `drums.wav`, `bass.wav`, `other.wav`).
+- **Client Stem Player**: Use Web Audio API `AudioContext` with multiple synchronized buffer sources, giving users a live slider to adjust backing vocal levels from full vocals to pure instrumental karaoke.
+
+### 3. Collaborative Real-Time Synchronization
+- **Cloudflare Durable Objects**: Implement WebSocket rooms where multiple contributors can review and fine-tune word timings simultaneously.
+- **Conflict-Free Synchronization**: Use operational transformation (OT) to ensure simultaneous timestamp edits merge deterministically without overwriting concurrent adjustments.
