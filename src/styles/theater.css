@@ -90,6 +90,13 @@
   text-transform: uppercase;
 }
 
+.brand-title .brand-subtitle {
+  font-weight: 300;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--theater-text-muted);
+}
+
 /* Search Pill: 1px hairline border, subtle dark fill, no glow */
 .search-pill-container {
   padding: 12px 16px;
