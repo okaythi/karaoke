@@ -34,7 +34,6 @@ export interface SongMetadata {
   support?: boolean | SupportItem[];
   supportItems?: SupportItem[];
   shareCode?: string;
-  hasStems?: boolean;
 }
 
 export interface SongLyricFile extends SongMetadata {
@@ -61,7 +60,6 @@ export interface SaveLyricsPayload {
   globalOffset: number;
   isDialect?: boolean;
   hasTranslation?: boolean;
-  hasStems?: boolean;
   support?: boolean | SupportItem[];
   supportItems?: SupportItem[];
   shareCode?: string;
