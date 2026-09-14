@@ -15,8 +15,17 @@ export interface RenderEngineController {
   setOffset: (offset: number) => void;
 }
 
+const LEAD_IN_SECONDS = 4.0; // Lyrics strictly appear 4 seconds before playing
+const FADE_OUT_GRACE = 0.6;  // Brief grace period after verse ends before clearing
+
 /**
- * Creates the high-performance 60 FPS karaoke render engine.
+ * High-performance 60 FPS karaoke render engine.
+ * Implements:
+ * 1. Strict 4-second lead-in rule: lyrics are completely hidden during instrumental breaks
+ *    and ONLY mount 4s before the vocal onset.
+ * 2. Alternating Dual-Line Staging: Even verses on Top line (left-aligned), Odd verses on Bottom line (right-aligned).
+ * 3. GPU-accelerated continuous syllable wipe via CSS clip-path: inset().
+ * 4. Simultaneous Yomitan Ruby (furigana) wiping.
  */
 export function createRenderEngine(options: RenderEngineOptions): RenderEngineController {
   const {
@@ -62,69 +71,70 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     if (isDestroyed) return;
 
     const time = videoElement.currentTime - globalOffset;
+
+    // Determine currently active singing verse
     let activeV = -1;
-    let upcomingV = -1;
+    for (let i = 0; i < lyricsData.length; i++) {
+      const v = lyricsData[i];
+      if (time >= v.verseStart && time <= v.verseEnd) {
+        activeV = i;
+        break;
+      }
+    }
+
+    // Determine visibility for Top line (Even verses) and Bottom line (Odd verses)
+    // A verse is strictly visible ONLY within [verseStart - 4.0s, verseEnd + 0.6s]
+    let targetTop = -1;
+    let targetBottom = -1;
 
     if (lyricsData.length > 0) {
       for (let i = 0; i < lyricsData.length; i++) {
         const v = lyricsData[i];
-        if (time >= v.verseStart && time <= v.verseEnd) {
-          activeV = i;
-          break;
-        }
-        if (time < v.verseStart) {
-          upcomingV = i;
-          break;
+        const isEligible = time >= (v.verseStart - LEAD_IN_SECONDS) && time <= (v.verseEnd + FADE_OUT_GRACE);
+
+        if (isEligible) {
+          if (i % 2 === 0) {
+            targetTop = i;
+          } else {
+            targetBottom = i;
+          }
         }
       }
     }
 
-    // Alternating Dual-Line Target Resolution
-    const focusV = activeV !== -1 ? activeV : upcomingV;
-    let targetTop = -1;
-    let targetBottom = -1;
-
-    if (focusV !== -1 && lyricsData.length > 0) {
-      if (focusV % 2 === 0) {
-        // Even verse on Top line; Odd verse pre-buffered on Bottom line
-        targetTop = focusV;
-        targetBottom = focusV + 1 < lyricsData.length ? focusV + 1 : -1;
-      } else {
-        // Odd verse on Bottom line; Top line immediately mounts next Even verse
-        targetBottom = focusV;
-        targetTop = focusV + 1 < lyricsData.length ? focusV + 1 : -1;
-      }
-    }
-
-    // Mount or update Top line DOM only when verse identity changes
+    // Mount or update Top line DOM only when verse changes
     if (targetTop !== currentTopVerseIndex) {
       currentTopVerseIndex = targetTop;
       if (targetTop !== -1 && lyricsData[targetTop]) {
         topLineElement.innerHTML = renderVerseWordsHTML(lyricsData[targetTop], 'top');
         cachedTopWords = Array.from(topLineElement.querySelectorAll('.word-wrapper'));
+        topLineElement.style.display = 'flex';
       } else {
         topLineElement.innerHTML = '';
         cachedTopWords = [];
+        topLineElement.style.display = 'none';
       }
     }
 
-    // Mount or update Bottom line DOM only when verse identity changes
+    // Mount or update Bottom line DOM only when verse changes
     if (targetBottom !== currentBottomVerseIndex) {
       currentBottomVerseIndex = targetBottom;
       if (targetBottom !== -1 && lyricsData[targetBottom]) {
         bottomLineElement.innerHTML = renderVerseWordsHTML(lyricsData[targetBottom], 'bot');
         cachedBottomWords = Array.from(bottomLineElement.querySelectorAll('.word-wrapper'));
+        bottomLineElement.style.display = 'flex';
       } else {
         bottomLineElement.innerHTML = '';
         cachedBottomWords = [];
+        bottomLineElement.style.display = 'none';
       }
     }
 
-    // Update Syllable Wipe & Opacity States
+    // Container visibility: strictly visible if either line is currently in its 4s lead-in/active window
     if (targetTop !== -1 || targetBottom !== -1) {
       containerElement.style.opacity = '1';
 
-      // Top line wipe update
+      // Top line state & wipe progress
       if (targetTop !== -1 && lyricsData[targetTop]) {
         const isTopActive = targetTop === activeV;
         topLineElement.classList.toggle('k-line-active', isTopActive);
@@ -148,7 +158,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         }
       }
 
-      // Bottom line wipe update
+      // Bottom line state & wipe progress
       if (targetBottom !== -1 && lyricsData[targetBottom]) {
         const isBottomActive = targetBottom === activeV;
         bottomLineElement.classList.toggle('k-line-active', isBottomActive);
@@ -172,6 +182,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         }
       }
     } else {
+      // Instrumental break or intro: completely fade out lyrics
       containerElement.style.opacity = '0';
     }
 

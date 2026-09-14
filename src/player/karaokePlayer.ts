@@ -16,6 +16,7 @@ export interface PlayerElements {
   videoContainer: HTMLElement;
   backlightContainer: HTMLElement;
   video: HTMLVideoElement;
+  centerPlayBtn: HTMLButtonElement;
   lyricsContainer: HTMLElement;
   lineTop: HTMLElement;
   lineBottom: HTMLElement;
@@ -63,11 +64,21 @@ export function initKaraokeTheater(els: PlayerElements) {
   const updatePlayStateIcons = (isPlaying: boolean) => {
     els.playIcon.style.display = isPlaying ? 'none' : 'block';
     els.pauseIcon.style.display = isPlaying ? 'block' : 'none';
+    if (isPlaying) {
+      els.centerPlayBtn.classList.add('hidden');
+    } else {
+      els.centerPlayBtn.classList.remove('hidden');
+    }
   };
 
   const togglePlay = () => {
     if (els.video.paused) {
-      els.video.play().catch(console.warn);
+      els.video.play().then(() => {
+        updatePlayStateIcons(true);
+      }).catch(err => {
+        console.warn('Playback prevented or failed:', err);
+        updatePlayStateIcons(false);
+      });
     } else {
       els.video.pause();
     }
@@ -88,7 +99,7 @@ export function initKaraokeTheater(els: PlayerElements) {
       return;
     }
 
-    songs.forEach(song => {
+    songs.forEach((song, idx) => {
       const isSelected = activeSong?.id === song.id;
       const item = document.createElement('div');
       item.className = `song-card ${isSelected ? 'active' : ''}`;
@@ -104,7 +115,10 @@ export function initKaraokeTheater(els: PlayerElements) {
           : `<span class="badge badge-trans" title="Localized Translation">Sub</span>`;
       }
 
+      const trackNum = String(idx + 1).padStart(2, '0');
+
       item.innerHTML = `
+        <span class="song-card-num">${trackNum}</span>
         <img class="song-card-art" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%231a1a24'><rect width='44' height='44' rx='6'/><circle cx='22' cy='22' r='10' fill='%23262636'/></svg>" alt="" />
         <div class="song-card-info">
           <div class="song-card-title">${song.title}</div>
@@ -159,6 +173,7 @@ export function initKaraokeTheater(els: PlayerElements) {
 
     // Load lyrics and media
     els.video.src = song.videoUrl;
+    els.video.load();
     els.video.currentTime = 0;
     els.progressBar.value = '0';
     els.timecodeDisplay.textContent = '0:00 / 0:00';
@@ -179,7 +194,12 @@ export function initKaraokeTheater(els: PlayerElements) {
     // Initialize Dynamic Backlight
     backlightController = initDynamicBacklight(els.video, els.backlightContainer);
 
-    els.video.play().catch(e => console.warn('Autoplay prevented:', e));
+    els.video.play().then(() => {
+      updatePlayStateIcons(true);
+    }).catch(e => {
+      console.warn('Autoplay prevented on track select:', e);
+      updatePlayStateIcons(false);
+    });
     fetchVoteData(song.videoFile);
   };
 
@@ -239,10 +259,18 @@ export function initKaraokeTheater(els: PlayerElements) {
 
   // Setup Event Listeners
   els.btnPlayPause.addEventListener('click', togglePlay);
+  els.centerPlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePlay();
+  });
   els.video.addEventListener('click', togglePlay);
 
   els.video.addEventListener('play', () => updatePlayStateIcons(true));
   els.video.addEventListener('pause', () => updatePlayStateIcons(false));
+  els.video.addEventListener('error', () => {
+    console.error('Video playback error:', els.video.error);
+    updatePlayStateIcons(false);
+  });
 
   els.video.addEventListener('timeupdate', () => {
     if (els.video.duration) {
