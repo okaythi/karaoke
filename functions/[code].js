@@ -14,15 +14,15 @@ export async function onRequest({ request, params, env }) {
     });
   }
 
-  // Only match 6-character alphanumeric codes
-  if (!code || !/^[A-Za-z0-9]{6}$/.test(code)) {
+  // Pass through asset requests (files with extensions) or reserved paths
+  if (!code || code.includes('.') || code === 'admin' || code === 'api') {
     return env.ASSETS ? env.ASSETS.fetch(request) : new Response('Not found', { status: 404 });
   }
 
-  // 1. Look up song in D1 database
+  // 1. Look up song in D1 database by share code or song_id slug
   if (env.DB) {
     try {
-      const row = await env.DB.prepare('SELECT song_id FROM song_links WHERE code = ?').bind(code).first();
+      const row = await env.DB.prepare('SELECT song_id FROM song_links WHERE code = ? OR song_id = ?').bind(code, code).first();
       if (row && row.song_id) {
         const redirectUrl = new URL(`/?song=${encodeURIComponent(row.song_id)}`, request.url);
         return Response.redirect(redirectUrl.toString(), 302);
@@ -30,6 +30,11 @@ export async function onRequest({ request, params, env }) {
     } catch (err) {
       console.warn('[Shortlink Router] D1 lookup failed:', err);
     }
+  }
+
+  // 2. If it's a valid slug, redirect directly to the song player
+  if (/^[A-Za-z0-9_-]+$/.test(code)) {
+    return Response.redirect(new URL(`/?song=${encodeURIComponent(code)}`, request.url).toString(), 302);
   }
 
   // Fallback: redirect to homepage
