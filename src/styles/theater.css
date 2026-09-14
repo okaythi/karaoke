@@ -562,17 +562,17 @@
    ========================================================================== */
 .lyrics-stage-container {
   flex-shrink: 0;
-  height: 132px;
-  min-height: 132px;
-  max-height: 132px;
+  height: 144px;
+  min-height: 144px;
+  max-height: 144px;
   width: 100%;
-  max-width: min(680px, 92vw);
+  max-width: min(720px, 92vw);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   font-family: var(--font-lyrics);
   color: var(--theater-text);
   opacity: 0;
@@ -591,16 +591,16 @@
   align-items: baseline;
   justify-content: center;
   text-align: center;
-  row-gap: 8px;
+  row-gap: 6px;
   line-height: 1.25;
-  padding-top: 8px;
+  padding-top: 6px;
   padding-bottom: 2px;
-  transition: opacity 0.2s ease, font-size 0.2s ease, color 0.2s ease, max-height 0.25s ease;
+  transition: opacity 0.25s ease, color 0.25s ease;
 }
 
 .k-line.k-line-has-ruby {
   padding-top: 14px;
-  row-gap: 14px;
+  row-gap: 12px;
 }
 
 .k-line-top,
@@ -615,29 +615,14 @@
   font-size: clamp(13px, 1.3vw, 15px);
   font-weight: 500;
   color: var(--theater-text-dim);
-  opacity: 0.6;
-  max-height: 28px;
-  overflow: hidden;
-  padding-top: 4px;
-}
-
-.k-line-idle.k-line-has-ruby {
-  max-height: 38px;
-  padding-top: 12px;
+  opacity: 0.5;
 }
 
 .k-line-active {
-  font-size: clamp(19px, 2.1vw, 23px);
+  font-size: clamp(18px, 2vw, 22px);
   font-weight: 700;
   color: #9a9183;
   opacity: 1;
-  max-height: 120px;
-  overflow: visible;
-  padding-top: 8px;
-}
-
-.k-line-active.k-line-has-ruby {
-  padding-top: 14px;
 }
 
 .k-line.k-line-dense {
@@ -645,14 +630,13 @@
 }
 
 .k-line-active.k-line-dense {
-  font-size: clamp(16px, 1.7vw, 19px);
-  row-gap: 4px;
+  font-size: clamp(16px, 1.7vw, 18.5px);
+  row-gap: 3px;
 }
 
 .k-line-idle.k-line-dense {
-  font-size: clamp(12px, 1.2vw, 14px);
+  font-size: clamp(12px, 1.2vw, 13.5px);
   row-gap: 2px;
-  max-height: 24px;
 }
 
 .k-verse-break {

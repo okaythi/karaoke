@@ -183,11 +183,10 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
 
       // Top line state & continuous syllable wipe
       if (targetTop !== -1 && lyricsData[targetTop]) {
-        const isTopPrimary = (targetTop === focusV);
         const isTopActive = (targetTop === activeV);
         const isTopRecent = (targetTop === recentV);
-        topLineElement.classList.toggle('k-line-active', isTopPrimary);
-        topLineElement.classList.toggle('k-line-idle', !isTopPrimary);
+        topLineElement.classList.toggle('k-line-active', isTopActive || isTopRecent);
+        topLineElement.classList.toggle('k-line-idle', !isTopActive && !isTopRecent);
 
         const vTop = lyricsData[targetTop];
         for (let j = 0; j < vTop.words.length; j++) {
@@ -214,11 +213,10 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
 
       // Bottom line state & continuous syllable wipe
       if (targetBottom !== -1 && lyricsData[targetBottom]) {
-        const isBottomPrimary = (targetBottom === focusV);
         const isBottomActive = (targetBottom === activeV);
         const isBottomRecent = (targetBottom === recentV);
-        bottomLineElement.classList.toggle('k-line-active', isBottomPrimary);
-        bottomLineElement.classList.toggle('k-line-idle', !isBottomPrimary);
+        bottomLineElement.classList.toggle('k-line-active', isBottomActive || isBottomRecent);
+        bottomLineElement.classList.toggle('k-line-idle', !isBottomActive && !isBottomRecent);
 
         const vBot = lyricsData[targetBottom];
         for (let j = 0; j < vBot.words.length; j++) {
