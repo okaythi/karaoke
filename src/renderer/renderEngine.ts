@@ -55,14 +55,19 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     const wordsHTML = verse.words.map((w, wIdx) => {
       const isJp = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(w.word);
       const margin = isJp ? '0' : '0 3px';
-      const display = w.furigana
-        ? `<span class="yomitan-ruby" data-furi="${w.furigana}">${w.word}</span>`
-        : w.word;
+      const hasBreak = /\r?\n/.test(w.word);
+      const cleanWord = w.word.replace(/\r?\n/g, '');
 
-      return `<span class="word-wrapper" id="w-${lineKey}-${wIdx}" style="margin: ${margin};">
+      const display = w.furigana
+        ? `<span class="yomitan-ruby" data-furi="${w.furigana}">${cleanWord}</span>`
+        : cleanWord;
+
+      const wordSpan = `<span class="word-wrapper" id="w-${lineKey}-${wIdx}" style="margin: ${margin};">
         <span class="word-base">${display}</span>
         <span class="word-highlight" aria-hidden="true">${display}</span>
       </span>`;
+
+      return hasBreak ? `${wordSpan}<span class="k-verse-break" aria-hidden="true"></span>` : wordSpan;
     }).join('');
 
     const translationHTML = verse.translation
@@ -178,10 +183,11 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
 
       // Top line state & continuous syllable wipe
       if (targetTop !== -1 && lyricsData[targetTop]) {
+        const isTopPrimary = (targetTop === focusV);
         const isTopActive = (targetTop === activeV);
         const isTopRecent = (targetTop === recentV);
-        topLineElement.classList.toggle('k-line-active', isTopActive || isTopRecent);
-        topLineElement.classList.toggle('k-line-idle', !isTopActive && !isTopRecent);
+        topLineElement.classList.toggle('k-line-active', isTopPrimary);
+        topLineElement.classList.toggle('k-line-idle', !isTopPrimary);
 
         const vTop = lyricsData[targetTop];
         for (let j = 0; j < vTop.words.length; j++) {
@@ -208,10 +214,11 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
 
       // Bottom line state & continuous syllable wipe
       if (targetBottom !== -1 && lyricsData[targetBottom]) {
+        const isBottomPrimary = (targetBottom === focusV);
         const isBottomActive = (targetBottom === activeV);
         const isBottomRecent = (targetBottom === recentV);
-        bottomLineElement.classList.toggle('k-line-active', isBottomActive || isBottomRecent);
-        bottomLineElement.classList.toggle('k-line-idle', !isBottomActive && !isBottomRecent);
+        bottomLineElement.classList.toggle('k-line-active', isBottomPrimary);
+        bottomLineElement.classList.toggle('k-line-idle', !isBottomPrimary);
 
         const vBot = lyricsData[targetBottom];
         for (let j = 0; j < vBot.words.length; j++) {

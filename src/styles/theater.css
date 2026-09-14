@@ -562,11 +562,11 @@
    ========================================================================== */
 .lyrics-stage-container {
   flex-shrink: 0;
-  height: 128px;
-  min-height: 128px;
-  max-height: 128px;
+  height: 132px;
+  min-height: 132px;
+  max-height: 132px;
   width: 100%;
-  max-width: 620px;
+  max-width: min(680px, 92vw);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -591,16 +591,16 @@
   align-items: baseline;
   justify-content: center;
   text-align: center;
-  row-gap: 12px;
+  row-gap: 8px;
   line-height: 1.25;
-  padding-top: 14px;
+  padding-top: 8px;
   padding-bottom: 2px;
-  transition: opacity 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+  transition: opacity 0.2s ease, font-size 0.2s ease, color 0.2s ease, max-height 0.25s ease;
 }
 
 .k-line.k-line-has-ruby {
-  padding-top: 16px;
-  row-gap: 16px;
+  padding-top: 14px;
+  row-gap: 14px;
 }
 
 .k-line-top,
@@ -612,10 +612,18 @@
 }
 
 .k-line-idle {
-  font-size: clamp(14px, 1.4vw, 16px);
+  font-size: clamp(13px, 1.3vw, 15px);
   font-weight: 500;
   color: var(--theater-text-dim);
-  opacity: 0.65;
+  opacity: 0.6;
+  max-height: 28px;
+  overflow: hidden;
+  padding-top: 4px;
+}
+
+.k-line-idle.k-line-has-ruby {
+  max-height: 38px;
+  padding-top: 12px;
 }
 
 .k-line-active {
@@ -623,11 +631,36 @@
   font-weight: 700;
   color: #9a9183;
   opacity: 1;
+  max-height: 120px;
+  overflow: visible;
+  padding-top: 8px;
+}
+
+.k-line-active.k-line-has-ruby {
+  padding-top: 14px;
 }
 
 .k-line.k-line-dense {
-  font-size: clamp(17px, 1.8vw, 20px);
   row-gap: 3px;
+}
+
+.k-line-active.k-line-dense {
+  font-size: clamp(16px, 1.7vw, 19px);
+  row-gap: 4px;
+}
+
+.k-line-idle.k-line-dense {
+  font-size: clamp(12px, 1.2vw, 14px);
+  row-gap: 2px;
+  max-height: 24px;
+}
+
+.k-verse-break {
+  flex-basis: 100%;
+  width: 100%;
+  height: 0;
+  margin: 0;
+  display: block;
 }
 
 .k-line-translation {
@@ -896,16 +929,18 @@
   }
 
   .lyrics-stage-container {
-    min-height: 80px;
+    height: auto;
+    min-height: 88px;
+    max-height: 132px;
     padding: 4px 8px;
   }
 
   .k-line-active {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .k-line-idle {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .transport-deck-theater {
