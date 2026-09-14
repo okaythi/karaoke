@@ -868,8 +868,13 @@
   color: var(--accent-brass);
 }
 
-.vocal-toggle-btn.active svg {
-  filter: drop-shadow(0 0 7px rgba(222, 182, 104, 0.45));
+.vocal-toggle-btn.harmony-active {
+  color: var(--accent-brass);
+}
+
+.vocal-toggle-btn.active svg,
+.vocal-toggle-btn.harmony-active svg {
+  filter: drop-shadow(0 0 7px rgba(222, 182, 104, 0.55));
 }
 
 .vocal-toggle-btn:active {

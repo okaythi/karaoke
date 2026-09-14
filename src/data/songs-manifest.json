@@ -194,5 +194,16 @@
     "hasTranslation": true,
     "itunesCountry": "be",
     "shareCode": "xHULu4"
+  },
+  {
+    "id": "radwimps-nandemonaiya",
+    "videoFile": "RADWIMPS - Nandemonaiya.mp4",
+    "title": "Nandemonaiya",
+    "artist": "RADWIMPS",
+    "globalOffset": 0,
+    "isDialect": false,
+    "hasTranslation": false,
+    "itunesCountry": "jp",
+    "shareCode": "7mKx8Q"
   }
 ]
