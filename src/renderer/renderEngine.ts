@@ -35,7 +35,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     bottomLineElement
   } = options;
 
-  let lyricsData: Verse[] = options.lyricsData || [];
+  let lyricsData: Verse[] = (options.lyricsData || []).filter(v => v && Array.isArray(v.words) && v.words.length > 0);
   let globalOffset: number = options.globalOffset || 0;
 
   let currentTopVerseIndex = -2;
@@ -251,7 +251,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
     },
     setLyrics: (newLyrics: Verse[]) => {
-      lyricsData = newLyrics;
+      lyricsData = (newLyrics || []).filter(v => v && Array.isArray(v.words) && v.words.length > 0);
       currentTopVerseIndex = -2;
       currentBottomVerseIndex = -2;
     },
