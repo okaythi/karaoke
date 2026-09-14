@@ -1,0 +1,23 @@
+{
+  "name": "karaoke-theater",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "sync:server": "tsx scripts/sync-server.ts"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "astro": "^5.4.2",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260911.1",
+    "tsx": "^4.19.3",
+    "wrangler": "^4.111.0"
+  }
+}
