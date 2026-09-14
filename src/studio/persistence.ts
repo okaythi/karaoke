@@ -78,7 +78,7 @@ export async function saveMaster(
       body: JSON.stringify(payload)
     });
     if (cfRes.ok) {
-      const cfData = await cfRes.json();
+      const cfData = (await cfRes.json()) as { githubCommitted?: boolean };
       els.btnSaveMaster.textContent = 'Saved!';
       setTimeout(() => { els.btnSaveMaster.textContent = 'Save (Ctrl+S)'; }, 1500);
 

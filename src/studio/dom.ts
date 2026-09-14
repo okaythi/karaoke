@@ -6,7 +6,7 @@ export function getStudioElements() {
     studioGrid: document.getElementById('studio-grid') as HTMLElement,
     btnToggleSidebar: document.getElementById('btn-toggle-sidebar') as HTMLButtonElement,
     vid: document.getElementById('studio-video') as HTMLVideoElement,
-    trackSelector: document.getElementById('track-selector') as HTMLSelectElement,
+    trackSelector: document.getElementById('track-selector') as unknown as HTMLSelectElement,
     matrixPane: document.getElementById('matrix-pane') as HTMLElement,
     versesContainer: document.getElementById('verses-container') as HTMLElement,
 

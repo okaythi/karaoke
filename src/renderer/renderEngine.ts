@@ -141,13 +141,14 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         topLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetTop]) > 28);
         topLineElement.classList.toggle('k-line-has-ruby', lyricsData[targetTop].words.some(w => !!w.furigana));
         topLineElement.style.display = 'flex';
+        topLineElement.style.visibility = 'visible';
       } else if (focusV === -1) {
         // In instrumental gap, container opacity is 0; keep elements intact for smooth fade-out
       } else {
         topLineElement.innerHTML = '';
         cachedTopWords = [];
         topLineElement.classList.remove('k-line-has-ruby');
-        topLineElement.style.display = 'none';
+        topLineElement.style.visibility = 'hidden';
       }
     }
 
@@ -160,13 +161,14 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         bottomLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetBottom]) > 28);
         bottomLineElement.classList.toggle('k-line-has-ruby', lyricsData[targetBottom].words.some(w => !!w.furigana));
         bottomLineElement.style.display = 'flex';
+        bottomLineElement.style.visibility = 'visible';
       } else if (focusV === -1) {
         // In instrumental gap, container opacity is 0; keep elements intact for smooth fade-out
       } else {
         bottomLineElement.innerHTML = '';
         cachedBottomWords = [];
         bottomLineElement.classList.remove('k-line-has-ruby');
-        bottomLineElement.style.display = 'none';
+        bottomLineElement.style.visibility = 'hidden';
       }
     }
 

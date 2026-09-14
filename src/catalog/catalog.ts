@@ -20,7 +20,7 @@ export async function fetchR2Data(): Promise<{ videoKeys: string[]; liveLyrics: 
   try {
     const res = await fetch('/api/karaoke/videos');
     if (!res.ok) return null;
-    const data = await res.json();
+    const data = (await res.json()) as any;
     let videoList: (R2VideoItem | string)[] = [];
     let liveLyricsList: string[] = [];
 
@@ -102,7 +102,7 @@ export async function loadLyrics(songId: string): Promise<SongLyricFile | null> 
       headers: { 'Accept': 'application/json' }
     });
     if (liveRes.ok) {
-      const liveData = await liveRes.json();
+      const liveData = (await liveRes.json()) as any;
       if (liveData && liveData.lyricsData) {
         return liveData as SongLyricFile;
       }

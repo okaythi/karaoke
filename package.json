@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "sync:server": "tsx scripts/sync-server.ts"
+    "sync:server": "tsx scripts/sync-server.ts",
+    "sync:links": "tsx scripts/generate-share-links.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

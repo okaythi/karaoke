@@ -25,12 +25,27 @@
   --font-lyrics: 'Plus Jakarta Sans', 'Zen Kurenaido', 'Noto Sans JP', system-ui, sans-serif;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   scrollbar-width: thin;
   scrollbar-color: #2f2a25 transparent;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+::-moz-selection {
+  background: transparent !important;
+  color: inherit !important;
 }
 
 ::-webkit-scrollbar {
