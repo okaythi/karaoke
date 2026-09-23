@@ -1111,43 +1111,6 @@
   margin: 0.15rem 0;
 }
 
-.k-card-section-label {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  color: var(--theater-text-dim);
-  font-weight: 700;
-}
-
-.k-card-apps {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.k-card-app-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.45rem;
-  border-radius: 4px;
-  text-decoration: none;
-  font-size: 0.8rem;
-  color: var(--theater-text);
-  transition: background 0.12s ease;
-}
-
-.k-card-app-item:hover {
-  background: var(--theater-surface);
-  color: var(--accent-brass);
-}
-
-.k-card-app-item.current {
-  color: var(--accent-brass);
-  background: var(--accent-brass-dim);
-}
 
 .k-card-link {
   display: flex;
