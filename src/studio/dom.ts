@@ -65,6 +65,7 @@ export function getStudioElements() {
     uploadCanonicalKey: document.getElementById('upload-canonical-key') as HTMLInputElement,
     uploadProgressContainer: document.getElementById('upload-progress-container') as HTMLElement,
     uploadProgressFill: document.getElementById('upload-progress-fill') as HTMLElement,
+    uploadStatusText: document.getElementById('upload-status-text') as HTMLElement,
     uploadPctText: document.getElementById('upload-pct-text') as HTMLElement,
 
     // Ingest modal

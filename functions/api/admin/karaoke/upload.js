@@ -25,7 +25,7 @@ export async function onRequestPost({ request, env }) {
       fileBody = file.stream();
     } else {
       const url = new URL(request.url);
-      filename = url.searchParams.get('filename') || 'track.mp4';
+      filename = url.searchParams.get('filename') || '';
       fileBody = request.body;
     }
 
@@ -36,12 +36,34 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    // Clean filename
-    const cleanKey = filename.replace(/[\/\\:*?"<>|]/g, '').trim();
+    const contentLength = request.headers.get('content-length');
+    if (contentLength === '0' || !fileBody) {
+      return new Response(JSON.stringify({ error: 'Video upload payload is empty' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Clean and decode filename
+    let cleanKey = filename;
+    try {
+      cleanKey = decodeURIComponent(cleanKey);
+    } catch (_) {}
+    cleanKey = cleanKey.replace(/[\/\\:*?"<>|]/g, '').trim();
+
+    if (!cleanKey) {
+      return new Response(JSON.stringify({ error: 'Invalid filename' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const ext = cleanKey.split('.').pop()?.toLowerCase();
+    const mimeType = ext === 'webm' ? 'video/webm' : ext === 'mkv' ? 'video/x-matroska' : 'video/mp4';
 
     await env.MEDIA_BUCKET.put(cleanKey, fileBody, {
       httpMetadata: {
-        contentType: 'video/mp4'
+        contentType: mimeType
       }
     });
 
@@ -83,12 +105,29 @@ export async function onRequestPost({ request, env }) {
       videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(cleanKey)}`
     }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
+}
+
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  });
 }
