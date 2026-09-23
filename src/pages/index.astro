@@ -119,6 +119,58 @@ import '../styles/theater.css';
             <div class="support-menu" id="support-menu" style="display: none;"></div>
           </div>
 
+          <div class="theater-account-widget">
+            <button class="karaoke-avatar-btn" id="theater-account-btn" aria-label="Account Menu" aria-expanded="false" type="button">
+              <span id="theater-avatar-guest" class="karaoke-avatar-guest">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
+              <img id="theater-avatar-img" src="/avatar.png" alt="Profile" class="karaoke-avatar-img" style="display: none;" />
+              <span id="theater-status-dot" class="karaoke-status-dot" style="display: none;"></span>
+            </button>
+            <div class="karaoke-account-card" id="theater-account-card" style="display: none;" role="dialog" aria-modal="true">
+              <div class="k-card-header" id="theater-card-header-auth" style="display: none;">
+                <img id="theater-card-avatar" src="/avatar.png" alt="Profile" class="k-card-avatar" />
+                <div>
+                  <div class="k-card-name"><span id="theater-user-name"></span> <span class="k-card-role" id="theater-user-role"></span></div>
+                  <div class="k-card-sub" id="theater-user-email"></div>
+                </div>
+              </div>
+              <div class="k-card-header" id="theater-card-header-guest">
+                <div class="k-card-avatar" style="display: flex; align-items: center; justify-content: center; background: var(--theater-surface); color: var(--theater-text-muted);">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="k-card-name">Guest <span class="k-card-role" style="opacity: 0.65;">ANONYMOUS</span></div>
+                  <div class="k-card-sub">Not authenticated</div>
+                </div>
+              </div>
+              <div id="theater-signin-container">
+                <a id="theater-signin-link" href="https://accounts.nixlabs.tech/login" class="k-card-signin-btn">
+                  <span>Sign In with Nixlabs</span>
+                  <span>→</span>
+                </a>
+              </div>
+              <div class="k-card-divider"></div>
+              <div class="k-card-section-label">ECOSYSTEM</div>
+              <div class="k-card-apps" id="karaoke-ecosystem-apps"></div>
+              <div class="k-card-divider"></div>
+              <a href="https://security.nixlabs.tech" class="k-card-link" target="_blank" rel="noopener noreferrer">
+                <span>Sovereign Vault</span>
+                <span>↗</span>
+              </a>
+              <div id="theater-signout-container" style="display: none;">
+                <div class="k-card-divider"></div>
+                <button type="button" class="k-card-signout" id="karaoke-signout-btn">Sign Out</button>
+              </div>
+            </div>
+          </div>
+
           <button class="mobile-queue-toggle" id="mobile-queue-btn" title="Toggle Queue" aria-label="Toggle Queue">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
           </button>
@@ -272,6 +324,113 @@ import '../styles/theater.css';
         btnShuffle: document.getElementById('deck-shuffle-btn') as HTMLButtonElement,
         btnFullscreen: document.getElementById('deck-fullscreen-btn') as HTMLButtonElement
       });
+
+      const accountBtn = document.getElementById('theater-account-btn');
+      const accountCard = document.getElementById('theater-account-card');
+      const appsContainer = document.getElementById('karaoke-ecosystem-apps');
+      const signoutBtn = document.getElementById('karaoke-signout-btn');
+
+      if (accountBtn && accountCard) {
+        accountBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isShown = accountCard.style.display !== 'none';
+          accountCard.style.display = isShown ? 'none' : 'flex';
+          accountBtn.classList.toggle('active', !isShown);
+          accountBtn.setAttribute('aria-expanded', String(!isShown));
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!accountCard.contains(e.target as Node) && !accountBtn.contains(e.target as Node)) {
+            accountCard.style.display = 'none';
+            accountBtn.classList.remove('active');
+            accountBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && accountCard.style.display !== 'none') {
+            accountCard.style.display = 'none';
+            accountBtn.classList.remove('active');
+            accountBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      // Dynamic Nixlabs SSO Session Resolution
+      const avatarGuest = document.getElementById('theater-avatar-guest');
+      const avatarImg = document.getElementById('theater-avatar-img') as HTMLImageElement | null;
+      const statusDot = document.getElementById('theater-status-dot');
+      const cardHeaderAuth = document.getElementById('theater-card-header-auth');
+      const cardHeaderGuest = document.getElementById('theater-card-header-guest');
+      const signinContainer = document.getElementById('theater-signin-container');
+      const signoutContainer = document.getElementById('theater-signout-container');
+      const signinLink = document.getElementById('theater-signin-link') as HTMLAnchorElement | null;
+      const userNameEl = document.getElementById('theater-user-name');
+      const userRoleEl = document.getElementById('theater-user-role');
+      const userEmailEl = document.getElementById('theater-user-email');
+
+      if (signinLink) {
+        signinLink.href = `https://accounts.nixlabs.tech/login?r=${encodeURIComponent(window.location.href)}`;
+      }
+
+      fetch('https://accounts.nixlabs.tech/api/session', {
+        credentials: 'include'
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.authenticated && data.user) {
+            if (avatarGuest) avatarGuest.style.display = 'none';
+            if (avatarImg) {
+              avatarImg.src = data.user.avatarUrl || '/avatar.png';
+              avatarImg.style.display = 'block';
+            }
+            if (statusDot) statusDot.style.display = 'block';
+            if (cardHeaderAuth) cardHeaderAuth.style.display = 'flex';
+            if (cardHeaderGuest) cardHeaderGuest.style.display = 'none';
+            if (signinContainer) signinContainer.style.display = 'none';
+            if (signoutContainer) signoutContainer.style.display = 'block';
+            if (userNameEl) userNameEl.textContent = data.user.name || 'User';
+            if (userRoleEl) userRoleEl.textContent = data.user.role || 'USER';
+            if (userEmailEl) userEmailEl.textContent = data.user.email || '';
+          }
+        })
+        .catch(() => {});
+
+      if (appsContainer) {
+        fetch('/ecosystem.json')
+          .then((r) => r.json())
+          .then((data) => {
+            if (Array.isArray(data?.apps)) {
+              appsContainer.innerHTML = data.apps
+                .map((app: { id: string; name: string; description: string; url: string }) => {
+                  const isCurrent = app.id === 'karaoke';
+                  return `
+                    <a href="${app.url}" class="k-card-app-item ${isCurrent ? 'current' : ''}">
+                      <span>${isCurrent ? '●' : '○'}</span>
+                      <div>
+                        <div style="font-weight: 500;">${app.name}${isCurrent ? ' (current)' : ''}</div>
+                        <div style="font-size: 0.7rem; color: var(--theater-text-dim);">${app.description}</div>
+                      </div>
+                    </a>
+                  `;
+                })
+                .join('');
+            }
+          })
+          .catch(() => {});
+      }
+
+      if (signoutBtn) {
+        signoutBtn.addEventListener('click', async () => {
+          try {
+            await fetch('https://accounts.nixlabs.tech/api/logout', {
+              method: 'POST',
+              credentials: 'include'
+            });
+          } catch {}
+          window.location.href = `https://accounts.nixlabs.tech/login?r=${encodeURIComponent(window.location.href)}`;
+        });
+      }
     });
   </script>
 </body>

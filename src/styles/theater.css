@@ -1001,3 +1001,214 @@
   opacity: 1;
 }
 
+
+/* ==========================================================================
+   Theater Ecosystem Account Widget (Preserves Theater Aesthetic)
+   ========================================================================== */
+
+.theater-account-widget {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  z-index: 100;
+}
+
+.karaoke-avatar-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: var(--theater-surface);
+  border: 1px solid var(--theater-border);
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+
+.karaoke-avatar-btn:hover,
+.karaoke-avatar-btn.active {
+  border-color: var(--accent-brass);
+  transform: translateY(-1px);
+}
+
+.karaoke-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.karaoke-status-dot {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #22c55e;
+  border: 1.5px solid var(--theater-bg);
+}
+
+.karaoke-account-card {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: var(--theater-sidebar-bg);
+  border: 1px solid var(--theater-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  font-family: var(--font-sans);
+}
+
+.k-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.k-card-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  object-fit: cover;
+  border: 1px solid var(--theater-border);
+}
+
+.k-card-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--theater-text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.k-card-role {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent-brass);
+  background: var(--accent-brass-dim);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.k-card-sub {
+  font-size: 0.75rem;
+  color: var(--theater-text-muted);
+}
+
+.k-card-divider {
+  height: 1px;
+  background: var(--theater-border);
+  margin: 0.15rem 0;
+}
+
+.k-card-section-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--theater-text-dim);
+  font-weight: 700;
+}
+
+.k-card-apps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.k-card-app-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.8rem;
+  color: var(--theater-text);
+  transition: background 0.12s ease;
+}
+
+.k-card-app-item:hover {
+  background: var(--theater-surface);
+  color: var(--accent-brass);
+}
+
+.k-card-app-item.current {
+  color: var(--accent-brass);
+  background: var(--accent-brass-dim);
+}
+
+.k-card-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--theater-text);
+  text-decoration: none;
+  transition: background 0.12s ease;
+}
+
+.k-card-link:hover {
+  background: var(--theater-surface);
+  color: var(--accent-brass);
+}
+
+.k-card-signout {
+  width: 100%;
+  padding: 0.45rem;
+  background: var(--theater-surface);
+  border: 1px solid var(--theater-border);
+  border-radius: 4px;
+  color: #ef4444;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+
+.k-card-signout:hover {
+  border-color: #ef4444;
+}
+
+.karaoke-avatar-guest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--theater-text-muted);
+}
+
+.k-card-signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  background: var(--theater-surface);
+  border: 1px solid var(--accent-brass);
+  color: var(--accent-brass);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: all 0.12s ease;
+}
+
+.k-card-signin-btn:hover {
+  background: var(--accent-brass);
+  color: var(--theater-bg);
+}

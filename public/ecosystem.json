@@ -1,0 +1,54 @@
+{
+  "version": "1.1.0",
+  "updated_at": "2026-09-23T16:55:00Z",
+  "apps": [
+    {
+      "id": "nixlabs",
+      "name": "nixlabs.tech",
+      "description": "Systems & Architecture",
+      "url": "https://nixlabs.tech"
+    },
+    {
+      "id": "security",
+      "name": "security",
+      "description": "Master Passkey & Vault",
+      "url": "https://security.nixlabs.tech"
+    },
+    {
+      "id": "visualiser",
+      "name": "visualiser",
+      "description": "3D Telemetry & Audio",
+      "url": "https://visualiser.nixlabs.tech"
+    },
+    {
+      "id": "nihongo",
+      "name": "nihongo",
+      "description": "Synchronized Monologue",
+      "url": "https://nihongo.nixlabs.tech"
+    },
+    {
+      "id": "cdn",
+      "name": "cdn",
+      "description": "Media Distribution",
+      "url": "https://cdn.nixlabs.tech"
+    },
+    {
+      "id": "karaoke",
+      "name": "karaoke",
+      "description": "Interactive Theater",
+      "url": "https://karaoke.nixlabs.tech"
+    },
+    {
+      "id": "minigames",
+      "name": "minigames",
+      "description": "HTML5 Arcades & Minigames",
+      "url": "https://minigames.nixlabs.tech"
+    },
+    {
+      "id": "vestibular",
+      "name": "vestibular",
+      "description": "Exam & Formula Solver",
+      "url": "https://vestibular.nixlabs.tech"
+    }
+  ]
+}
