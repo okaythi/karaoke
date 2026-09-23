@@ -373,7 +373,7 @@ import '../styles/theater.css';
         credentials: 'include'
       })
         .then((r) => (r.ok ? r.json() : null))
-        .then((data) => {
+        .then((data: any) => {
           if (data?.authenticated && data.user) {
             if (avatarGuest) avatarGuest.style.display = 'none';
             if (avatarImg) {

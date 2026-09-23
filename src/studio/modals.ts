@@ -27,7 +27,7 @@ export function initModals(
   const {
     uploadModal, btnOpenUpload, btnCloseUpload, btnCancelUpload, btnStartUpload,
     uploadFileInput, uploadArtistInput, uploadTitleInput, uploadCanonicalKey,
-    uploadProgressContainer, uploadProgressFill, uploadPctText,
+    uploadProgressContainer, uploadProgressFill, uploadStatusText, uploadPctText,
     ingestModal, btnOpenIngest, btnCloseIngest, btnCancelIngest, btnApplyIngest, rawLyricsInput,
     shortcutsModal, btnShortcuts, btnCloseShortcuts, btnDismissShortcuts,
     exportModal, btnExportJson, btnCloseExport, btnCopyExport, btnDownloadExport, exportJsonDisplay
@@ -122,24 +122,55 @@ export function initModals(
 
     const canonicalKey = uploadCanonicalKey.value.trim() || file.name;
     uploadProgressContainer.style.display = 'block';
-    uploadProgressFill.style.width = '20%';
+    uploadProgressFill.style.width = '0%';
+    uploadPctText.textContent = '0%';
+    uploadStatusText.textContent = 'Uploading to R2...';
     btnStartUpload.disabled = true;
 
     try {
-      const formData = new FormData();
-      formData.append('video', file, canonicalKey);
+      const uploadUrl = `/api/admin/karaoke/upload?filename=${encodeURIComponent(canonicalKey)}`;
 
-      const res = await fetch('/api/admin/karaoke/upload', {
-        method: 'POST',
-        body: formData
+      const res = await new Promise<{ ok: boolean; status: number; statusText: string; body: string }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable && e.total > 0) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            uploadProgressFill.style.width = `${pct}%`;
+            uploadPctText.textContent = `${pct}%`;
+            if (pct >= 100) {
+              uploadStatusText.textContent = 'Registering with R2 & D1...';
+            }
+          }
+        };
+
+        xhr.onload = () => {
+          resolve({
+            ok: xhr.status >= 200 && xhr.status < 300,
+            status: xhr.status,
+            statusText: xhr.statusText,
+            body: xhr.responseText
+          });
+        };
+
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.ontimeout = () => reject(new Error('Upload timed out'));
+        xhr.send(file);
       });
 
-      uploadProgressFill.style.width = '100%';
-      uploadPctText.textContent = '100%';
-
       if (!res.ok) {
-        const err = (await res.json()) as { error?: string };
-        throw new Error(err.error || 'Upload failed');
+        let errorMsg = `HTTP ${res.status} ${res.statusText || ''}`.trim();
+        try {
+          const parsed = JSON.parse(res.body);
+          if (parsed && parsed.error) errorMsg = parsed.error;
+        } catch (_) {
+          if (res.body && res.body.trim()) {
+            errorMsg += `: ${res.body.slice(0, 120)}`;
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       uploadModal.classList.remove('open');

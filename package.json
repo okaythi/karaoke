@@ -8,6 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name karaoke --branch main",
     "sync:server": "tsx scripts/sync-server.ts",
     "sync:links": "tsx scripts/generate-share-links.ts"
   },
@@ -20,6 +21,6 @@
     "@cloudflare/workers-types": "^5.20260911.1",
     "@types/node": "^26.5.1",
     "tsx": "^4.19.3",
-    "wrangler": "^4.111.0"
+    "wrangler": "^4.86.0"
   }
 }
