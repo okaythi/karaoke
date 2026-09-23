@@ -146,7 +146,7 @@ import '../styles/theater.css';
                   </svg>
                 </div>
                 <div>
-                  <div class="k-card-name">Guest <span class="k-card-role" style="opacity: 0.65;">ANONYMOUS</span></div>
+                  <div class="k-card-name">Guest</div>
                   <div class="k-card-sub">Not authenticated</div>
                 </div>
               </div>
@@ -157,11 +157,8 @@ import '../styles/theater.css';
                 </a>
               </div>
               <div class="k-card-divider"></div>
-              <div class="k-card-section-label">ECOSYSTEM</div>
-              <div class="k-card-apps" id="karaoke-ecosystem-apps"></div>
-              <div class="k-card-divider"></div>
               <a href="https://security.nixlabs.tech" class="k-card-link" target="_blank" rel="noopener noreferrer">
-                <span>Sovereign Vault</span>
+                <span>Vault</span>
                 <span>↗</span>
               </a>
               <div id="theater-signout-container" style="display: none;">
@@ -327,7 +324,6 @@ import '../styles/theater.css';
 
       const accountBtn = document.getElementById('theater-account-btn');
       const accountCard = document.getElementById('theater-account-card');
-      const appsContainer = document.getElementById('karaoke-ecosystem-apps');
       const signoutBtn = document.getElementById('karaoke-signout-btn');
 
       if (accountBtn && accountCard) {
@@ -395,30 +391,6 @@ import '../styles/theater.css';
           }
         })
         .catch(() => {});
-
-      if (appsContainer) {
-        fetch('/ecosystem.json')
-          .then((r) => r.json())
-          .then((data) => {
-            if (Array.isArray(data?.apps)) {
-              appsContainer.innerHTML = data.apps
-                .map((app: { id: string; name: string; description: string; url: string }) => {
-                  const isCurrent = app.id === 'karaoke';
-                  return `
-                    <a href="${app.url}" class="k-card-app-item ${isCurrent ? 'current' : ''}">
-                      <span>${isCurrent ? '●' : '○'}</span>
-                      <div>
-                        <div style="font-weight: 500;">${app.name}${isCurrent ? ' (current)' : ''}</div>
-                        <div style="font-size: 0.7rem; color: var(--theater-text-dim);">${app.description}</div>
-                      </div>
-                    </a>
-                  `;
-                })
-                .join('');
-            }
-          })
-          .catch(() => {});
-      }
 
       if (signoutBtn) {
         signoutBtn.addEventListener('click', async () => {
