@@ -352,9 +352,10 @@ import '../styles/theater.css';
         });
       }
 
-      // Dynamic Nixlabs SSO Session Resolution
+      // Dynamic Nixlabs SSO Session Resolution (Pattern A per Accounts IdP Specification)
       const avatarGuest = document.getElementById('theater-avatar-guest');
       const avatarImg = document.getElementById('theater-avatar-img') as HTMLImageElement | null;
+      const cardAvatar = document.getElementById('theater-card-avatar') as HTMLImageElement | null;
       const statusDot = document.getElementById('theater-status-dot');
       const cardHeaderAuth = document.getElementById('theater-card-header-auth');
       const cardHeaderGuest = document.getElementById('theater-card-header-guest');
@@ -366,28 +367,75 @@ import '../styles/theater.css';
       const userEmailEl = document.getElementById('theater-user-email');
 
       if (signinLink) {
-        signinLink.href = `https://accounts.nixlabs.tech/login?r=${encodeURIComponent(window.location.href)}`;
+        signinLink.href = 'https://accounts.nixlabs.tech/login';
+        signinLink.addEventListener('click', async (e) => {
+          e.preventDefault();
+          try {
+            const res = await fetch('https://accounts.nixlabs.tech/api/handshake', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ returnTo: window.location.href }),
+            });
+            if (res.ok) {
+              const handshake = (await res.json()) as { url?: string };
+              if (handshake?.url) {
+                window.location.href = handshake.url;
+                return;
+              }
+            }
+          } catch {}
+          window.location.href = 'https://accounts.nixlabs.tech/login';
+        });
       }
 
       fetch('https://accounts.nixlabs.tech/api/session', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+        },
       })
         .then((r) => (r.ok ? r.json() : null))
         .then((data: any) => {
-          if (data?.authenticated && data.user) {
+          if (data?.authenticated && data.user && !data.account?.banned) {
+            const avatarSrc =
+              data.user.avatarUrl ||
+              data.user.avatar ||
+              (data.user.handle
+                ? `https://accounts.nixlabs.tech/avatar?u=${encodeURIComponent(data.user.handle)}`
+                : '/avatar.png');
+
             if (avatarGuest) avatarGuest.style.display = 'none';
+
             if (avatarImg) {
-              avatarImg.src = data.user.avatarUrl || '/avatar.png';
+              avatarImg.onerror = () => {
+                avatarImg.src = '/avatar.png';
+              };
+              avatarImg.src = avatarSrc;
               avatarImg.style.display = 'block';
             }
+
+            if (cardAvatar) {
+              cardAvatar.onerror = () => {
+                cardAvatar.src = '/avatar.png';
+              };
+              cardAvatar.src = avatarSrc;
+            }
+
             if (statusDot) statusDot.style.display = 'block';
             if (cardHeaderAuth) cardHeaderAuth.style.display = 'flex';
             if (cardHeaderGuest) cardHeaderGuest.style.display = 'none';
             if (signinContainer) signinContainer.style.display = 'none';
             if (signoutContainer) signoutContainer.style.display = 'block';
+
             if (userNameEl) userNameEl.textContent = data.user.name || 'User';
             if (userRoleEl) userRoleEl.textContent = data.user.role || 'USER';
-            if (userEmailEl) userEmailEl.textContent = data.user.email || '';
+            if (userEmailEl) {
+              userEmailEl.textContent =
+                data.user.email ||
+                (data.user.handle
+                  ? `${data.user.handle.toLowerCase()}@nixlabs.tech`
+                  : '');
+            }
           }
         })
         .catch(() => {});
@@ -397,10 +445,12 @@ import '../styles/theater.css';
           try {
             await fetch('https://accounts.nixlabs.tech/api/logout', {
               method: 'POST',
-              credentials: 'include'
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({}),
             });
           } catch {}
-          window.location.href = `https://accounts.nixlabs.tech/login?r=${encodeURIComponent(window.location.href)}`;
+          window.location.reload();
         });
       }
     });
