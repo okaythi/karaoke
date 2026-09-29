@@ -1007,13 +1007,4 @@
    Maps Theater Warm Near-Black & Brass Aesthetic into Shadow DOM tokens
    ========================================================================== */
 
-nixlabs-account {
-  --bg-card: var(--theater-sidebar-bg);
-  --bg-subtle: var(--theater-surface);
-  --border: var(--theater-border);
-  --border-focus: var(--accent-brass);
-  --text: var(--theater-text);
-  --text-muted: var(--theater-text-muted);
-  --sans: var(--font-sans);
-  --mono: var(--font-mono);
-}
+/* Account menu typography and palette are owned by Accounts. */
