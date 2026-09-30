@@ -14,7 +14,7 @@ export async function onRequestGet({ env }) {
       .map(o => o.key.replace('_lyrics_live/', '').replace('.json', ''));
 
     const videos = (listed.objects || [])
-      .filter(o => /\.(mp4|webm|mkv)$/i.test(o.key))
+      .filter(o => !o.key.startsWith('karaoke-source/') && /\.(mp4|webm|mkv)$/i.test(o.key))
       .map(o => ({
         key: o.key,
         size: o.size,

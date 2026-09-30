@@ -1,4 +1,4 @@
-import type { SongCatalogItem } from '../types/karaoke';
+import type { SongCatalogItem, Verse } from '../types/karaoke';
 import { loadCatalog, loadLyrics } from '../catalog/catalog';
 import { fetchAlbumArt } from '../catalog/itunes';
 import { sortSongs } from '../catalog/sorter';
@@ -6,6 +6,9 @@ import { createRenderEngine, type RenderEngineController } from '../renderer/ren
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
 import { collectFingerprint } from '../fingerprint/fingerprint';
+const PIANO_SONG_ID = 'itsumo-nando-demo';
+import type { ScoreRenderController } from '../score/render';
+
 
 export interface PlayerElements {
   // Sidebar & Search Pill
@@ -64,6 +67,8 @@ export function initKaraokeTheater(els: PlayerElements) {
   let activeSong: SongCatalogItem | null = null;
   let renderController: RenderEngineController | null = null;
   let backlightController: { destroy: () => void } | null = null;
+  let scoreController: ScoreRenderController | null = null;
+  let destroyCalibration: (() => void) | null = null;
   let prevVolume = 0.7;
   let isDraggingScrubber = false;
   let isKaraokeMode = false;
@@ -258,6 +263,14 @@ export function initKaraokeTheater(els: PlayerElements) {
       backlightController.destroy();
       backlightController = null;
     }
+    if (scoreController) {
+      scoreController.destroy();
+      scoreController = null;
+    }
+    destroyCalibration?.();
+    destroyCalibration = null;
+    const scoreContainer = document.getElementById('piano-score-container');
+    if (scoreContainer) scoreContainer.hidden = song.id !== PIANO_SONG_ID;
 
     // Reset instrumental stem playback
     if (instrumentalAudio) {
@@ -286,7 +299,14 @@ export function initKaraokeTheater(els: PlayerElements) {
     if (els.timecodeDisplay) els.timecodeDisplay.textContent = '0:00 / 0:00';
 
     const lyricFile = await loadLyrics(song.id);
-    const verses = lyricFile?.lyricsData || [];
+    const verses: Verse[] = (lyricFile?.lyricsData || []).map(verse => {
+      if (song.id !== 'the-fairly-odd-parents-theme-song' || verse.speaker) return verse;
+      const line = verse.words.map(word => word.word).join(' ').replace(/\s+/g, ' ').trim().toLowerCase();
+      if (line === 'wands and wings') return { ...verse, speaker: 'Wanda' };
+      if (line === 'floaty crowny things') return { ...verse, speaker: 'Cosmo' };
+      return verse;
+    });
+    els.lyricsContainer.hidden = verses.length === 0;
 
     // Initialize 60 FPS Render Engine
     renderController = createRenderEngine({
@@ -297,6 +317,19 @@ export function initKaraokeTheater(els: PlayerElements) {
       lyricsData: verses,
       globalOffset: song.globalOffset || 0
     });
+
+    if (song.id === PIANO_SONG_ID && scoreContainer) {
+      const [{ loadPianoScore }, { createScoreRenderer }] = await Promise.all([
+        import('../score/load'), import('../score/render')
+      ]);
+      if (activeSong?.id !== song.id) return;
+      const score = loadPianoScore();
+      scoreController = createScoreRenderer(els.video, scoreContainer, score.notes, score);
+      if (import.meta.env.DEV) {
+        const { createPianoCalibration } = await import('../score/calibration');
+        if (activeSong?.id === song.id && scoreController) destroyCalibration = createPianoCalibration(els.video, scoreController, score);
+      }
+    }
 
     // Initialize Dynamic Backlight
     backlightController = initDynamicBacklight(els.video, els.backlightContainer);

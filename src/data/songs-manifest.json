@@ -1,5 +1,14 @@
 [
   {
+    "id": "itsumo-nando-demo",
+    "videoFile": "Itsumo Nando Demo - karaoke.mp4",
+    "title": "Itsumo Nando Demo",
+    "artist": "Yumi Kimura",
+    "globalOffset": 0,
+    "isDialect": false,
+    "hasTranslation": false
+  },
+  {
     "id": "gabrielle-5-fine-frokner",
     "videoFile": "Gabrielle - 5 fine frøkner.mp4",
     "title": "5 fine frøkner",

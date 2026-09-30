@@ -89,9 +89,9 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     if (lyricsData.length > 0) {
       for (let i = 0; i < lyricsData.length; i++) {
         const v = lyricsData[i];
-        if (time >= v.verseStart && time <= v.verseEnd) {
+        if (time >= v.verseStart && time < v.verseEnd) {
+          // Verses can overlap: the newly started line takes focus immediately.
           activeV = i;
-          break;
         }
         if (time > v.verseEnd && time <= v.verseEnd + FADE_OUT_GRACE) {
           recentV = i;
@@ -145,6 +145,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         cachedTopWords = Array.from(topLineElement.querySelectorAll('.word-wrapper'));
         topLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetTop]) > 28);
         topLineElement.classList.toggle('k-line-has-ruby', lyricsData[targetTop].words.some(w => !!w.furigana));
+        topLineElement.dataset.speaker = lyricsData[targetTop].speaker?.replace(/<[^>]*>/g, '').replace(/:$/, '').trim().toLowerCase() || '';
         topLineElement.style.display = 'flex';
         topLineElement.style.visibility = 'visible';
       } else if (focusV === -1) {
@@ -165,6 +166,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         cachedBottomWords = Array.from(bottomLineElement.querySelectorAll('.word-wrapper'));
         bottomLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetBottom]) > 28);
         bottomLineElement.classList.toggle('k-line-has-ruby', lyricsData[targetBottom].words.some(w => !!w.furigana));
+        bottomLineElement.dataset.speaker = lyricsData[targetBottom].speaker?.replace(/<[^>]*>/g, '').replace(/:$/, '').trim().toLowerCase() || '';
         bottomLineElement.style.display = 'flex';
         bottomLineElement.style.visibility = 'visible';
       } else if (focusV === -1) {
