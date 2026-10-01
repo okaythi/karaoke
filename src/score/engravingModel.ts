@@ -24,6 +24,7 @@ export interface EngravingPitch {
   soundingMidi: number;
   writtenMidi: number;
   key: string;
+  displayStaff: number;
 }
 
 export interface EngravingNote {
@@ -38,6 +39,7 @@ export interface EngravingNote {
   tupletGroup?: string;
   ottavaSpan?: string;
   arpeggio?: boolean;
+  crossStaffBassCount?: number;
   pitches: EngravingPitch[];
 }
 
@@ -125,8 +127,29 @@ function generatedOttavas(sources: ReadonlyMap<string, SourceNote>): OttavaSpan[
   }
   // A complete triplet run inside one bar is a passage, even if it is only
   // one measure long. The lower staff remains in bass clef throughout.
-  return spans.filter(span => span.staff === 2 || span.lastMeasure > span.firstMeasure ||
-    (highByMeasure.get(`1:${span.firstMeasure}`)?.high || 0) >= 3);
+  const requestedBassSpans: OttavaSpan[] = [
+    { id: 'ottava-bass-61-64', staff: 2, firstMeasure: 61, lastMeasure: 64, octaveShift: -12 },
+    { id: 'ottava-bass-77-81', staff: 2, firstMeasure: 77, lastMeasure: 81, octaveShift: -12 }
+  ];
+  return [...spans.filter(span =>
+    (span.staff === 2 || span.lastMeasure > span.firstMeasure ||
+      (highByMeasure.get(`1:${span.firstMeasure}`)?.high || 0) >= 3) &&
+    !requestedBassSpans.some(requested => requested.staff === span.staff &&
+      span.firstMeasure <= requested.lastMeasure && span.lastMeasure >= requested.firstMeasure)),
+  ...requestedBassSpans];
+}
+
+function displayStaff(source: SourceNote, measure: number): number {
+  // The ending's low notes belong visually on the bass staff even though the
+  // transcription assigned them to the upper staff.
+  return source.staff === 1 && measure >= 171 && measure <= 175 && source.soundingMidi <= 64 ? 2 : source.staff;
+}
+
+function visibleSegment(source: SourceNote, segment: SourceSegment): boolean {
+  // Very short transcription notes sometimes carry synthetic ties into later
+  // measures. Those fragments outlive the sound and create phantom notation.
+  return segment.measure === source.segments[0].measure ||
+    source.audioEnd - source.audioStart >= 0.75;
 }
 
 function normalizedOffsets(sources: ReadonlyMap<string, SourceNote>): Map<string, number> {
@@ -175,7 +198,9 @@ function normalizedOffsets(sources: ReadonlyMap<string, SourceNote>): Map<string
     entries.forEach((entry, index) => {
       const raw = earliest.get(root(index))!;
       const tripletPassage = entry.segment.staff === 1 && measure >= 82 && measure <= 85;
-      offsets.set(`${entry.source.id}:${measure}`, tripletPassage ? entry.segment.offsetTicks :
+      const rolledChord = (measure === 167 && ['n1628', 'n1629', 'n1630', 'n1631'].includes(entry.source.id)) ||
+        (measure === 170 && ['n1659', 'n1660', 'n1661', 'n1662', 'n1663'].includes(entry.source.id));
+      offsets.set(`${entry.source.id}:${measure}`, rolledChord ? 0 : tripletPassage ? entry.segment.offsetTicks :
         Math.max(0, Math.min(BAR_TICKS - QUANTUM, Math.round(raw / QUANTUM) * QUANTUM)));
     });
   }
@@ -191,11 +216,12 @@ export function buildEngravingScore(): EngravingScore {
   for (const source of sources.values()) {
     const seen = new Set<number>();
     for (const segment of source.segments) {
+      if (!visibleSegment(source, segment)) continue;
       // A source note may be fragmented for transcription ties. One visible
       // note per measure is enough; its original source identity remains linked.
       if (seen.has(segment.measure)) continue;
       seen.add(segment.measure);
-      const key = `${segment.measure}:${segment.staff}`;
+      const key = `${segment.measure}:${displayStaff(source, segment.measure)}`;
       const staffOffsets = bins.get(key) || new Map<number, SourceNote[]>();
       const quantized = offsets.get(`${source.id}:${segment.measure}`)!;
       const group = staffOffsets.get(quantized) || [];
@@ -216,7 +242,10 @@ export function buildEngravingScore(): EngravingScore {
         .sort((a, b) => a.soundingMidi - b.soundingMidi || a.id.localeCompare(b.id))
         .map(source => {
           const writtenMidi = source.soundingMidi + (ottava?.octaveShift || 0);
-          return { sourceId: source.id, soundingMidi: source.soundingMidi, writtenMidi, key: pitchKey(writtenMidi) };
+          const crossStaffBass = measure === 170 && staff === 1 && offsetTicks === 0 &&
+            [68, 71, 75].includes(source.soundingMidi);
+          return { sourceId: source.id, soundingMidi: source.soundingMidi, writtenMidi,
+            key: pitchKey(writtenMidi), displayStaff: crossStaffBass ? 2 : staff };
         });
       const auxiliary = pitches.length === 1 && offsets.get(offsetTicks)![0].segments
         .some(segment => segment.measure === measure && segment.offsetTicks === offsetTicks && segment.voice > 1);
@@ -224,8 +253,15 @@ export function buildEngravingScore(): EngravingScore {
         writtenDuration: value.duration, dotCount: value.dots,
         chordId: `chord-${measure}-${staff}-${offsetTicks}`,
         tupletGroup: triplet ? `triplet-${measure}-${staff}-${Math.floor(offsetTicks / 480)}` : undefined,
-        arpeggio: measure === 54 && staff === 1 && offsetTicks === 0 &&
-          [69, 76, 81].every(midi => pitches.some(pitch => pitch.soundingMidi === midi)),
+        arpeggio: staff === 1 && offsetTicks === 0 && [
+          { measure: 19, midis: [69, 76, 81] },
+          { measure: 54, midis: [69, 76, 81] },
+          { measure: 167, midis: [76, 80, 83, 88] },
+          { measure: 168, midis: [71, 75, 78, 83, 87] },
+          { measure: 170, midis: [68, 71, 75, 80, 92] }
+        ].some(pattern => pattern.measure === measure && pattern.midis.every(midi =>
+          pitches.some(pitch => pitch.soundingMidi === midi))),
+        crossStaffBassCount: measure === 170 && staff === 1 && offsetTicks === 0 ? 3 : undefined,
         ottavaSpan: ottava?.id, pitches });
     }
   }
@@ -248,7 +284,9 @@ export function buildEngravingScore(): EngravingScore {
       }
     }
   }
-  return { sources, notes, ottavas, clefs, measures: timingMap.score.measures };
+  // A final transcription-only tail can contain no visible notes after
+  // removing short source fragments. Do not engrave an empty closing bar.
+  return { sources, notes, ottavas, clefs, measures: Math.max(...notes.map(note => note.measure)) };
 }
 
 export const engravingScore = buildEngravingScore();

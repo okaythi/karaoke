@@ -5,7 +5,9 @@ import type { EngravingNote, EngravingScore, SourceNote } from './engravingModel
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const BAR_TICKS = 1440;
 const STAFF_Y = { 1: 94, 2: 222 } as const;
-const STAFF_COLOR = { 1: '#de8adc', 2: '#6fccd9' } as const;
+const HEAD_COLOR = '#9a9183';
+const STEM_COLOR = '#686055';
+const GLIDE_COLOR = { 1: '#de8adc', 2: '#6fccd9' } as const;
 
 interface Drawn {
   model: EngravingNote;
@@ -32,6 +34,7 @@ export interface EngravingPage {
   anchors: NoteAnchor[];
   highlights: HighlightTarget[];
   svg: SVGSVGElement;
+  terminal?: { audioEnd: number; x: number };
 }
 
 function ghostDuration(ticks: number): string {
@@ -45,7 +48,7 @@ function ghostTicks(duration: string): number {
   return duration === 'h' ? 960 : duration === 'q' ? 480 : duration === '8' ? 240 : 120;
 }
 
-function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number, clef: 'treble' | 'bass'): { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] } {
+function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number, clef: 'treble' | 'bass', lowerStave?: Stave): { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] } {
   const tickables: (StaveNote | GhostNote)[] = [];
   const drawn: Drawn[] = [];
   const tupletGroups = new Map<string, (StaveNote | GhostNote)[]>();
@@ -80,11 +83,17 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
       stemDirection: displayVoice === 2 ? -1 : undefined
     });
     vex.setStave(stave);
-    const color = STAFF_COLOR[model.staff as 1 | 2];
-    vex.setStyle({ fillStyle: color, strokeStyle: color });
-    vex.setStemStyle({ fillStyle: color, strokeStyle: color });
+    if (model.crossStaffBassCount && lowerStave) {
+      const bassKeys = model.pitches.slice(0, model.crossStaffBassCount).map(pitch => pitch.key);
+      const bassProbe = new StaveNote({ keys: bassKeys, duration: model.writtenDuration, clef: 'bass' });
+      const lineGap = (lowerStave.getYForNote(0) - stave.getYForNote(0)) / stave.getSpacingBetweenLines();
+      bassKeys.forEach((_, index) => vex.setKeyLine(index, bassProbe.getKeyLine(index) - lineGap));
+      vex.setLedgerLineStyle({ fillStyle: 'transparent', strokeStyle: 'transparent' });
+    }
+    vex.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
+    vex.setStemStyle({ fillStyle: STEM_COLOR, strokeStyle: STEM_COLOR });
     if (model.writtenDuration === '8' || model.writtenDuration === '16')
-      vex.setFlagStyle({ fillStyle: color, strokeStyle: color });
+      vex.setFlagStyle({ fillStyle: STEM_COLOR, strokeStyle: STEM_COLOR });
     if (model.arpeggio) vex.addModifier(new Stroke(Stroke.Type.ARPEGGIO_DIRECTIONLESS), 0);
     for (let i = 0; i < model.dotCount; i++) Dot.buildAndAttach([vex], { all: true });
     tickables.push(vex); drawn.push({ model, vex });
@@ -127,13 +136,13 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
     if (first) {
       upper.addClef('treble').addKeySignature('E').addTimeSignature('3/4');
       lower.addClef('bass').addKeySignature('E').addTimeSignature('3/4');
-      upper.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: STAFF_COLOR[1], strokeStyle: STAFF_COLOR[1] });
-      lower.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: STAFF_COLOR[2], strokeStyle: STAFF_COLOR[2] });
+      upper.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
+      lower.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
     }
     if (measure === 121) upper.setTempo({ duration: 'q', bpm: 84 }, 0);
     if (measure === 123) upper.setTempo({ duration: 'q', bpm: 112 }, 0);
     const top = [1, 2].map(displayVoice => buildVoice(
-      score.notes.filter(note => note.measure === measure && note.staff === 1 && note.displayVoice === displayVoice), upper, displayVoice, 'treble'));
+      score.notes.filter(note => note.measure === measure && note.staff === 1 && note.displayVoice === displayVoice), upper, displayVoice, 'treble', lower));
     const bottom = [1, 2].map(displayVoice => buildVoice(
       score.notes.filter(note => note.measure === measure && note.staff === 2 && note.displayVoice === displayVoice), lower, displayVoice, 'bass'));
     const topVoices = top.filter(item => item.drawn.length).map(item => item.voice);
@@ -167,6 +176,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
   const highlights: HighlightTarget[] = [];
   const allDrawn: Drawn[] = [];
   const bySource = new Map<string, { vex: StaveNote; index: number; measure: number }[]>();
+  const measureEndX = new Map<number, number>();
   let x = 24;
   for (const item of prepared) {
     const { measure, first, upper, lower, top, bottom, topVoices, bottomVoices, formatter } = item;
@@ -192,7 +202,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
       .map(group => {
         const model = drawn.find(item => item.vex === group[0])!.model;
         return new Beam(group, model.displayVoice === 1)
-          .setStyle({ fillStyle: STAFF_COLOR[model.staff as 1 | 2], strokeStyle: STAFF_COLOR[model.staff as 1 | 2] });
+          .setStyle({ fillStyle: STEM_COLOR, strokeStyle: STEM_COLOR });
       });
     formatter.format([...topVoices, ...bottomVoices], upper.getNoteEndX() - upper.getNoteStartX() - 12, { context });
     topVoices.forEach(voice => voice.draw(context, upper));
@@ -207,7 +217,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
         occurrences.push({ vex: item.vex, index, measure }); bySource.set(source.id, occurrences);
         const head = item.vex.noteHeads[index]?.getSVGElement();
         if (!head) return;
-        const original = item.model.pitches.length === 1 ? item.vex.getSVGElement() : head;
+        const original = head;
         if (!original) return;
         const bounds = (original as SVGGraphicsElement).getBBox();
         const clip = document.createElementNS(SVG_NS, 'clipPath');
@@ -221,8 +231,8 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
         overlay.removeAttribute('id'); overlay.querySelectorAll('[id]').forEach(child => child.removeAttribute('id'));
         overlay.setAttribute('class', 'score-note-highlight');
         overlay.setAttribute('clip-path', `url(#${id})`);
-        overlay.setAttribute('fill', STAFF_COLOR[item.model.staff as 1 | 2]);
-        overlay.setAttribute('stroke', STAFF_COLOR[item.model.staff as 1 | 2]);
+        overlay.setAttribute('fill', GLIDE_COLOR[pitch.displayStaff as 1 | 2]);
+        overlay.setAttribute('stroke', GLIDE_COLOR[pitch.displayStaff as 1 | 2]);
         original.parentElement?.appendChild(overlay);
         const total = source.segments.reduce((sum, segment) => sum + segment.durationTicks, 0);
         let preceding = 0;
@@ -237,6 +247,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
     }
     beams.forEach(beam => beam.setContext(context).draw());
     [...top, ...bottom].flatMap(voice => voice.tuplets).forEach(tuplet => tuplet.setContext(context).draw());
+    measureEndX.set(measure, x + item.width);
     x += item.width;
   }
   for (const occurrences of bySource.values()) {
@@ -258,10 +269,17 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
       .setLine(span.staff === 1 && members.some(item => item.model.tupletGroup) ? 5 : 1)
       .setContext(context).draw();
   }
-  return { anchors, highlights, svg };
+  let terminal: EngravingPage['terminal'];
+  if (lastMeasure === score.measures) {
+    const finalSource = [...score.sources.values()].reduce((latest, source) =>
+      source.audioEnd > latest.audioEnd ? source : latest);
+    const finalMeasure = finalSource.segments.at(-1)!.measure;
+    terminal = { audioEnd: finalSource.audioEnd, x: measureEndX.get(finalMeasure) || x };
+  }
+  return { anchors, highlights, svg, terminal };
 }
 
-export function onsetToX(anchors: readonly NoteAnchor[], time: number): number {
+export function onsetToX(anchors: readonly NoteAnchor[], time: number, terminal?: EngravingPage['terminal']): number {
   const points = [...anchors].sort((a, b) => a.audioStart - b.audioStart || a.x - b.x);
   if (!points.length) return 0;
   if (time <= points[0].audioStart) return points[0].x;
@@ -271,5 +289,8 @@ export function onsetToX(anchors: readonly NoteAnchor[], time: number): number {
     const span = after.audioStart - before.audioStart;
     return span > 0 ? before.x + (after.x - before.x) * (time - before.audioStart) / span : after.x;
   }
-  return points.at(-1)!.x;
+  const last = points.at(-1)!;
+  if (terminal && time < terminal.audioEnd && terminal.audioEnd > last.audioStart)
+    return last.x + (terminal.x - last.x) * (time - last.audioStart) / (terminal.audioEnd - last.audioStart);
+  return terminal && time >= terminal.audioEnd ? terminal.x : last.x;
 }
