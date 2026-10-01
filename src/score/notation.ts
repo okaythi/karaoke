@@ -30,6 +30,36 @@ export const notationEvents: NotationEvent[] = (score.events as NotationEvent[])
 });
 export const engravingBeatGrid = score.beatGridSeconds as number[];
 
+// Written durations follow the next attack in the same musical line. MIDI
+// releases and pedal tails remain exclusively in the performance model.
+function inferWrittenDurations(events: EngravedEvent[]): void {
+  const byVoice = new Map<SemanticVoice, Map<number, EngravedEvent[]>>();
+  for (const event of events) {
+    if (event.semanticVoice === 'ignore') continue;
+    let attacks = byVoice.get(event.semanticVoice);
+    if (!attacks) { attacks = new Map(); byVoice.set(event.semanticVoice, attacks); }
+    const chord = attacks.get(event.scoreStart) || [];
+    chord.push(event); attacks.set(event.scoreStart, chord);
+  }
+  for (const attacks of byVoice.values()) {
+    const starts = [...attacks.keys()].sort((a, b) => a - b);
+    starts.forEach((start, index) => {
+      const next = starts[index + 1];
+      const untilBarline = 3 - start % 3;
+      const span = next === undefined || next - start > 3 ? untilBarline : next - start;
+      const written = Math.max(.25, Math.min(3, span));
+      for (const event of attacks.get(start)!) {
+        const correction = (corrections as Record<string, Partial<NotationEvent>>)[event.performanceId];
+        event.scoreDuration = correction?.scoreDuration ?? written;
+        const single = [[3, 'h', true], [2, 'h', false], [1.5, 'q', true], [1, 'q', false], [.75, '8', true], [.5, '8', false], [.25, '16', false]] as const;
+        const glyph = single.find(([length]) => length === event.scoreDuration);
+        event.duration = glyph?.[1] || 'tied';
+        event.dotted = glyph?.[2] || false;
+      }
+    });
+  }
+}
+
 export function linkNotation(notes: ClassifiedNote[]): EngravedEvent[] {
   const byId = new Map(notes.map(note => [note.id, note]));
   if (byId.size !== notes.length) throw new Error('Duplicate MIDI source IDs');
@@ -65,5 +95,6 @@ export function linkNotation(notes: ClassifiedNote[]): EngravedEvent[] {
     }
     attackPitches.add(pitchKey);
   }
+  inferWrittenDurations(result);
   return result;
 }
