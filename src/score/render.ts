@@ -1,4 +1,4 @@
-import { Accidental, Beam, Dot, Formatter, Renderer, Stave, StaveNote, StaveTie, Voice } from 'vexflow';
+import { Accidental, Beam, Dot, Formatter, GhostNote, MultiMeasureRest, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Voice } from 'vexflow';
 import { clampProgress } from './model';
 import { linkNotation } from './notation';
 import type { EngravedEvent } from './notation';
@@ -16,9 +16,9 @@ interface ScoreSystem { firstBar: number; widths: number[] }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const BEATS_PER_BAR = 3;
-const HEADER_WIDTH = 130;
-const MAX_BARS_PER_SYSTEM = 6;
-const STAFF_Y = { treble: 10, bass: 150 } as const;
+const HEADER_WIDTH = 120;
+const MAX_BARS_PER_SYSTEM = 7;
+const STAFF_Y = { treble: 60, bass: 175 } as const;
 const PITCH_NAMES = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
 const pitchKey = (pitch: number) => `${PITCH_NAMES[pitch % 12]}/${Math.floor(pitch / 12) - 1}`;
 const durations: [number, string, boolean][] = [[3, 'h', true], [2, 'h', false], [1.5, 'q', true], [1, 'q', false], [.75, '8', true], [.5, '8', false], [.25, '16', false]];
@@ -99,10 +99,16 @@ function addRests(tickables: StaveNote[], from: number, to: number, clef: 'trebl
   }
 }
 
-function buildVoices(parts: Segment[], barStart: number, stave: Stave, clef: 'treble' | 'bass'): { voices: Voice[]; drawn: DrawnNote[]; beams: Beam[] } {
+function buildVoices(parts: Segment[], barStart: number, stave: Stave, clef: 'treble' | 'bass'): { voices: Voice[]; drawn: DrawnNote[]; beams: Beam[]; wholeRest: boolean } {
+  if (!parts.length) return {
+    voices: [new Voice({ numBeats: BEATS_PER_BAR, beatValue: 4 })
+      .addTickables([new GhostNote('h'), new GhostNote('q')]).setStave(stave)],
+    drawn: [], beams: [], wholeRest: true
+  };
   const drawn: DrawnNote[] = [];
   const beams: Beam[] = [];
-  const voices = partitionVoices(chordGroups(parts)).map((lane, laneIndex) => {
+  const lanes = partitionVoices(chordGroups(parts));
+  const voices = lanes.map((lane, laneIndex) => {
     const tickables: StaveNote[] = [];
     const laneNotes: DrawnNote[] = [];
     let beat = barStart;
@@ -113,15 +119,10 @@ function buildVoices(parts: Segment[], barStart: number, stave: Stave, clef: 'tr
       if (!notation) throw new Error(`Unwritable note duration ${length}`);
       const vex = new StaveNote({
         keys: group.map(part => part.event.spelling || pitchKey(part.event.pitch)),
-        duration: notation[1], clef, autoStem: false,
-        stemDirection: laneIndex % 2 ? -1 : 1
+        duration: notation[1], clef, autoStem: lanes.length === 1,
+        stemDirection: lanes.length === 1 ? undefined : laneIndex % 2 ? -1 : 1
       });
       if (notation[2]) Dot.buildAndAttach([vex], { all: true });
-      group.forEach((part, index) => {
-        const chromatic = part.event.pitch % 12;
-        if ([0, 2, 5, 7].includes(chromatic)) vex.addModifier(new Accidental('n'), index);
-        if (chromatic === 10) vex.addModifier(new Accidental('#'), index);
-      });
       tickables.push(vex);
       const item = { vex, group };
       drawn.push(item); laneNotes.push(item);
@@ -141,14 +142,14 @@ function buildVoices(parts: Segment[], barStart: number, stave: Stave, clef: 'tr
     flush();
     return new Voice({ numBeats: BEATS_PER_BAR, beatValue: 4 }).addTickables(tickables).setStave(stave);
   });
-  return { voices, drawn, beams };
+  return { voices, drawn, beams, wholeRest: false };
 }
 
 function measureWidth(events: EngravedEvent[], bar: number): number {
   const start = bar * BEATS_PER_BAR;
-  const parts = events.filter(event => event.semanticVoice !== 'ignore' && event.scoreStart < start + BEATS_PER_BAR && event.scoreStart + event.scoreDuration > start);
-  const attacks = new Set(parts.map(event => Math.max(start, event.scoreStart)));
-  return Math.max(132, 38 + attacks.size * 35 + Math.min(70, parts.length * 6));
+  const attacksInBar = events.filter(event => event.semanticVoice !== 'ignore' && event.scoreStart >= start && event.scoreStart < start + BEATS_PER_BAR);
+  const attacks = new Set(attacksInBar.map(event => event.scoreStart));
+  return Math.max(96, 34 + attacks.size * 21 + Math.min(25, attacksInBar.length * 2));
 }
 
 function scoreSystems(events: EngravedEvent[], width: number): ScoreSystem[] {
@@ -157,7 +158,7 @@ function scoreSystems(events: EngravedEvent[], width: number): ScoreSystem[] {
   for (let bar = 0; bar < totalBars;) {
     const firstBar = bar;
     const widths: number[] = [];
-    let used = HEADER_WIDTH + 12;
+    let used = HEADER_WIDTH + 35;
     while (bar < totalBars && widths.length < MAX_BARS_PER_SYSTEM) {
       const measure = measureWidth(events, bar);
       if (widths.length && used + measure > width) break;
@@ -171,6 +172,7 @@ function scoreSystems(events: EngravedEvent[], width: number): ScoreSystem[] {
 export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElement, initialNotes: ClassifiedNote[], options: RenderOptions): ScoreRenderController {
   let notes = initialNotes;
   let notation = options.notation;
+  let notationById = new Map(notation.map(event => [event.performanceId, event]));
   const visible: Record<SemanticVoice, boolean> = { main: true, response: true, leftHand: true, ignore: false };
   let systems: ScoreSystem[] = [];
   let page = -1;
@@ -182,7 +184,8 @@ export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElem
   const pageForTime = (time: number) => {
     let lo = 0, hi = notes.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (notes[mid].mediaStartTime <= time) lo = mid + 1; else hi = mid; }
-    const event = notation.find(item => item.performanceId === notes[Math.max(0, lo - 1)]?.id);
+    const sourceId = notes[Math.max(0, lo - 1)]?.id;
+    const event = sourceId ? notationById.get(sourceId) : undefined;
     const bar = Math.floor((event?.scoreStart || 0) / BEATS_PER_BAR);
     return Math.max(0, systems.findIndex(system => bar >= system.firstBar && bar < system.firstBar + system.widths.length));
   };
@@ -196,17 +199,17 @@ export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElem
     container.innerHTML = `<div class="score-heading">PIANO SCORE <span>BARS ${firstBar + 1}–${lastBar} · NOTATION DRAFT${uncertain ? ` · ${uncertain} UNCERTAIN` : ''}</span></div><div class="score-engraving"></div>`;
     const target = container.querySelector('.score-engraving') as HTMLDivElement;
     const viewportWidth = Math.max(300, target.clientWidth);
-    const contentWidth = HEADER_WIDTH + widths.reduce((sum, width) => sum + width, 0) + 12;
+    const contentWidth = 30 + HEADER_WIDTH + widths.reduce((sum, width) => sum + width, 0) + 12;
     const renderer = new Renderer(target, Renderer.Backends.SVG);
-    renderer.resize(Math.max(viewportWidth, contentWidth), 270);
+    renderer.resize(Math.max(viewportWidth, contentWidth), 320);
     const context = renderer.getContext();
     context.setFillStyle('#9a9183'); context.setStrokeStyle('#686055');
     const svg = target.querySelector('svg') as SVGSVGElement;
-    svg.setAttribute('viewBox', `0 0 ${Math.max(viewportWidth, contentWidth)} 270`);
+    svg.setAttribute('viewBox', `0 0 ${Math.max(viewportWidth, contentWidth)} 320`);
     const defs = document.createElementNS(SVG_NS, 'defs'); svg.insertBefore(defs, svg.firstChild);
     const tiedFragments = new Map<string, { note: StaveNote; index: number; start: number; end: number; bar: number; event: EngravedEvent }[]>();
 
-    let x = 5;
+    let x = 30;
     for (let offset = 0; offset < widths.length; offset++) {
       const bar = firstBar + offset;
       const barStart = bar * BEATS_PER_BAR;
@@ -219,9 +222,16 @@ export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElem
         bass.addClef('bass').addKeySignature(options.engravingKeySignature).addTimeSignature(`${options.timeSignature.numerator}/${options.timeSignature.denominator}`);
       }
       treble.setContext(context).draw(); bass.setContext(context).draw();
+      if (first) {
+        new StaveConnector(treble, bass).setType('brace').setContext(context).draw();
+        new StaveConnector(treble, bass).setType('singleLeft').setContext(context).draw();
+      }
+      new StaveConnector(treble, bass).setType('singleRight').setContext(context).draw();
       bass.setNoteStartX(treble.getNoteStartX());
       const upper = buildVoices(segments(notation, 'treble', barStart, barStart + BEATS_PER_BAR, visible), barStart, treble, 'treble');
       const lower = buildVoices(segments(notation, 'bass', barStart, barStart + BEATS_PER_BAR, visible), barStart, bass, 'bass');
+      Accidental.applyAccidentals(upper.voices, options.engravingKeySignature);
+      Accidental.applyAccidentals(lower.voices, options.engravingKeySignature);
       const voices = [...upper.voices, ...lower.voices];
       voices.forEach(voice => voice.preFormat());
       const formatter = new Formatter();
@@ -229,6 +239,12 @@ export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElem
       formatter.format(voices, treble.getNoteEndX() - treble.getNoteStartX() - Stave.defaultPadding, { alignRests: true, context });
       formatter.postFormat();
       voices.forEach(voice => voice.draw(context));
+      for (const [staff, material] of [[treble, upper], [bass, lower]] as const) {
+        if (!material.wholeRest) continue;
+        const rest = new MultiMeasureRest(1, { numberOfMeasures: 1, useSymbols: true, showNumber: false });
+        rest.setStave(staff).setContext(context).draw();
+        const element = rest.getSVGElement(); if (element) colorGroup(element, '#625b4f');
+      }
 
       for (const { vex, group } of [...upper.drawn, ...lower.drawn]) {
         const base = vex.getSVGElement(); if (!base) continue;
@@ -256,7 +272,7 @@ export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElem
           overlay.setAttribute('class', `score-note-highlight voice-${part.event.semanticVoice}`);
           overlay.dataset.sourceId = sourceId;
           overlay.setAttribute('clip-path', `url(#${clipId})`);
-          colorGroup(overlay, '#e95420'); base.parentElement?.appendChild(overlay);
+          colorGroup(overlay, '#e95420'); source.parentElement?.appendChild(overlay);
           mounted.push({ note: part.event.performance, clipRect: rect, width: bounds.width + 2 });
           const fragments = tiedFragments.get(sourceId) || [];
           fragments.push({ note: vex, index: keyIndex, start: part.start, end: part.end, bar, event: part.event });
@@ -292,7 +308,7 @@ export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElem
     const time = video.currentTime;
     const next = pageForTime(time); if (next !== page) drawPage(next);
     for (const { note, clipRect, width } of mounted) {
-      const progress = clampProgress(time, note.mediaStartTime, note.mediaSoundingEndTime);
+      const progress = clampProgress(time, note.mediaStartTime, note.mediaEndTime);
       clipRect.setAttribute('width', String(progress * width)); clipRect.dataset.progress = String(progress);
     }
   };
@@ -306,7 +322,7 @@ export function createScoreRenderer(video: HTMLVideoElement, container: HTMLElem
   frame = requestAnimationFrame(loop); video.addEventListener('seeked', renderNow);
   return {
     destroy() { destroyed = true; cancelAnimationFrame(frame); observer.disconnect(); video.removeEventListener('seeked', renderNow); container.innerHTML = ''; },
-    setNotes(next) { notes = next; notation = linkNotation(next); onResize(); },
+    setNotes(next) { notes = next; notation = linkNotation(next); notationById = new Map(notation.map(event => [event.performanceId, event])); onResize(); },
     setVoiceVisible(voice, isVisible) { visible[voice] = isVisible; page = -1; renderNow(); },
     renderNow
   };
