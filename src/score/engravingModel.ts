@@ -127,16 +127,17 @@ function generatedOttavas(sources: ReadonlyMap<string, SourceNote>): OttavaSpan[
   }
   // A complete triplet run inside one bar is a passage, even if it is only
   // one measure long. The lower staff remains in bass clef throughout.
-  const requestedBassSpans: OttavaSpan[] = [
+  const requestedSpans: OttavaSpan[] = [
     { id: 'ottava-bass-61-64', staff: 2, firstMeasure: 61, lastMeasure: 64, octaveShift: -12 },
-    { id: 'ottava-bass-77-81', staff: 2, firstMeasure: 77, lastMeasure: 81, octaveShift: -12 }
+    { id: 'ottava-bass-77-81', staff: 2, firstMeasure: 77, lastMeasure: 81, octaveShift: -12 },
+    { id: 'ottava-treble-ending', staff: 1, firstMeasure: 177, lastMeasure: 177, octaveShift: -12 }
   ];
   return [...spans.filter(span =>
     (span.staff === 2 || span.lastMeasure > span.firstMeasure ||
       (highByMeasure.get(`1:${span.firstMeasure}`)?.high || 0) >= 3) &&
-    !requestedBassSpans.some(requested => requested.staff === span.staff &&
+    !requestedSpans.some(requested => requested.staff === span.staff &&
       span.firstMeasure <= requested.lastMeasure && span.lastMeasure >= requested.firstMeasure)),
-  ...requestedBassSpans];
+  ...requestedSpans];
 }
 
 function displayStaff(source: SourceNote, measure: number): number {
@@ -200,8 +201,10 @@ function normalizedOffsets(sources: ReadonlyMap<string, SourceNote>): Map<string
       const tripletPassage = entry.segment.staff === 1 && measure >= 82 && measure <= 85;
       const rolledChord = (measure === 167 && ['n1628', 'n1629', 'n1630', 'n1631'].includes(entry.source.id)) ||
         (measure === 170 && ['n1659', 'n1660', 'n1661', 'n1662', 'n1663'].includes(entry.source.id));
-      offsets.set(`${entry.source.id}:${measure}`, rolledChord ? 0 : tripletPassage ? entry.segment.offsetTicks :
-        Math.max(0, Math.min(BAR_TICKS - QUANTUM, Math.round(raw / QUANTUM) * QUANTUM)));
+      const endingFlourish = measure === 177 && entry.source.id === 'n1710' ? 120 :
+        measure === 177 && entry.source.id === 'n1711' ? 240 : undefined;
+      offsets.set(`${entry.source.id}:${measure}`, endingFlourish ?? (rolledChord ? 0 : tripletPassage ? entry.segment.offsetTicks :
+        Math.max(0, Math.min(BAR_TICKS - QUANTUM, Math.round(raw / QUANTUM) * QUANTUM))));
     });
   }
   return offsets;
@@ -249,7 +252,7 @@ export function buildEngravingScore(): EngravingScore {
         });
       const auxiliary = pitches.length === 1 && offsets.get(offsetTicks)![0].segments
         .some(segment => segment.measure === measure && segment.offsetTicks === offsetTicks && segment.voice > 1);
-      notes.push({ measure, staff, displayVoice: auxiliary ? 2 : 1, offsetTicks,
+      const engravingNote: EngravingNote = { measure, staff, displayVoice: auxiliary ? 2 : 1, offsetTicks,
         writtenDuration: value.duration, dotCount: value.dots,
         chordId: `chord-${measure}-${staff}-${offsetTicks}`,
         tupletGroup: triplet ? `triplet-${measure}-${staff}-${Math.floor(offsetTicks / 480)}` : undefined,
@@ -262,7 +265,21 @@ export function buildEngravingScore(): EngravingScore {
         ].some(pattern => pattern.measure === measure && pattern.midis.every(midi =>
           pitches.some(pitch => pitch.soundingMidi === midi))),
         crossStaffBassCount: measure === 170 && staff === 1 && offsetTicks === 0 ? 3 : undefined,
-        ottavaSpan: ottava?.id, pitches });
+        ottavaSpan: ottava?.id, pitches };
+      if (measure === 177 && staff === 1) {
+        // The ending's sustained B and two short upper notes are separate
+        // voices; the 8va belongs to the flourish alone.
+        const sustain = pitches[0].sourceId === 'n1709';
+        engravingNote.displayVoice = sustain ? 2 : 1;
+        engravingNote.writtenDuration = sustain ? 'h' : '16';
+        engravingNote.dotCount = sustain ? 1 : 0;
+        if (sustain) {
+          pitches[0] = { ...pitches[0], writtenMidi: pitches[0].soundingMidi,
+            key: pitchKey(pitches[0].soundingMidi) };
+          engravingNote.ottavaSpan = undefined;
+        }
+      }
+      notes.push(engravingNote);
     }
   }
   notes.sort((a, b) => a.measure - b.measure || a.offsetTicks - b.offsetTicks || a.staff - b.staff);
