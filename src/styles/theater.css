@@ -29,6 +29,8 @@
 .piano-score-container {
   box-sizing: border-box;
   width: min(100%, 1180px);
+  height: clamp(190px, 31vh, 250px);
+  flex: 0 0 clamp(190px, 31vh, 250px);
   margin: 7px auto 3px;
   padding: 0 6px;
   background: transparent;
@@ -36,10 +38,11 @@
   border-radius: 0;
   overflow: hidden;
 }
-.score-engraving { width: 100%; }
+.score-engraving { width: 100%; height: 100%; }
 .score-engraving svg { display: block; width: 100%; height: auto; overflow: hidden; }
+.piano-score-container .score-engraving svg { height: 100% !important; }
 .score-staff-label { fill: var(--theater-text-muted); font: 600 9px var(--font-mono); letter-spacing: .08em; }
-.score-note-highlight { pointer-events: none; }
+.score-note-highlight { pointer-events: none; filter: brightness(1.35); }
 .score-note-highlight.voice-response { opacity: .9; }
 .score-note-highlight.voice-leftHand { opacity: .72; }
 @media (max-width: 680px) {
@@ -549,6 +552,7 @@
   min-height: 0;
   position: relative;
   display: flex;
+  container-type: size;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -560,10 +564,11 @@
 
 .video-frame-container {
   position: relative;
-  width: auto;
-  max-width: 620px;
-  aspect-ratio: var(--video-aspect, 16 / 9);
+  box-sizing: border-box;
+  width: min(100%, 960px, calc(100cqh * var(--video-ratio, 1.7777778)));
   max-height: 100%;
+  aspect-ratio: var(--video-aspect, 16 / 9);
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -968,12 +973,18 @@
   }
 
   .video-stage-wrapper {
-    flex: initial;
+    flex: 1 1 0;
+    min-height: 0;
     width: 100%;
   }
 
   .video-frame-container {
     max-width: 100%;
+  }
+
+  .piano-score-container {
+    height: clamp(145px, 26vh, 190px);
+    flex-basis: clamp(145px, 26vh, 190px);
   }
 
   .lyrics-stage-container {

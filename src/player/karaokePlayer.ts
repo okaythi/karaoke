@@ -574,6 +574,7 @@ export function initKaraokeTheater(els: PlayerElements) {
       const container = els.video.closest('.video-frame-container') as HTMLElement;
       if (container) {
         container.style.aspectRatio = `${els.video.videoWidth} / ${els.video.videoHeight}`;
+        container.style.setProperty('--video-ratio', String(els.video.videoWidth / els.video.videoHeight));
       }
     }
   };

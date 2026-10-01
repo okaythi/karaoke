@@ -1,10 +1,11 @@
-import { Accidental, Beam, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TextBracket, Tuplet, Voice } from 'vexflow';
+import { Accidental, Beam, Clef, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Stroke, TextBracket, Tuplet, Voice } from 'vexflow';
 import { engravingScore } from './engravingModel';
 import type { EngravingNote, EngravingScore, SourceNote } from './engravingModel';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const BAR_TICKS = 1440;
 const STAFF_Y = { 1: 94, 2: 222 } as const;
+const STAFF_COLOR = { 1: '#de8adc', 2: '#6fccd9' } as const;
 
 interface Drawn {
   model: EngravingNote;
@@ -79,10 +80,12 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
       stemDirection: displayVoice === 2 ? -1 : undefined
     });
     vex.setStave(stave);
-    vex.setStyle({ fillStyle: '#b3a99a', strokeStyle: '#b3a99a' });
-    vex.setStemStyle({ fillStyle: '#b3a99a', strokeStyle: '#b3a99a' });
+    const color = STAFF_COLOR[model.staff as 1 | 2];
+    vex.setStyle({ fillStyle: color, strokeStyle: color });
+    vex.setStemStyle({ fillStyle: color, strokeStyle: color });
     if (model.writtenDuration === '8' || model.writtenDuration === '16')
-      vex.setFlagStyle({ fillStyle: '#b3a99a', strokeStyle: '#b3a99a' });
+      vex.setFlagStyle({ fillStyle: color, strokeStyle: color });
+    if (model.arpeggio) vex.addModifier(new Stroke(Stroke.Type.ARPEGGIO_DIRECTIONLESS), 0);
     for (let i = 0; i < model.dotCount; i++) Dot.buildAndAttach([vex], { all: true });
     tickables.push(vex); drawn.push({ model, vex });
     if (model.tupletGroup) {
@@ -124,6 +127,8 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
     if (first) {
       upper.addClef('treble').addKeySignature('E').addTimeSignature('3/4');
       lower.addClef('bass').addKeySignature('E').addTimeSignature('3/4');
+      upper.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: STAFF_COLOR[1], strokeStyle: STAFF_COLOR[1] });
+      lower.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: STAFF_COLOR[2], strokeStyle: STAFF_COLOR[2] });
     }
     if (measure === 121) upper.setTempo({ duration: 'q', bpm: 84 }, 0);
     if (measure === 123) upper.setTempo({ duration: 'q', bpm: 112 }, 0);
@@ -184,7 +189,11 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
     // Beams must exist before StaveNote.draw(), otherwise VexFlow draws flags
     // underneath them and each beamed note appears to have two symbols.
     const beams = [...beamGroups.values()].filter(group => group.length > 1)
-      .map(group => new Beam(group).setStyle({ fillStyle: '#b3a99a', strokeStyle: '#b3a99a' }));
+      .map(group => {
+        const model = drawn.find(item => item.vex === group[0])!.model;
+        return new Beam(group, model.displayVoice === 1)
+          .setStyle({ fillStyle: STAFF_COLOR[model.staff as 1 | 2], strokeStyle: STAFF_COLOR[model.staff as 1 | 2] });
+      });
     formatter.format([...topVoices, ...bottomVoices], upper.getNoteEndX() - upper.getNoteStartX() - 12, { context });
     topVoices.forEach(voice => voice.draw(context, upper));
     bottomVoices.forEach(voice => voice.draw(context, lower));
@@ -212,8 +221,8 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
         overlay.removeAttribute('id'); overlay.querySelectorAll('[id]').forEach(child => child.removeAttribute('id'));
         overlay.setAttribute('class', 'score-note-highlight');
         overlay.setAttribute('clip-path', `url(#${id})`);
-        overlay.setAttribute('fill', item.model.staff === 1 ? '#ffe0ed' : '#dcefff');
-        overlay.setAttribute('stroke', item.model.staff === 1 ? '#ffe0ed' : '#dcefff');
+        overlay.setAttribute('fill', STAFF_COLOR[item.model.staff as 1 | 2]);
+        overlay.setAttribute('stroke', STAFF_COLOR[item.model.staff as 1 | 2]);
         original.parentElement?.appendChild(overlay);
         const total = source.segments.reduce((sum, segment) => sum + segment.durationTicks, 0);
         let preceding = 0;
