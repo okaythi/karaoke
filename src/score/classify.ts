@@ -3,8 +3,6 @@ import type { ClassifiedNote, MidiNote, SemanticVoice, VoiceOverrides } from './
 interface Decision { voice: SemanticVoice; confidence: number; reason: string }
 
 function classifyOne(note: MidiNote, highNeighbors: MidiNote[]): Decision {
-  const duration = note.endTime - note.startTime;
-  if (duration < .045 && note.velocity < 55) return { voice: 'ignore', confidence: .72, reason: 'Very short quiet transcription event' };
   if (note.pitch < 60) return { voice: 'leftHand', confidence: .96, reason: 'Bass register' };
   if (note.pitch < 72) {
     return note.velocity <= 58

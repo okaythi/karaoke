@@ -48,8 +48,21 @@ def position(time):
     return max(0, round((index + fraction) * 4) / 4)
 
 score = []
+# Transkun often staggers the pitches of one attack by a few MIDI ticks.
+# Form the attack from raw onsets before quantizing any of its pitches.
+ATTACK_WINDOW_SECONDS = .03
+attack_start = None
+attack_pitches = set()
+attack_position = None
 for note in notes:
-    start = position(note['startTime'])
+    pitch_key = (note['channel'], note['pitch'])
+    if (attack_start is None or note['startTime'] - attack_start > ATTACK_WINDOW_SECONDS
+            or pitch_key in attack_pitches):
+        attack_start = note['startTime']
+        attack_pitches = set()
+        attack_position = position(attack_start)
+    attack_pitches.add(pitch_key)
+    start = attack_position
     end = position(note['endTime'])
     raw_length = max(.125, end - start)
     duration, glyph, dotted = min(values, key=lambda item: abs(item[0]-raw_length))
