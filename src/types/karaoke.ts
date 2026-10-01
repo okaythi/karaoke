@@ -23,6 +23,7 @@ export interface SongMetadata {
   videoFile: string;
   title: string;
   artist: string;
+  language?: string;
   itunesArtist?: string;
   itunesTrack?: string;
   itunesCountry?: string;

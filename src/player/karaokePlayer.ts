@@ -207,8 +207,8 @@ export function initKaraokeTheater(els: PlayerElements) {
     activeSong = song;
     if (japaneseLogoTimer) clearTimeout(japaneseLogoTimer);
     els.japaneseLogo.classList.remove('visible');
-    // The country override covers romanized titles; script detection covers other Japanese tracks.
-    if (song.itunesCountry?.toLowerCase() === 'jp' || /[\u3040-\u30ff\u3400-\u9fff]/u.test(`${song.title} ${song.artist}`)) {
+    // Explicit language covers romanized titles; script detection covers other Japanese tracks.
+    if (song.language === 'ja' || song.itunesCountry?.toLowerCase() === 'jp' || /[\u3040-\u30ff\u3400-\u9fff]/u.test(`${song.title} ${song.artist}`)) {
       japaneseLogoTimer = setTimeout(() => {
         els.japaneseLogo.classList.add('visible');
         japaneseLogoTimer = null;
