@@ -205,12 +205,16 @@ export function initKaraokeTheater(els: PlayerElements) {
     if (activeSong?.id === song.id && !els.video.paused) return;
 
     activeSong = song;
-    if (japaneseLogoTimer) clearTimeout(japaneseLogoTimer);
-    els.japaneseLogo.parentElement?.classList.remove('japanese-visible');
     // Explicit language covers romanized titles; script detection covers other Japanese tracks.
-    if (song.language === 'ja' || song.itunesCountry?.toLowerCase() === 'jp' || /[\u3040-\u30ff\u3400-\u9fff]/u.test(`${song.title} ${song.artist}`)) {
+    const isJapaneseSong = song.language === 'ja' || song.itunesCountry?.toLowerCase() === 'jp' || /[\u3040-\u30ff\u3400-\u9fff]/u.test(`${song.title} ${song.artist}`);
+    const logoFrame = els.japaneseLogo.parentElement;
+    if (!isJapaneseSong) {
+      if (japaneseLogoTimer) clearTimeout(japaneseLogoTimer);
+      japaneseLogoTimer = null;
+      logoFrame?.classList.remove('japanese-visible');
+    } else if (!logoFrame?.classList.contains('japanese-visible') && !japaneseLogoTimer) {
       japaneseLogoTimer = setTimeout(() => {
-        els.japaneseLogo.parentElement?.classList.add('japanese-visible');
+        logoFrame?.classList.add('japanese-visible');
         japaneseLogoTimer = null;
       }, 5500);
     }
