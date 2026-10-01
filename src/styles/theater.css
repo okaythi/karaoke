@@ -161,17 +161,25 @@
 }
 
 .brand-logo-japanese {
-  opacity: 0;
   clip-path: inset(0 100% 0 0);
 }
 
-.brand-logo-japanese.visible {
+.brand-logo-frame.japanese-visible .brand-logo-standard {
+  animation: hide-standard-logo 0.54s ease-out forwards;
+}
+
+.brand-logo-frame.japanese-visible .brand-logo-japanese {
   animation: reveal-japanese-logo 0.54s ease-out forwards;
 }
 
+@keyframes hide-standard-logo {
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 0 0 100%); }
+}
+
 @keyframes reveal-japanese-logo {
-  from { opacity: 0; clip-path: inset(0 100% 0 0); }
-  to { opacity: 1; clip-path: inset(0 0 0 0); }
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
 }
 
 /* Search Pill: 1px hairline border, subtle dark fill, no glow */
