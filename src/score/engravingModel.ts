@@ -95,58 +95,37 @@ function sourceNotes(): Map<string, SourceNote> {
 }
 
 function generatedOttavas(sources: ReadonlyMap<string, SourceNote>): OttavaSpan[] {
-  const highByMeasure = new Map<number, { high: number; total: number; max: number }>();
+  const highByMeasure = new Map<string, { high: number; total: number; max: number }>();
   for (const source of sources.values()) {
-    if (source.staff !== 1) continue;
     const measure = source.segments[0].measure;
-    const count = highByMeasure.get(measure) || { high: 0, total: 0, max: 0 };
+    const key = `${source.staff}:${measure}`;
+    const count = highByMeasure.get(key) || { high: 0, total: 0, max: 0 };
     count.total++;
-    if (source.soundingMidi >= 83) count.high++;
+    if (source.soundingMidi >= (source.staff === 1 ? 83 : 72)) count.high++;
     count.max = Math.max(count.max, source.soundingMidi);
-    highByMeasure.set(measure, count);
+    highByMeasure.set(key, count);
   }
-  const marked = [...highByMeasure.entries()]
-    .filter(([, data]) => data.high >= 2 && data.max >= 88)
-    .map(([measure]) => measure).sort((a, b) => a - b);
   const spans: OttavaSpan[] = [];
-  for (const measure of marked) {
-    const last = spans.at(-1);
-    if (last && measure === last.lastMeasure + 1) last.lastMeasure = measure;
-    else spans.push({ id: `ottava-${measure}`, staff: 1, firstMeasure: measure, lastMeasure: measure, octaveShift: -12 });
+  for (const staff of [1, 2]) {
+    const marked = [...highByMeasure.entries()]
+      .filter(([key, data]) => key.startsWith(`${staff}:`) &&
+        (staff === 1 ? data.high >= 2 && data.max >= 88 : data.max >= 75))
+      .map(([key]) => Number(key.split(':')[1])).sort((a, b) => a - b);
+    for (const measure of marked) {
+      const last = spans.at(-1);
+      if (last?.staff === staff && measure === last.lastMeasure + 1) last.lastMeasure = measure;
+      else spans.push({ id: `ottava-${staff}-${measure}`, staff, firstMeasure: measure, lastMeasure: measure, octaveShift: -12 });
+    }
+    for (const span of spans.filter(item => item.staff === staff && item.lastMeasure > item.firstMeasure)) {
+      const threshold = staff === 1 ? 88 : 75;
+      while ((highByMeasure.get(`${staff}:${span.firstMeasure - 1}`)?.max || 0) >= threshold) span.firstMeasure--;
+      while ((highByMeasure.get(`${staff}:${span.lastMeasure + 1}`)?.max || 0) >= threshold) span.lastMeasure++;
+    }
   }
-  for (const span of spans) {
-    while ((highByMeasure.get(span.firstMeasure - 1)?.max || 0) >= 88) span.firstMeasure--;
-    while ((highByMeasure.get(span.lastMeasure + 1)?.max || 0) >= 88) span.lastMeasure++;
-  }
-  // An ottava is a passage instruction. A single anomalous bar stays in its
-  // original register instead of switching the display octave momentarily.
-  return spans.filter(span => span.lastMeasure > span.firstMeasure);
-}
-
-function displayClefs(sources: ReadonlyMap<string, SourceNote>): Map<string, 'treble' | 'bass'> {
-  const byMeasure = new Map<number, number[]>();
-  for (const source of sources.values()) {
-    if (source.staff !== 2) continue;
-    const measure = source.segments[0].measure;
-    const pitches = byMeasure.get(measure) || [];
-    pitches.push(source.soundingMidi); byMeasure.set(measure, pitches);
-  }
-  const candidates = [...byMeasure].filter(([, values]) => {
-    values.sort((a, b) => a - b);
-    return values[0] >= 54 && values[Math.floor(values.length / 2)] >= 66;
-  }).map(([measure]) => measure).sort((a, b) => a - b);
-  const clefs = new Map<string, 'treble' | 'bass'>();
-  let run: number[] = [];
-  const flush = () => {
-    if (run.length >= 3) for (const measure of run) clefs.set(`${measure}:2`, 'treble');
-    run = [];
-  };
-  for (const measure of candidates) {
-    if (run.length && measure !== run.at(-1)! + 1) flush();
-    run.push(measure);
-  }
-  flush();
-  return clefs;
+  // A complete triplet run inside one bar is a passage, even if it is only
+  // one measure long. The lower staff remains in bass clef throughout.
+  return spans.filter(span => span.staff === 2 || span.lastMeasure > span.firstMeasure ||
+    (highByMeasure.get(`1:${span.firstMeasure}`)?.high || 0) >= 3);
 }
 
 function normalizedOffsets(sources: ReadonlyMap<string, SourceNote>): Map<string, number> {
@@ -194,8 +173,9 @@ function normalizedOffsets(sources: ReadonlyMap<string, SourceNote>): Map<string
     });
     entries.forEach((entry, index) => {
       const raw = earliest.get(root(index))!;
-      offsets.set(`${entry.source.id}:${measure}`, Math.max(0, Math.min(BAR_TICKS - QUANTUM,
-        Math.round(raw / QUANTUM) * QUANTUM)));
+      const tripletPassage = entry.segment.staff === 1 && measure >= 82 && measure <= 85;
+      offsets.set(`${entry.source.id}:${measure}`, tripletPassage ? entry.segment.offsetTicks :
+        Math.max(0, Math.min(BAR_TICKS - QUANTUM, Math.round(raw / QUANTUM) * QUANTUM)));
     });
   }
   return offsets;
@@ -204,7 +184,7 @@ function normalizedOffsets(sources: ReadonlyMap<string, SourceNote>): Map<string
 export function buildEngravingScore(): EngravingScore {
   const sources = sourceNotes();
   const ottavas = generatedOttavas(sources);
-  const clefs = displayClefs(sources);
+  const clefs = new Map<string, 'treble' | 'bass'>();
   const offsets = normalizedOffsets(sources);
   const bins = new Map<string, Map<number, SourceNote[]>>();
   for (const source of sources.values()) {
@@ -229,7 +209,8 @@ export function buildEngravingScore(): EngravingScore {
     for (let index = 0; index < ordered.length; index++) {
       const offsetTicks = ordered[index];
       const until = ordered[index + 1] ?? BAR_TICKS;
-      const value = chooseValue(until - offsetTicks);
+      const triplet = staff === 1 && measure >= 82 && measure <= 85 && offsetTicks % 160 === 0;
+      const value = triplet ? { duration: '8', dots: 0 } : chooseValue(until - offsetTicks);
       const pitches = offsets.get(offsetTicks)!
         .sort((a, b) => a.soundingMidi - b.soundingMidi || a.id.localeCompare(b.id))
         .map(source => {
@@ -241,6 +222,7 @@ export function buildEngravingScore(): EngravingScore {
       notes.push({ measure, staff, displayVoice: auxiliary ? 2 : 1, offsetTicks,
         writtenDuration: value.duration, dotCount: value.dots,
         chordId: `chord-${measure}-${staff}-${offsetTicks}`,
+        tupletGroup: triplet ? `triplet-${measure}-${staff}-${Math.floor(offsetTicks / 480)}` : undefined,
         ottavaSpan: ottava?.id, pitches });
     }
   }

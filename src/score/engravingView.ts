@@ -1,4 +1,4 @@
-import { Accidental, Beam, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TextBracket, Voice } from 'vexflow';
+import { Accidental, Beam, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, TextBracket, Tuplet, Voice } from 'vexflow';
 import { engravingScore } from './engravingModel';
 import type { EngravingNote, EngravingScore, SourceNote } from './engravingModel';
 
@@ -44,12 +44,27 @@ function ghostTicks(duration: string): number {
   return duration === 'h' ? 960 : duration === 'q' ? 480 : duration === '8' ? 240 : 120;
 }
 
-function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number, clef: 'treble' | 'bass'): { voice: Voice; drawn: Drawn[] } {
+function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number, clef: 'treble' | 'bass'): { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] } {
   const tickables: (StaveNote | GhostNote)[] = [];
   const drawn: Drawn[] = [];
+  const tupletGroups = new Map<string, (StaveNote | GhostNote)[]>();
   let at = 0;
   for (const model of models.sort((a, b) => a.offsetTicks - b.offsetTicks)) {
     while (at < model.offsetTicks) {
+      const tripletRest = model.tupletGroup && model.offsetTicks - at === 160 &&
+        Math.floor(at / 480) === Math.floor(model.offsetTicks / 480);
+      if (tripletRest) {
+        // VexFlow's tuplet bracket needs a note with a stem direction at its
+        // first position. Keep this transcription gap visually invisible.
+        const rest = new StaveNote({ keys: ['b/4'], duration: '8r', clef });
+        rest.setStyle({ fillStyle: 'transparent', strokeStyle: 'transparent' });
+        rest.setStave(stave);
+        tickables.push(rest);
+        const group = tupletGroups.get(model.tupletGroup!) || [];
+        group.push(rest); tupletGroups.set(model.tupletGroup!, group);
+        at += 160;
+        continue;
+      }
       const duration = ghostDuration(model.offsetTicks - at);
       const ghost = new GhostNote(duration);
       ghost.setStave(stave);
@@ -70,9 +85,13 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
       vex.setFlagStyle({ fillStyle: '#b3a99a', strokeStyle: '#b3a99a' });
     for (let i = 0; i < model.dotCount; i++) Dot.buildAndAttach([vex], { all: true });
     tickables.push(vex); drawn.push({ model, vex });
+    if (model.tupletGroup) {
+      const group = tupletGroups.get(model.tupletGroup) || [];
+      group.push(vex); tupletGroups.set(model.tupletGroup, group);
+    }
     const noteTicks = model.writtenDuration === 'h' ? 960 : model.writtenDuration === 'q' ? 480 :
       model.writtenDuration === '8' ? 240 : 120;
-    at = model.offsetTicks + noteTicks * (model.dotCount ? 1.5 : 1);
+    at = model.offsetTicks + (model.tupletGroup ? 160 : noteTicks * (model.dotCount ? 1.5 : 1));
   }
   while (at < BAR_TICKS) {
     const duration = ghostDuration(BAR_TICKS - at);
@@ -82,8 +101,10 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
   }
   const voice = new Voice({ numBeats: 3, beatValue: 4 });
   voice.setMode(Voice.Mode.SOFT);
+  const tuplets = [...tupletGroups.values()].filter(group => group.length === 3)
+    .map(group => new Tuplet(group, { numNotes: 3, notesOccupied: 2, bracketed: true }));
   voice.addTickables(tickables);
-  return { voice, drawn };
+  return { voice, drawn, tuplets };
 }
 
 export function renderEngravingPage(container: HTMLDivElement, firstMeasure: number, score: EngravingScore = engravingScore, barCount = 4): EngravingPage {
@@ -92,24 +113,24 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
   const prepared = [] as {
     measure: number; first: boolean; width: number; left: number;
     upper: Stave; lower: Stave;
-    top: { voice: Voice; drawn: Drawn[] }[];
-    bottom: { voice: Voice; drawn: Drawn[] }[];
+    top: { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] }[];
+    bottom: { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] }[];
     topVoices: Voice[]; bottomVoices: Voice[]; formatter: Formatter;
   }[];
   for (let measure = firstMeasure; measure <= lastMeasure; measure++) {
     const first = measure === firstMeasure;
     const upper = new Stave(0, STAFF_Y[1], 1000);
     const lower = new Stave(0, STAFF_Y[2], 1000);
-    const lowerClef = score.clefs.get(`${measure}:2`) || 'bass';
-    const previousLowerClef = score.clefs.get(`${measure - 1}:2`) || 'bass';
     if (first) {
       upper.addClef('treble').addKeySignature('E').addTimeSignature('3/4');
-      lower.addClef(lowerClef).addKeySignature('E').addTimeSignature('3/4');
-    } else if (lowerClef !== previousLowerClef) lower.addClef(lowerClef);
+      lower.addClef('bass').addKeySignature('E').addTimeSignature('3/4');
+    }
+    if (measure === 121) upper.setTempo({ duration: 'q', bpm: 84 }, 0);
+    if (measure === 123) upper.setTempo({ duration: 'q', bpm: 112 }, 0);
     const top = [1, 2].map(displayVoice => buildVoice(
       score.notes.filter(note => note.measure === measure && note.staff === 1 && note.displayVoice === displayVoice), upper, displayVoice, 'treble'));
     const bottom = [1, 2].map(displayVoice => buildVoice(
-      score.notes.filter(note => note.measure === measure && note.staff === 2 && note.displayVoice === displayVoice), lower, displayVoice, lowerClef));
+      score.notes.filter(note => note.measure === measure && note.staff === 2 && note.displayVoice === displayVoice), lower, displayVoice, 'bass'));
     const topVoices = top.filter(item => item.drawn.length).map(item => item.voice);
     const bottomVoices = bottom.filter(item => item.drawn.length).map(item => item.voice);
     Accidental.applyAccidentals(topVoices, 'E');
@@ -129,6 +150,11 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
   context.setFillStyle('#b3a99a'); context.setStrokeStyle('#686055');
   const svg = container.querySelector('svg') as SVGSVGElement;
   svg.setAttribute('viewBox', `0 0 ${width} 390`);
+  // Renderer.resize writes a pixel width inline, which overrides the theater's
+  // responsive CSS and clips the later bars. Keep the intrinsic viewBox while
+  // fitting all six measures inside the available theater width.
+  svg.style.width = '100%';
+  svg.style.height = 'auto';
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', `Piano notation, bars ${firstMeasure}–${lastMeasure}`);
   const defs = document.createElementNS(SVG_NS, 'defs'); svg.insertBefore(defs, svg.firstChild);
@@ -149,17 +175,21 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
       new StaveConnector(upper, lower).setType('singleLeft').setContext(context).draw();
     }
     new StaveConnector(upper, lower).setType('singleRight').setContext(context).draw();
+    const drawn = [...top.flatMap(item => item.drawn), ...bottom.flatMap(item => item.drawn)];
+    const beamGroups = new Map<string, StaveNote[]>();
+    for (const note of drawn) if (note.model.beamGroup) {
+      const group = beamGroups.get(note.model.beamGroup) || [];
+      group.push(note.vex); beamGroups.set(note.model.beamGroup, group);
+    }
+    // Beams must exist before StaveNote.draw(), otherwise VexFlow draws flags
+    // underneath them and each beamed note appears to have two symbols.
+    const beams = [...beamGroups.values()].filter(group => group.length > 1)
+      .map(group => new Beam(group).setStyle({ fillStyle: '#b3a99a', strokeStyle: '#b3a99a' }));
     formatter.format([...topVoices, ...bottomVoices], upper.getNoteEndX() - upper.getNoteStartX() - 12, { context });
     topVoices.forEach(voice => voice.draw(context, upper));
     bottomVoices.forEach(voice => voice.draw(context, lower));
-    const drawn = [...top.flatMap(item => item.drawn), ...bottom.flatMap(item => item.drawn)];
     allDrawn.push(...drawn);
-    const beamGroups = new Map<string, StaveNote[]>();
     for (const item of drawn) {
-      if (item.model.beamGroup) {
-        const beam = beamGroups.get(item.model.beamGroup) || [];
-        beam.push(item.vex); beamGroups.set(item.model.beamGroup, beam);
-      }
       item.model.pitches.forEach((pitch, index) => {
         const source = score.sources.get(pitch.sourceId)!;
         if (source.segments[0].measure === measure)
@@ -196,8 +226,8 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
           from: preceding / total, to: (preceding + inMeasure) / total });
       });
     }
-    for (const group of beamGroups.values()) if (group.length > 1)
-      new Beam(group).setStyle({ fillStyle: '#b3a99a', strokeStyle: '#b3a99a' }).setContext(context).draw();
+    beams.forEach(beam => beam.setContext(context).draw());
+    [...top, ...bottom].flatMap(voice => voice.tuplets).forEach(tuplet => tuplet.setContext(context).draw());
     x += item.width;
   }
   for (const occurrences of bySource.values()) {
@@ -216,6 +246,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
     new TextBracket({ start: members[0].vex, stop: members.at(-1)!.vex,
       text: '8', superscript: span.octaveShift < 0 ? 'va' : 'vb',
       position: span.octaveShift < 0 ? TextBracket.Position.TOP : TextBracket.Position.BOTTOM })
+      .setLine(span.staff === 1 && members.some(item => item.model.tupletGroup) ? 5 : 1)
       .setContext(context).draw();
   }
   return { anchors, highlights, svg };
