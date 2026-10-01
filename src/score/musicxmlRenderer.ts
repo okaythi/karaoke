@@ -56,9 +56,12 @@ export function createMusicXmlScoreRenderer(video: HTMLVideoElement, container: 
     const nextPage = Math.floor((measure - 1) / BARS_PER_PAGE);
     if (nextPage !== pageNumber) draw(nextPage);
     if (!page) return;
-    const x = onsetToX(page.anchors, time);
+    const x = onsetToX(page.anchors, time, page.terminal);
     playhead?.setAttribute('x1', String(x));
     playhead?.setAttribute('x2', String(x));
+    const fadeStart = page.terminal?.audioEnd;
+    container.style.opacity = fadeStart === undefined ? '1' :
+      String(1 - Math.max(0, Math.min(1, time - fadeStart)));
     for (const target of page.highlights) {
       const duration = target.source.audioEnd - target.source.audioStart;
       const progress = duration > 0

@@ -36,7 +36,9 @@ import '../../styles/theater.css';
               containerWidth: fixture.getBoundingClientRect().width,
               svgWidth: svg.getBoundingClientRect().width,
               intrinsicWidth: svg.getAttribute('width'),
-              scrollWidth: fixture.scrollWidth
+              scrollWidth: fixture.scrollWidth,
+              playheadX: svg.querySelector('line[pointer-events="none"]')?.getAttribute('x1'),
+              opacity: fixture.style.opacity
             }));
           });
         } else if (params.has('scan')) {

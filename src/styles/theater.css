@@ -31,7 +31,9 @@
   width: min(100%, 1180px);
   height: clamp(190px, 31vh, 250px);
   flex: 0 0 clamp(190px, 31vh, 250px);
-  margin: 7px auto 3px;
+  /* The score SVG has clear space above and below the staves. Reclaim that
+     space for the video while keeping the score viewport at the same size. */
+  margin: -5px auto -11px;
   padding: 0 6px;
   background: transparent;
   border: 0;
@@ -42,7 +44,7 @@
 .score-engraving svg { display: block; width: 100%; height: auto; overflow: hidden; }
 .piano-score-container .score-engraving svg { height: 100% !important; }
 .score-staff-label { fill: var(--theater-text-muted); font: 600 9px var(--font-mono); letter-spacing: .08em; }
-.score-note-highlight { pointer-events: none; filter: brightness(1.35); }
+.score-note-highlight { pointer-events: none; }
 .score-note-highlight.voice-response { opacity: .9; }
 .score-note-highlight.voice-leftHand { opacity: .72; }
 @media (max-width: 680px) {
@@ -359,8 +361,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  padding: 18px 24px 16px 24px;
-  gap: 14px;
+  padding: 12px 24px 10px 24px;
+  gap: 9px;
   overflow: hidden;
 }
 
