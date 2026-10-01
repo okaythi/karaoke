@@ -140,40 +140,38 @@
 .brand-container {
   display: flex;
   align-items: center;
-  gap: 10px;
+  width: 100%;
 }
 
-.brand-logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1.5px solid var(--accent-brass);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-brass);
-  flex-shrink: 0;
+.brand-logo-frame {
+  position: relative;
+  width: 100%;
+  height: 44px;
+  overflow: hidden;
 }
 
-.brand-logo svg {
-  width: 14px;
-  height: 14px;
-  stroke: var(--accent-brass);
+.brand-logo-image {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: translateY(-50%);
 }
 
-.brand-title {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--theater-text);
-  text-transform: uppercase;
+.brand-logo-japanese {
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
 }
 
-.brand-title .brand-subtitle {
-  font-weight: 300;
-  text-transform: none;
-  letter-spacing: normal;
-  color: var(--theater-text-muted);
+.brand-logo-japanese.visible {
+  animation: reveal-japanese-logo 0.54s ease-out forwards;
+}
+
+@keyframes reveal-japanese-logo {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
 }
 
 /* Search Pill: 1px hairline border, subtle dark fill, no glow */
