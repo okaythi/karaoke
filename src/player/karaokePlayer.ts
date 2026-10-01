@@ -12,6 +12,7 @@ import type { MusicXmlScoreController } from '../score/musicxmlRenderer';
 
 export interface PlayerElements {
   // Sidebar & Search Pill
+  japaneseLogo: HTMLImageElement;
   sidebarList: HTMLElement;
   searchPillInput: HTMLInputElement;
   searchPillClear: HTMLButtonElement;
@@ -73,6 +74,7 @@ export function initKaraokeTheater(els: PlayerElements) {
   let isDraggingScrubber = false;
   let isKaraokeMode = false;
   let instrumentalAudio: HTMLAudioElement | null = null;
+  let japaneseLogoTimer: ReturnType<typeof setTimeout> | null = null;
 
   const updateVoiceButtonState = () => {
     if (!els.btnVoice) return;
@@ -203,6 +205,15 @@ export function initKaraokeTheater(els: PlayerElements) {
     if (activeSong?.id === song.id && !els.video.paused) return;
 
     activeSong = song;
+    if (japaneseLogoTimer) clearTimeout(japaneseLogoTimer);
+    els.japaneseLogo.classList.remove('visible');
+    // The country override covers romanized titles; script detection covers other Japanese tracks.
+    if (song.itunesCountry?.toLowerCase() === 'jp' || /[\u3040-\u30ff\u3400-\u9fff]/u.test(`${song.title} ${song.artist}`)) {
+      japaneseLogoTimer = setTimeout(() => {
+        els.japaneseLogo.classList.add('visible');
+        japaneseLogoTimer = null;
+      }, 5500);
+    }
     resetViewState();
 
     // Highlight active card in sidebar
