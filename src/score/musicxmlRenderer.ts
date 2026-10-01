@@ -34,13 +34,8 @@ export function createMusicXmlScoreRenderer(video: HTMLVideoElement, container: 
     pageNumber = nextPage;
     container.replaceChildren();
     const firstMeasure = nextPage * BARS_PER_PAGE + 1;
-    const lastMeasure = Math.min(firstMeasure + BARS_PER_PAGE - 1, engravingScore.measures);
-    const heading = document.createElement('div');
-    heading.className = 'score-heading';
-    heading.innerHTML = `ITSUMO NANDO DEMO <span>BARS ${firstMeasure}–${lastMeasure} · PERFORMANCE ENGRAVING</span>`;
     const engraving = document.createElement('div');
     engraving.className = 'score-engraving';
-    container.appendChild(heading);
     container.appendChild(engraving);
     page = renderEngravingPage(engraving, firstMeasure, engravingScore, BARS_PER_PAGE);
     playhead = document.createElementNS(SVG_NS, 'line');

@@ -27,31 +27,23 @@
 .piano-score-container[hidden] { display: none; }
 .lyrics-stage-container[hidden] { display: none; }
 .piano-score-container {
-  width: min(1320px, calc(100% - 42px));
+  box-sizing: border-box;
+  width: min(100%, 1180px);
   margin: 7px auto 3px;
-  padding: 10px 16px 12px;
-  background: var(--theater-sidebar-bg);
-  border: 1px solid var(--theater-border);
-  border-radius: 9px;
+  padding: 0 6px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   overflow: hidden;
 }
-.score-heading {
-  display: flex;
-  justify-content: space-between;
-  color: var(--theater-text-muted);
-  font: 600 10px var(--font-mono);
-  letter-spacing: .12em;
-  margin-bottom: 4px;
-}
-.score-engraving { width: 100%; min-height: 320px; }
-.score-engraving svg { display: block; width: 100%; overflow: visible; }
+.score-engraving { width: 100%; }
+.score-engraving svg { display: block; width: 100%; height: auto; overflow: hidden; }
 .score-staff-label { fill: var(--theater-text-muted); font: 600 9px var(--font-mono); letter-spacing: .08em; }
 .score-note-highlight { pointer-events: none; }
 .score-note-highlight.voice-response { opacity: .9; }
 .score-note-highlight.voice-leftHand { opacity: .72; }
 @media (max-width: 680px) {
-  .piano-score-container { width: calc(100% - 14px); padding: 8px 9px; }
-  .score-heading { font-size: 8px; }
+  .piano-score-container { width: calc(100% - 14px); padding: 0; }
 }
 
 .piano-calibration {
