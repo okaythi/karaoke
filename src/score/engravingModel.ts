@@ -37,6 +37,7 @@ export interface EngravingNote {
   beamGroup?: string;
   tupletGroup?: string;
   ottavaSpan?: string;
+  arpeggio?: boolean;
   pitches: EngravingPitch[];
 }
 
@@ -223,6 +224,8 @@ export function buildEngravingScore(): EngravingScore {
         writtenDuration: value.duration, dotCount: value.dots,
         chordId: `chord-${measure}-${staff}-${offsetTicks}`,
         tupletGroup: triplet ? `triplet-${measure}-${staff}-${Math.floor(offsetTicks / 480)}` : undefined,
+        arpeggio: measure === 54 && staff === 1 && offsetTicks === 0 &&
+          [69, 76, 81].every(midi => pitches.some(pitch => pitch.soundingMidi === midi)),
         ottavaSpan: ottava?.id, pitches });
     }
   }
