@@ -27,7 +27,7 @@
 .piano-score-container[hidden] { display: none; }
 .lyrics-stage-container[hidden] { display: none; }
 .piano-score-container {
-  width: min(960px, calc(100% - 42px));
+  width: min(1320px, calc(100% - 42px));
   margin: 7px auto 3px;
   padding: 10px 16px 12px;
   background: var(--theater-sidebar-bg);

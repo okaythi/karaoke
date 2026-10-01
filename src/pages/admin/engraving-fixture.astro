@@ -1,0 +1,63 @@
+---
+import '../../styles/theater.css';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Itsumo engraving fixtures</title>
+    <style>
+      body { margin: 0; padding: 28px; background: #131211; color: #f5f0e6; font-family: 'Plus Jakarta Sans', sans-serif; }
+      h1 { margin: 0 0 8px; font-size: 22px; }
+      p { margin: 0 0 20px; color: #9a9183; font-size: 13px; }
+      #fixture { width: 100%; overflow-x: auto; }
+      #fixture svg { display: block; min-width: 100%; height: auto; }
+      #fixture-error { color: #ff8b8b; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1 id="title">Itsumo engraving fixture</h1>
+    <p>Display notation derived from the audio transcription map</p>
+    <div id="fixture"></div>
+    <pre id="fixture-error"></pre>
+    <script>
+      import { renderEngravingPage } from '../../score/engravingView';
+      const params = new URL(location.href).searchParams;
+      const first = Number(params.get('bars') || 9);
+      const count = Number(params.get('count') || 4);
+      document.querySelector('#title')!.textContent = `Itsumo engraving fixture · bars ${first}–${first + count - 1}`;
+      try {
+        const fixture = document.querySelector('#fixture') as HTMLDivElement;
+        if (params.has('live')) {
+          const { createMusicXmlScoreRenderer } = await import('../../score/musicxmlRenderer');
+          const video = new EventTarget() as HTMLVideoElement;
+          Object.defineProperty(video, 'currentTime', { value: Number(params.get('time') || 0) });
+          createMusicXmlScoreRenderer(video, fixture);
+        } else if (params.has('scan')) {
+          const report: { page: number; anchors: number; inversions: number; ambiguous: number; reversals?: string[]; error?: string }[] = [];
+          for (let measure = 1; measure <= 178; measure += count) {
+            try {
+              const page = renderEngravingPage(fixture, measure, undefined, count);
+              const anchors = page.anchors.sort((a, b) => a.audioStart - b.audioStart || a.x - b.x);
+              const reversals = anchors.slice(1).flatMap((anchor, index) =>
+                anchor.audioStart > anchors[index].audioStart && anchor.x + 1 < anchors[index].x
+                  ? [`${anchors[index].sourceId}:${anchors[index].audioStart.toFixed(3)}@${anchors[index].x.toFixed(1)} → ${anchor.sourceId}:${anchor.audioStart.toFixed(3)}@${anchor.x.toFixed(1)}`] : []);
+              const ambiguous = anchors.slice(1).filter((anchor, index) =>
+                anchor.audioStart === anchors[index].audioStart && Math.abs(anchor.x - anchors[index].x) > 1).length;
+              report.push({ page: measure, anchors: anchors.length, inversions: reversals.length, ambiguous, reversals });
+            } catch (error) {
+              report.push({ page: measure, anchors: 0, inversions: 0, ambiguous: 0, error: String(error) });
+            }
+          }
+          fixture.replaceChildren();
+          document.querySelector('#fixture-error')!.textContent = JSON.stringify(report);
+        } else {
+          const page = renderEngravingPage(fixture, first, undefined, count);
+          (window as Window & { engravingFixture?: typeof page }).engravingFixture = page;
+          fixture.setAttribute('data-anchors', JSON.stringify(page.anchors));
+        }
+      } catch (error) {
+        document.querySelector('#fixture-error')!.textContent = String(error instanceof Error ? error.stack : error);
+      }
+    </script>
+  </body>
+</html>
