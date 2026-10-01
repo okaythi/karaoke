@@ -7,7 +7,7 @@ import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
 import { collectFingerprint } from '../fingerprint/fingerprint';
 const PIANO_SONG_ID = 'itsumo-nando-demo';
-import type { ScoreRenderController } from '../score/render';
+import type { MusicXmlScoreController } from '../score/musicxmlRenderer';
 
 
 export interface PlayerElements {
@@ -67,7 +67,7 @@ export function initKaraokeTheater(els: PlayerElements) {
   let activeSong: SongCatalogItem | null = null;
   let renderController: RenderEngineController | null = null;
   let backlightController: { destroy: () => void } | null = null;
-  let scoreController: ScoreRenderController | null = null;
+  let scoreController: MusicXmlScoreController | null = null;
   let destroyCalibration: (() => void) | null = null;
   let prevVolume = 0.7;
   let isDraggingScrubber = false;
@@ -319,16 +319,9 @@ export function initKaraokeTheater(els: PlayerElements) {
     });
 
     if (song.id === PIANO_SONG_ID && scoreContainer) {
-      const [{ loadPianoScore }, { createScoreRenderer }] = await Promise.all([
-        import('../score/load'), import('../score/render')
-      ]);
+      const { createMusicXmlScoreRenderer } = await import('../score/musicxmlRenderer');
       if (activeSong?.id !== song.id) return;
-      const score = loadPianoScore();
-      scoreController = createScoreRenderer(els.video, scoreContainer, score.notes, score);
-      if (import.meta.env.DEV) {
-        const { createPianoCalibration } = await import('../score/calibration');
-        if (activeSong?.id === song.id && scoreController) destroyCalibration = createPianoCalibration(els.video, scoreController, score);
-      }
+      scoreController = createMusicXmlScoreRenderer(els.video, scoreContainer);
     }
 
     // Initialize Dynamic Backlight
