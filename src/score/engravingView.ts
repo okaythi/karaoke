@@ -10,6 +10,8 @@ const STAFF_Y = { 1: 94, 2: 222 } as const;
 const HEAD_COLOR = '#9a9183';
 const STEM_COLOR = '#686055';
 const GLIDE_COLOR = { 1: '#de8adc', 2: '#6fccd9' } as const;
+/** Triplets whose bracket the arrangement writes below the notes: the run that enters after the rest in bar 82. */
+const BELOW_TUPLETS = new Set(['triplet-82-1-0']);
 
 interface Drawn {
   model: EngravingNote;
@@ -69,10 +71,10 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
       const tripletRest = model.tupletGroup && model.offsetTicks - at === 160 &&
         Math.floor(at / 480) === Math.floor(model.offsetTicks / 480);
       if (tripletRest) {
-        // VexFlow's tuplet bracket needs a note with a stem direction at its
-        // first position. Keep this transcription gap visually invisible.
+        // The run enters after the beat: the triplet's first eighth is a rest.
+        // Without it the bar reads as two and a half beats.
         const rest = new StaveNote({ keys: ['b/4'], duration: '8r', clef });
-        rest.setStyle({ fillStyle: 'transparent', strokeStyle: 'transparent' });
+        rest.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
         rest.setStave(stave);
         tickables.push(rest);
         const group = tupletGroups.get(model.tupletGroup!) || [];
@@ -122,8 +124,9 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
   }
   const voice = new Voice({ numBeats: 3, beatValue: 4 });
   voice.setMode(Voice.Mode.SOFT);
-  const tuplets = [...tupletGroups.values()].filter(group => group.length === 3)
-    .map(group => new Tuplet(group, { numNotes: 3, notesOccupied: 2, bracketed: true }));
+  const tuplets = [...tupletGroups.entries()].filter(([, group]) => group.length === 3).map(([id, group]) =>
+    new Tuplet(group, { numNotes: 3, notesOccupied: 2, bracketed: true,
+      location: BELOW_TUPLETS.has(id) ? Tuplet.LOCATION_BOTTOM : Tuplet.LOCATION_TOP }));
   voice.addTickables(tickables);
   return { voice, drawn, tuplets };
 }
@@ -351,6 +354,12 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
           .setStyle({ fillStyle: STEM_COLOR, strokeStyle: STEM_COLOR });
       });
     formatter.format([...topVoices, ...bottomVoices], upper.getNoteEndX() - upper.getNoteStartX() - 12, { context });
+    // VexFlow lifts a rest that shares a beat with the other staff's notes
+    // as if they were a second voice on its own staff. Each staff here has a
+    // single voice at a triplet rest, so it belongs on the middle line.
+    for (const tuplet of [...top, ...bottom].flatMap(voice => voice.tuplets))
+      for (const note of tuplet.getNotes())
+        if (note instanceof StaveNote && note.isRest()) note.setKeyLine(0, 3);
     topVoices.forEach(voice => voice.draw(context, upper));
     bottomVoices.forEach(voice => voice.draw(context, lower));
     allDrawn.push(...drawn);
