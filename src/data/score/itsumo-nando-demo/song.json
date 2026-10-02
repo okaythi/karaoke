@@ -1,0 +1,112 @@
+{
+  "id": "itsumo-nando-demo",
+  "source": {
+    "format": "karaoke-map",
+    "file": "source/karaoke-map.json",
+    "description": "Transkun transcription of the performance, aligned to a purchased MuseScore reference where they agree."
+  },
+  "import": {
+    "title": "いつも何度でも",
+    "composer": "木村弓",
+    "source": "Piano arrangement transcribed from the karaoke recording",
+    "staves": [
+      {
+        "id": "upper",
+        "clef": "treble"
+      },
+      {
+        "id": "lower",
+        "clef": "bass"
+      }
+    ],
+    "group": "brace",
+    "time": {
+      "beats": 3,
+      "beatType": 4,
+      "symbol": "numeric"
+    },
+    "key": {
+      "fifths": 4,
+      "mode": "major"
+    },
+    "chord": {
+      "ticks": 160,
+      "seconds": 0.12,
+      "alignSeconds": 0.07
+    },
+    "roll": {
+      "minNotes": 3,
+      "minSeconds": 0.05,
+      "maxSeconds": 0.35,
+      "maxBeatFraction": 0.34
+    },
+    "tripletOnsets": 2,
+    "tieSeconds": 0.75,
+    "syncopation": true,
+    "corrections": {
+      "n1676": {
+        "staff": "lower",
+        "reason": "The ending's low notes are played by the left hand; the transcription put them on the upper staff."
+      },
+      "n1692": {
+        "staff": "lower",
+        "reason": "The ending's low notes are played by the left hand; the transcription put them on the upper staff."
+      },
+      "n1693": {
+        "staff": "lower",
+        "reason": "The ending's low notes are played by the left hand; the transcription put them on the upper staff."
+      },
+      "n1695": {
+        "staff": "lower",
+        "reason": "The ending's low notes are played by the left hand; the transcription put them on the upper staff."
+      },
+      "n1697": {
+        "staff": "lower",
+        "reason": "The ending's low notes are played by the left hand; the transcription put them on the upper staff."
+      },
+      "n1699": {
+        "staff": "lower",
+        "reason": "The ending's low notes are played by the left hand; the transcription put them on the upper staff."
+      },
+      "n1709": {
+        "voice": 2,
+        "reason": "The final B is held under the flourish: its own voice."
+      },
+      "n1710": {
+        "voice": 1,
+        "offset": 120,
+        "length": 120,
+        "roll": false,
+        "reason": "Closing flourish after the held B, not a rolled chord."
+      },
+      "n1711": {
+        "voice": 1,
+        "offset": 240,
+        "length": 120,
+        "roll": false,
+        "reason": "Closing flourish after the held B, not a rolled chord."
+      }
+    }
+  },
+  "ottavas": {
+    "treble": {
+      "peakLedgers": 3,
+      "supportLedgers": 1,
+      "supportNotes": 2,
+      "loneMeasureNotes": 3
+    },
+    "bass": {
+      "peakLedgers": 5,
+      "supportLedgers": 4,
+      "supportNotes": 0,
+      "loneMeasureNotes": 0
+    }
+  },
+  "tempo": {
+    "dip": 0.93,
+    "recovered": 0.95,
+    "molto": 0.75,
+    "hold": 1.3,
+    "historyBars": 12
+  }
+}

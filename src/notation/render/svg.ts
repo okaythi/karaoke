@@ -21,6 +21,8 @@ export interface RenderOptions {
   readonly margin?: number;
   /** Fixed vertical extent, so the lines of one piece share a scale. */
   readonly frame?: { readonly top: number; readonly bottom: number };
+  /** Fixed horizontal extent, so the lines of one piece share a scale. */
+  readonly extent?: { readonly left: number; readonly right: number };
   readonly title?: string;
   readonly style?: StyleResolver;
   /** Add glide overlays to noteheads. */
@@ -35,6 +37,8 @@ export interface GlideTarget {
   readonly overlay: SVGElement;
   /** Full width of the notehead, in staff spaces. */
   readonly width: number;
+  /** The notehead's ink box. */
+  readonly box: DisplayItem['box'];
 }
 
 export interface RenderedSystem {
@@ -108,8 +112,8 @@ export function renderSystemView(system: EngravedSystem, options: RenderOptions 
   const margin = options.margin ?? 1.5;
   const top = (options.frame?.top ?? system.box.y0) - margin;
   const bottom = (options.frame?.bottom ?? system.box.y1) + margin;
-  const left = Math.min(system.box.x0, 0) - margin;
-  const right = Math.max(system.box.x1, system.width) + margin;
+  const left = options.extent ? options.extent.left : Math.min(system.box.x0, 0) - margin;
+  const right = options.extent ? options.extent.right + margin : Math.max(system.box.x1, system.width) + margin;
   const svg = element('svg', { viewBox: `${round(left)} ${round(top)} ${round(right - left)} ${round(bottom - top)}`, class: 'notation-system' });
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', options.title ?? `Music, measures ${system.first + 1}–${system.last + 1}`);
@@ -160,7 +164,7 @@ export function renderSystemView(system: EngravedSystem, options: RenderOptions 
       const glide = style?.glide ?? 'var(--accent-brass)';
       overlay.style.setProperty('--glide', typeof glide === 'string' ? glide : gradientFill(glide));
       group.appendChild(overlay);
-      glides.push({ noteId: item.refs[0], clip: rect, base: node, overlay, width: item.box.x1 - item.box.x0 + 0.1 });
+      glides.push({ noteId: item.refs[0], clip: rect, base: node, overlay, width: item.box.x1 - item.box.x0 + 0.1, box: item.box });
     }
   }
   return { svg, glides, nodes };

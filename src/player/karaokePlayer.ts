@@ -6,9 +6,8 @@ import { createRenderEngine, type RenderEngineController } from '../renderer/ren
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
 import { collectFingerprint } from '../fingerprint/fingerprint';
-import type { MusicXmlScoreController } from '../score/musicxmlRenderer';
-
-const PIANO_SONG_ID = 'itsumo-nando-demo';
+import { hasSongScore, loadSongScore } from '../notation/songs';
+import type { ScoreViewController } from '../notation/view/theater';
 
 const HTML_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const escapeHtml = (text: string): string => String(text).replace(/[&<>"']/g, ch => HTML_ESCAPES[ch]);
@@ -73,8 +72,7 @@ export function initKaraokeTheater(els: PlayerElements) {
   let activeSong: SongCatalogItem | null = null;
   let renderController: RenderEngineController | null = null;
   let backlightController: { destroy: () => void } | null = null;
-  let scoreController: MusicXmlScoreController | null = null;
-  let destroyCalibration: (() => void) | null = null;
+  let scoreController: ScoreViewController | null = null;
   let prevVolume = 0.7;
   let isDraggingScrubber = false;
   let isKaraokeMode = false;
@@ -291,10 +289,8 @@ export function initKaraokeTheater(els: PlayerElements) {
       scoreController.destroy();
       scoreController = null;
     }
-    destroyCalibration?.();
-    destroyCalibration = null;
     const scoreContainer = document.getElementById('piano-score-container');
-    if (scoreContainer) scoreContainer.hidden = song.id !== PIANO_SONG_ID;
+    if (scoreContainer) scoreContainer.hidden = !hasSongScore(song.id);
 
     // Reset instrumental stem playback
     if (instrumentalAudio) {
@@ -344,10 +340,10 @@ export function initKaraokeTheater(els: PlayerElements) {
       globalOffset: song.globalOffset || 0
     });
 
-    if (song.id === PIANO_SONG_ID && scoreContainer) {
-      const { createMusicXmlScoreRenderer } = await import('../score/musicxmlRenderer');
+    if (hasSongScore(song.id) && scoreContainer) {
+      const [bundle, { createScoreView }] = await Promise.all([loadSongScore(song.id), import('../notation/view/theater')]);
       if (selection !== selectionSerial) return;
-      scoreController = createMusicXmlScoreRenderer(els.video, scoreContainer);
+      if (bundle) scoreController = createScoreView(els.video, scoreContainer, bundle);
     }
 
     // Initialize Dynamic Backlight

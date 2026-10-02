@@ -1,0 +1,96 @@
+[
+ {
+  "op": "removeSpanner",
+  "id": "ottava@lower.64",
+  "reason": "Replaced by the line over bars 61–64."
+ },
+ {
+  "op": "addSpanner",
+  "spanner": {
+   "id": "ottava@lower.61-64",
+   "kind": "ottava.8va",
+   "start": {
+    "event": "lower.61.1.0"
+   },
+   "end": {
+    "event": "lower.64.1.1/2"
+   }
+  },
+  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in bass clef)."
+ },
+ {
+  "op": "removeSpanner",
+  "id": "ottava@lower.77",
+  "reason": "Replaced by the line over bars 77–81."
+ },
+ {
+  "op": "addSpanner",
+  "spanner": {
+   "id": "ottava@lower.77-81",
+   "kind": "ottava.8va",
+   "start": {
+    "event": "lower.77.1.0"
+   },
+   "end": {
+    "event": "lower.81.1.1/2"
+   }
+  },
+  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in bass clef)."
+ },
+ {
+  "op": "addSpanner",
+  "spanner": {
+   "id": "ottava@upper.177-flourish",
+   "kind": "ottava.8va",
+   "start": {
+    "event": "upper.177.1.1/16"
+   },
+   "end": {
+    "event": "upper.177.1.1/8"
+   }
+  },
+  "reason": "Only the closing flourish goes up the octave; the held B stays at pitch."
+ },
+ {
+  "op": "setTuplet",
+  "tuplet": "t.upper.82.1.0",
+  "side": "below",
+  "reason": "The run enters after a rest, under an 8va line: its first triplet bracket goes below, clear of the line."
+ },
+ {
+  "op": "setNoteStaff",
+  "note": "n1659",
+  "staff": "lower",
+  "reason": "Played by the left hand inside the right hand's figure: drawn on the lower staff, kept in the figure's beam and voice."
+ },
+ {
+  "op": "setNoteStaff",
+  "note": "n1660",
+  "staff": "lower",
+  "reason": "Played by the left hand inside the right hand's figure: drawn on the lower staff, kept in the figure's beam and voice."
+ },
+ {
+  "op": "setNoteStaff",
+  "note": "n1661",
+  "staff": "lower",
+  "reason": "Played by the left hand inside the right hand's figure: drawn on the lower staff, kept in the figure's beam and voice."
+ },
+ {
+  "op": "setNoteStaff",
+  "note": "n1677",
+  "staff": "lower",
+  "reason": "Played by the left hand inside the right hand's figure: drawn on the lower staff, kept in the figure's beam and voice."
+ },
+ {
+  "op": "setNoteStaff",
+  "note": "n1683",
+  "staff": "lower",
+  "reason": "Played by the left hand inside the right hand's figure: drawn on the lower staff, kept in the figure's beam and voice."
+ },
+ {
+  "op": "setNoteStaff",
+  "note": "n1684",
+  "staff": "lower",
+  "reason": "Played by the left hand inside the right hand's figure: drawn on the lower staff, kept in the figure's beam and voice."
+ }
+]

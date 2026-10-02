@@ -1,0 +1,93 @@
+---
+import '../../styles/theater.css';
+import '../../notation/render/notation.css';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Score Review</title>
+    <style is:global>
+      :root { color-scheme: dark; }
+      body { margin: 0; background: var(--theater-bg); color: var(--theater-text); font-family: var(--font-sans); }
+      header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; padding: 14px 24px;
+        background: color-mix(in srgb, var(--theater-bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--theater-border); }
+      h1 { margin: 0; font-size: 17px; font-weight: 600; }
+      h1 span { color: var(--accent-brass); }
+      .facts { color: var(--theater-text-muted); font: 12px var(--font-mono); }
+      label { font-size: 12px; color: var(--theater-text-muted); display: flex; gap: 6px; align-items: center; }
+      main { padding: 12px 24px 64px; }
+      .line { margin: 0 0 6px; }
+      .line svg { width: 100%; height: auto; }
+      .error { color: #e88a7a; white-space: pre-wrap; font: 12px var(--font-mono); }
+      /* Review highlighting: what an import pass decided, and what an edit changed. */
+      body.show-provenance .is-inferred:not(.n-line, .n-rect) { fill: #e5c27b !important; }
+      body.show-provenance .is-inferred:is(.n-line, .n-rect) { stroke: #e5c27b !important; }
+      body.show-provenance .is-edited:not(.n-line, .n-rect) { fill: #8fd3a8 !important; }
+      body.show-provenance .is-edited:is(.n-line, .n-rect) { stroke: #8fd3a8 !important; }
+      .legend { font-size: 12px; color: var(--theater-text-muted); }
+      .legend b { font-weight: 600; }
+      @media (max-width: 600px) { header, main { padding-left: 16px; padding-right: 16px; } }
+    </style>
+  </head>
+  <body class="show-provenance">
+    <header>
+      <h1>Score <span>Review</span></h1>
+      <span class="facts" id="facts">Loading…</span>
+      <label><input type="checkbox" id="provenance" checked /> Highlight inferred and edited</label>
+      <span class="legend"><b style="color:#e5c27b">inferred</b> by an import pass · <b style="color:#8fd3a8">edited</b> by edits.json</span>
+    </header>
+    <main id="lines"></main>
+    <script>
+      import { loadSongScore } from '../../notation/songs';
+      import { engrave } from '../../notation/layout/engrave';
+      import { renderSystemView } from '../../notation/render/svg';
+      import { DEFAULT_SHEET, StyleResolver } from '../../notation/style/style';
+      import { validateScore } from '../../notation/model/validate';
+
+      const params = new URLSearchParams(location.search);
+      const songId = params.get('song') ?? 'itsumo-nando-demo';
+      const lines = document.getElementById('lines')!;
+      const facts = document.getElementById('facts')!;
+      (document.getElementById('provenance') as HTMLInputElement).addEventListener('change', event =>
+        document.body.classList.toggle('show-provenance', (event.target as HTMLInputElement).checked));
+
+      async function build() {
+        const song = await loadSongScore(songId);
+        if (!song) { lines.textContent = `No score for ${songId}`; return; }
+        const { score } = song;
+        const origin = new Map<string, string>();
+        for (const event of score.events) {
+          if (event.provenance) origin.set(event.id, event.provenance.origin);
+          if (event.kind === 'chord') for (const note of event.notes) if (note.provenance && note.provenance.origin !== 'imported') origin.set(note.id, note.provenance.origin);
+        }
+        for (const item of [...score.attachments, ...score.spanners, ...score.tuplets]) if (item.provenance) origin.set(item.id, item.provenance.origin);
+        const width = Number(params.get('width')) || 120;
+        const first = Math.max(1, Number(params.get('from')) || 1), last = Number(params.get('to')) || score.measures.length;
+        const style = new StyleResolver(song.style ? [DEFAULT_SHEET, song.style] : [DEFAULT_SHEET],
+          { measureNumber: measure => score.measures[measure].number, sectionOf: () => undefined });
+        const issues = validateScore(score);
+        const result = engrave(score, { width, settings: song.layout });
+        let shown = 0;
+        for (const system of result.systems) {
+          const from = score.measures[system.first].number, to = score.measures[system.last].number;
+          if (to < first || from > last) continue;
+          const view = renderSystemView(system, { style, title: `Bars ${from}–${to}` });
+          for (const [ref, nodes] of view.nodes) {
+            const kind = origin.get(ref);
+            if (kind === 'inferred' || kind === 'edited') for (const node of nodes) node.classList.add(`is-${kind}`);
+          }
+          const line = document.createElement('div');
+          line.className = 'line';
+          line.id = `bar-${from}`;
+          line.appendChild(view.svg);
+          lines.appendChild(line);
+          shown++;
+        }
+        facts.textContent = `${score.meta.title} · ${score.measures.length} bars · ${shown} lines at ${width} spaces · ` +
+          `${issues.filter(issue => issue.level === 'error').length} errors, ${issues.filter(issue => issue.level === 'warning').length} warnings`;
+      }
+      build().catch(error => { lines.innerHTML = ''; const pre = document.createElement('pre'); pre.className = 'error'; pre.textContent = String(error?.stack ?? error); lines.appendChild(pre); });
+    </script>
+  </body>
+</html>

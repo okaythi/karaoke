@@ -1,0 +1,9 @@
+{
+  "palette": { "rose": "#de8adc", "teal": "#6fccd9" },
+  "rules": [
+    { "select": { "staff": "upper" }, "set": { "glide": "rose" } },
+    { "select": { "staff": "lower" }, "set": { "glide": "teal" } },
+    { "select": { "staff": "upper", "state": "played", "kind": ["note.head", "grace.*"] }, "set": { "played": "rose" } },
+    { "select": { "staff": "lower", "state": "played", "kind": ["note.head", "grace.*"] }, "set": { "played": "teal" } }
+  ]
+}
