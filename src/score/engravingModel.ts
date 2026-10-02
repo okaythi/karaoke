@@ -63,6 +63,8 @@ export interface EngravingScore {
   readonly clefs: ReadonlyMap<string, 'treble' | 'bass'>;
   readonly measures: number;
   readonly clock: BeatClock;
+  /** Beats that carry a performed attack; see attackedBeats. */
+  readonly beats: readonly { beat: number; time: number }[];
 }
 
 interface RawMapNote {
@@ -115,11 +117,10 @@ function median(values: number[]): number {
 }
 
 /**
- * Derives the performed beat grid from attacks that fall on a beat. Beats
- * without an attack (sustains, rests) are interpolated between their
- * neighbours, and the ends are extrapolated from the nearest known tempo.
+ * The performed beats: attacks that fall on a beat, as {beat, media time}.
+ * Beats without an attack (sustains, rests) are absent.
  */
-function buildBeatClock(notes: readonly EngravingNote[], sources: ReadonlyMap<string, SourceNote>, measures: number): BeatClock {
+export function attackedBeats(notes: readonly EngravingNote[], sources: ReadonlyMap<string, SourceNote>): { beat: number; time: number }[] {
   const attacks = new Map<number, number[]>();
   for (const note of notes) {
     const tick = noteTick(note);
@@ -138,6 +139,15 @@ function buildBeatClock(notes: readonly EngravingNote[], sources: ReadonlyMap<st
     const time = median(attacks.get(beat)!);
     if (!known.length || time > known.at(-1)!.time) known.push({ beat, time });
   }
+  return known;
+}
+
+/**
+ * Derives the performed beat grid from attacks that fall on a beat. Beats
+ * without an attack are interpolated between their neighbours, and the
+ * ends are extrapolated from the nearest known tempo.
+ */
+function buildBeatClock(known: readonly { beat: number; time: number }[], measures: number): BeatClock {
   const beatCount = measures * (BAR_TICKS / BEAT_TICKS) + 1;
   const times = new Float64Array(beatCount);
   if (known.length < 2) {
@@ -396,7 +406,8 @@ export function buildEngravingScore(): EngravingScore {
   // A final transcription-only tail can contain no visible notes after
   // removing short source fragments. Do not engrave an empty closing bar.
   const measures = Math.max(...notes.map(note => note.measure));
-  return { sources, notes, ottavas, clefs, measures, clock: buildBeatClock(notes, sources, measures) };
+  const beats = attackedBeats(notes, sources);
+  return { sources, notes, ottavas, clefs, measures, beats, clock: buildBeatClock(beats, measures) };
 }
 
 export const engravingScore = buildEngravingScore();
