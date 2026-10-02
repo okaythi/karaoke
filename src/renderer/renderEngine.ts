@@ -18,6 +18,25 @@ export interface RenderEngineController {
 const LEAD_IN_SECONDS = 4.0; // Lyrics strictly appear 4 seconds before playing
 const FADE_OUT_GRACE = 0.6;  // Brief grace period after verse ends before clearing
 
+const HTML_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escapeHtml = (text: string): string => text.replace(/[&<>"']/g, ch => HTML_ESCAPES[ch]);
+
+/**
+ * Lyrics may arrive from the live R2 overlay, so they are escaped before they
+ * reach innerHTML. Bare emphasis tags are the only markup lyric files use.
+ */
+const lyricHtml = (text: string): string =>
+  escapeHtml(text).replace(/&lt;(\/?)(i|b|em|strong)&gt;/gi, '<$1$2>');
+
+/** Wipe percentage of one word at `time` on an active line. */
+const wordProgress = (start: number, end: number, time: number): number => {
+  const wEnd = (end && end > start) ? end : (start + 1.2);
+  if (time < start) return 0;
+  if (time >= wEnd) return 100;
+  if (time > start) return Math.min(100, Math.max(0, ((time - start) / (wEnd - start)) * 100));
+  return 0;
+};
+
 /**
  * High-performance 60 FPS karaoke render engine.
  * Implements:
@@ -42,8 +61,24 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
   let currentBottomVerseIndex = -2;
   let cachedTopWords: HTMLElement[] = [];
   let cachedBottomWords: HTMLElement[] = [];
+  // Last wipe written per word; unchanged words are not touched again.
+  let topProgress: number[] = [];
+  let bottomProgress: number[] = [];
+  let lastFrameTime = NaN;
   let animationFrameId: number | null = null;
   let isDestroyed = false;
+
+  const updateWipes = (verse: Verse, words: HTMLElement[], written: number[], time: number, isActive: boolean, isRecent: boolean) => {
+    for (let j = 0; j < verse.words.length; j++) {
+      const el = words[j];
+      if (!el) continue;
+      const w = verse.words[j];
+      const progress = isRecent ? 100 : isActive ? wordProgress(w.start, w.end, time) : 0;
+      if (written[j] === progress) continue;
+      written[j] = progress;
+      el.style.setProperty('--wipe-progress', `${progress}%`);
+    }
+  };
 
   const getVerseCharCount = (verse: Verse): number => {
     if (!verse) return 0;
@@ -59,8 +94,8 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       const cleanWord = w.word.replace(/\r?\n/g, '');
 
       const display = w.furigana
-        ? `<span class="yomitan-ruby" data-furi="${w.furigana}">${cleanWord}</span>`
-        : cleanWord;
+        ? `<span class="yomitan-ruby" data-furi="${escapeHtml(w.furigana)}">${lyricHtml(cleanWord)}</span>`
+        : lyricHtml(cleanWord);
 
       const wordSpan = `<span class="word-wrapper" id="w-${lineKey}-${wIdx}" style="margin: ${margin};">
         <span class="word-base">${display}</span>
@@ -71,7 +106,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     }).join('');
 
     const translationHTML = verse.translation
-      ? `<span class="k-line-translation">${verse.translation}</span>`
+      ? `<span class="k-line-translation">${lyricHtml(verse.translation)}</span>`
       : '';
 
     return wordsHTML + translationHTML;
@@ -81,6 +116,12 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     if (isDestroyed) return;
 
     const time = videoElement.currentTime - globalOffset;
+    // While paused nothing can change until the clock, lyrics or offset do.
+    if (time === lastFrameTime) {
+      animationFrameId = requestAnimationFrame(updateFrame);
+      return;
+    }
+    lastFrameTime = time;
 
     let activeV = -1;
     let recentV = -1;
@@ -143,6 +184,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       if (targetTop !== -1 && lyricsData[targetTop]) {
         topLineElement.innerHTML = renderVerseWordsHTML(lyricsData[targetTop], 'top');
         cachedTopWords = Array.from(topLineElement.querySelectorAll('.word-wrapper'));
+        topProgress = [];
         topLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetTop]) > 28);
         topLineElement.classList.toggle('k-line-has-ruby', lyricsData[targetTop].words.some(w => !!w.furigana));
         topLineElement.dataset.speaker = lyricsData[targetTop].speaker?.replace(/<[^>]*>/g, '').replace(/:$/, '').trim().toLowerCase() || '';
@@ -164,6 +206,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       if (targetBottom !== -1 && lyricsData[targetBottom]) {
         bottomLineElement.innerHTML = renderVerseWordsHTML(lyricsData[targetBottom], 'bot');
         cachedBottomWords = Array.from(bottomLineElement.querySelectorAll('.word-wrapper'));
+        bottomProgress = [];
         bottomLineElement.classList.toggle('k-line-dense', getVerseCharCount(lyricsData[targetBottom]) > 28);
         bottomLineElement.classList.toggle('k-line-has-ruby', lyricsData[targetBottom].words.some(w => !!w.furigana));
         bottomLineElement.dataset.speaker = lyricsData[targetBottom].speaker?.replace(/<[^>]*>/g, '').replace(/:$/, '').trim().toLowerCase() || '';
@@ -190,27 +233,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         topLineElement.classList.toggle('k-line-active', isTopActive || isTopRecent);
         topLineElement.classList.toggle('k-line-idle', !isTopActive && !isTopRecent);
 
-        const vTop = lyricsData[targetTop];
-        for (let j = 0; j < vTop.words.length; j++) {
-          const w = vTop.words[j];
-          const el = cachedTopWords[j];
-          if (!el) continue;
-
-          let progress = 0;
-          if (isTopRecent) {
-            progress = 100;
-          } else if (isTopActive) {
-            const wEnd = (w.end && w.end > w.start) ? w.end : (w.start + 1.2);
-            if (time < w.start) {
-              progress = 0;
-            } else if (time >= wEnd) {
-              progress = 100;
-            } else if (time > w.start && wEnd > w.start) {
-              progress = Math.min(100, Math.max(0, ((time - w.start) / (wEnd - w.start)) * 100));
-            }
-          }
-          el.style.setProperty('--wipe-progress', `${progress}%`);
-        }
+        updateWipes(lyricsData[targetTop], cachedTopWords, topProgress, time, isTopActive, isTopRecent);
       }
 
       // Bottom line state & continuous syllable wipe
@@ -220,27 +243,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         bottomLineElement.classList.toggle('k-line-active', isBottomActive || isBottomRecent);
         bottomLineElement.classList.toggle('k-line-idle', !isBottomActive && !isBottomRecent);
 
-        const vBot = lyricsData[targetBottom];
-        for (let j = 0; j < vBot.words.length; j++) {
-          const w = vBot.words[j];
-          const el = cachedBottomWords[j];
-          if (!el) continue;
-
-          let progress = 0;
-          if (isBottomRecent) {
-            progress = 100;
-          } else if (isBottomActive) {
-            const wEnd = (w.end && w.end > w.start) ? w.end : (w.start + 1.2);
-            if (time < w.start) {
-              progress = 0;
-            } else if (time >= wEnd) {
-              progress = 100;
-            } else if (time > w.start && wEnd > w.start) {
-              progress = Math.min(100, Math.max(0, ((time - w.start) / (wEnd - w.start)) * 100));
-            }
-          }
-          el.style.setProperty('--wipe-progress', `${progress}%`);
-        }
+        updateWipes(lyricsData[targetBottom], cachedBottomWords, bottomProgress, time, isBottomActive, isBottomRecent);
       }
     } else {
       // Instrumental break, guitar solo, or intro > 4s: completely hide lyrics
@@ -261,9 +264,11 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       lyricsData = (newLyrics || []).filter(v => v && Array.isArray(v.words) && v.words.length > 0);
       currentTopVerseIndex = -2;
       currentBottomVerseIndex = -2;
+      lastFrameTime = NaN;
     },
     setOffset: (newOffset: number) => {
       globalOffset = newOffset;
+      lastFrameTime = NaN;
     }
   };
 }

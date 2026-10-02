@@ -24,6 +24,13 @@
   --font-lyrics: 'Plus Jakarta Sans', 'Zen Kurenaido', 'Noto Sans JP', system-ui, sans-serif;
 }
 
+/* Groups lyrics and score; a layout box only on phones in portrait. */
+.stage-middle { display: contents; }
+
+/* Swipeable drawer affordances; shown only in drawer mode. */
+.drawer-handle,
+.drawer-scrim { display: none; }
+
 .piano-score-container[hidden] { display: none; }
 .lyrics-stage-container[hidden] { display: none; }
 .piano-score-container {
@@ -1030,6 +1037,192 @@
   .volume-slider {
     display: none;
   }
+
+  /* Vertical panning stays native; horizontal swipes drive the drawer. */
+  .theater-app {
+    touch-action: pan-y;
+  }
+
+  .drawer-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(8, 7, 6, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .theater-app.sidebar-open .drawer-scrim {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .theater-app.drawer-dragging .theater-sidebar {
+    transition: none;
+  }
+
+  .theater-app.drawer-dragging .drawer-scrim {
+    opacity: var(--drawer-progress, 0);
+    transition: none;
+  }
+
+  .theater-app.drawer-hint .theater-sidebar {
+    animation: drawer-peek 1.2s cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+}
+
+@keyframes drawer-peek {
+  0%, 100% { transform: translateX(-100%); }
+  35%, 60% { transform: translateX(calc(-100% + 24px)); }
+}
+
+/* ==========================================================================
+   PHONES IN PORTRAIT: pull-tab drawer, video on top, and lyrics or score
+   centred between the video and the transport deck at a readable size.
+   ========================================================================== */
+@media (max-width: 768px) and (orientation: portrait) {
+  .theater-app {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .mobile-queue-toggle {
+    display: none;
+  }
+
+  /* Pull tab: sits in the stage gutter and travels with the drawer edge. */
+  .drawer-handle {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 14px;
+    height: 64px;
+    margin-top: -32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--theater-sidebar-bg);
+    border: 1px solid var(--theater-border);
+    border-left: 0;
+    border-radius: 0 10px 10px 0;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .drawer-handle::before {
+    content: '';
+    width: 3px;
+    height: 24px;
+    border-radius: 2px;
+    background: var(--accent-brass);
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+  }
+
+  /* Comfortable touch target without a larger visible tab. */
+  .drawer-handle::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    bottom: -12px;
+    left: 0;
+    right: -18px;
+  }
+
+  .theater-app.sidebar-open .drawer-handle::before,
+  .theater-app.drawer-dragging .drawer-handle::before {
+    opacity: 1;
+  }
+
+  .video-stage-wrapper {
+    flex: 0 0 auto;
+    container-type: normal;
+  }
+
+  .video-frame-container {
+    width: min(100%, calc(42vh * var(--video-ratio, 1.7777778)));
+    width: min(100%, calc(42svh * var(--video-ratio, 1.7777778)));
+    max-height: none;
+  }
+
+  /* The deck's 4px top padding is mirrored so the centre is visual. */
+  .stage-middle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    padding-top: 4px;
+  }
+
+  .stage-middle .lyrics-stage-container {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 0;
+    max-height: 300px;
+    max-width: 100%;
+    padding: 4px 0;
+  }
+
+  .k-line-active {
+    font-size: clamp(22px, 7vw, 30px);
+  }
+
+  .k-line-idle {
+    font-size: clamp(16px, 4.8vw, 21px);
+  }
+
+  .k-line-active.k-line-dense {
+    font-size: clamp(19px, 5.8vw, 25px);
+  }
+
+  .k-line-idle.k-line-dense {
+    font-size: clamp(14px, 4.1vw, 18px);
+  }
+
+  .k-line.k-line-has-ruby {
+    padding-top: 0.7em;
+    row-gap: 0.55em;
+  }
+
+  .k-line-translation {
+    font-size: 14px;
+  }
+
+  /* Two halves of the four-bar view; height follows the cropped half (set by the score renderer). */
+  .piano-score-container {
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  .piano-score-container.score-halves {
+    display: flex;
+    gap: 8px;
+  }
+
+  .score-half {
+    flex: 1 1 0;
+    min-width: 0;
+    aspect-ratio: var(--score-half-aspect, 444 / 296);
+  }
+
+  .score-half.score-half-turned {
+    animation: score-half-in 0.32s ease-out;
+  }
+}
+
+@keyframes score-half-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ── Vocal Toggle Button & Floating Pilletje ───────────────────────────── */

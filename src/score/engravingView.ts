@@ -1,6 +1,6 @@
 import { Accidental, Beam, Clef, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Stroke, TextBracket, Tuplet, Voice } from 'vexflow';
-import { engravingScore } from './engravingModel';
-import type { EngravingNote, EngravingScore, SourceNote } from './engravingModel';
+import { engravingScore, glideWindow, noteValueTicks } from './engravingModel';
+import type { EngravingNote, EngravingScore } from './engravingModel';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const BAR_TICKS = 1440;
@@ -22,15 +22,24 @@ export interface NoteAnchor {
 }
 
 export interface HighlightTarget {
-  source: SourceNote;
   clip: SVGRectElement;
-  left: number;
   width: number;
-  from: number;
-  to: number;
+  /** Media time at which the glide starts and finishes. */
+  start: number;
+  end: number;
+}
+
+export interface EngravingLayout {
+  /** The narrowest a bar may be, in SVG units. */
+  minBarWidth: number;
+  /** When set, bars are widened in proportion until a full page reaches this width. */
+  pageWidth?: number;
+  /** 'opening' shows 3/4 only at the start of the piece instead of on every page. */
+  timeSignature?: 'always' | 'opening';
 }
 
 export interface EngravingPage {
+  /** Sorted by media time, then by x. */
   anchors: NoteAnchor[];
   highlights: HighlightTarget[];
   svg: SVGSVGElement;
@@ -101,9 +110,7 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
       const group = tupletGroups.get(model.tupletGroup) || [];
       group.push(vex); tupletGroups.set(model.tupletGroup, group);
     }
-    const noteTicks = model.writtenDuration === 'h' ? 960 : model.writtenDuration === 'q' ? 480 :
-      model.writtenDuration === '8' ? 240 : 120;
-    at = model.offsetTicks + (model.tupletGroup ? 160 : noteTicks * (model.dotCount ? 1.5 : 1));
+    at = model.offsetTicks + noteValueTicks(model);
   }
   while (at < BAR_TICKS) {
     const duration = ghostDuration(BAR_TICKS - at);
@@ -119,43 +126,73 @@ function buildVoice(models: EngravingNote[], stave: Stave, displayVoice: number,
   return { voice, drawn, tuplets };
 }
 
-export function renderEngravingPage(container: HTMLDivElement, firstMeasure: number, score: EngravingScore = engravingScore, barCount = 4): EngravingPage {
-  container.replaceChildren();
-  const lastMeasure = Math.min(firstMeasure + barCount - 1, score.measures);
-  const prepared = [] as {
-    measure: number; first: boolean; width: number; left: number;
-    upper: Stave; lower: Stave;
-    top: { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] }[];
-    bottom: { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] }[];
-    topVoices: Voice[]; bottomVoices: Voice[]; formatter: Formatter;
-  }[];
-  for (let measure = firstMeasure; measure <= lastMeasure; measure++) {
-    const first = measure === firstMeasure;
-    const upper = new Stave(0, STAFF_Y[1], 1000);
-    const lower = new Stave(0, STAFF_Y[2], 1000);
-    if (first) {
-      upper.addClef('treble').addKeySignature('E').addTimeSignature('3/4');
-      lower.addClef('bass').addKeySignature('E').addTimeSignature('3/4');
-      upper.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
-      lower.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
+interface PreparedMeasure {
+  measure: number; first: boolean; width: number; left: number;
+  upper: Stave; lower: Stave;
+  top: { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] }[];
+  bottom: { voice: Voice; drawn: Drawn[]; tuplets: Tuplet[] }[];
+  topVoices: Voice[]; bottomVoices: Voice[]; formatter: Formatter;
+}
+
+/** Builds one bar's staves and voices and works out the narrowest width it can be drawn at. */
+function prepareMeasure(score: EngravingScore, measure: number, first: boolean, minBarWidth: number, timeSignature: boolean): PreparedMeasure {
+  const upper = new Stave(0, STAFF_Y[1], 1000);
+  const lower = new Stave(0, STAFF_Y[2], 1000);
+  if (first) {
+    upper.addClef('treble').addKeySignature('E');
+    lower.addClef('bass').addKeySignature('E');
+    if (timeSignature) {
+      upper.addTimeSignature('3/4');
+      lower.addTimeSignature('3/4');
     }
-    if (measure === 121) upper.setTempo({ duration: 'q', bpm: 84 }, 0);
-    if (measure === 123) upper.setTempo({ duration: 'q', bpm: 112 }, 0);
-    const top = [1, 2].map(displayVoice => buildVoice(
-      score.notes.filter(note => note.measure === measure && note.staff === 1 && note.displayVoice === displayVoice), upper, displayVoice, 'treble', lower));
-    const bottom = [1, 2].map(displayVoice => buildVoice(
-      score.notes.filter(note => note.measure === measure && note.staff === 2 && note.displayVoice === displayVoice), lower, displayVoice, 'bass'));
-    const topVoices = top.filter(item => item.drawn.length).map(item => item.voice);
-    const bottomVoices = bottom.filter(item => item.drawn.length).map(item => item.voice);
-    Accidental.applyAccidentals(topVoices, 'E');
-    Accidental.applyAccidentals(bottomVoices, 'E');
-    const formatter = new Formatter();
-    formatter.joinVoices(topVoices).joinVoices(bottomVoices);
-    const voices = [...topVoices, ...bottomVoices];
-    const left = Math.max(upper.getNoteStartX(), lower.getNoteStartX());
-    const minimum = voices.length ? formatter.preCalculateMinTotalWidth(voices) : 0;
-    const width = Math.max(barCount > 4 ? 175 : 205, Math.ceil(left + minimum * 1.16 + 32));
-    prepared.push({ measure, first, width, left, upper, lower, top, bottom, topVoices, bottomVoices, formatter });
+    upper.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
+    lower.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
+  }
+  if (measure === 121) upper.setTempo({ duration: 'q', bpm: 84 }, 0);
+  if (measure === 123) upper.setTempo({ duration: 'q', bpm: 112 }, 0);
+  const top = [1, 2].map(displayVoice => buildVoice(
+    score.notes.filter(note => note.measure === measure && note.staff === 1 && note.displayVoice === displayVoice), upper, displayVoice, 'treble', lower));
+  const bottom = [1, 2].map(displayVoice => buildVoice(
+    score.notes.filter(note => note.measure === measure && note.staff === 2 && note.displayVoice === displayVoice), lower, displayVoice, 'bass'));
+  const topVoices = top.filter(item => item.drawn.length).map(item => item.voice);
+  const bottomVoices = bottom.filter(item => item.drawn.length).map(item => item.voice);
+  Accidental.applyAccidentals(topVoices, 'E');
+  Accidental.applyAccidentals(bottomVoices, 'E');
+  const formatter = new Formatter();
+  formatter.joinVoices(topVoices).joinVoices(bottomVoices);
+  const voices = [...topVoices, ...bottomVoices];
+  const left = Math.max(upper.getNoteStartX(), lower.getNoteStartX());
+  const minimum = voices.length ? formatter.preCalculateMinTotalWidth(voices) : 0;
+  const width = Math.max(minBarWidth, Math.ceil(left + minimum * 1.16 + 32));
+  return { measure, first, width, left, upper, lower, top, bottom, topVoices, bottomVoices, formatter };
+}
+
+/**
+ * Natural width of every bar when it continues a line, plus the extra width
+ * the clef and key signature add when a bar opens one. Index 0 is bar 1.
+ */
+export function measureBarWidths(score: EngravingScore = engravingScore, minBarWidth = 160): { widths: number[]; openingExtra: number } {
+  const widths: number[] = [];
+  for (let measure = 1; measure <= score.measures; measure++)
+    widths.push(prepareMeasure(score, measure, false, minBarWidth, false).width);
+  const opening = prepareMeasure(score, 2, true, 0, false).width - prepareMeasure(score, 2, false, 0, false).width;
+  return { widths, openingExtra: Math.max(0, opening) };
+}
+
+export function renderEngravingPage(container: HTMLDivElement, firstMeasure: number, score: EngravingScore = engravingScore,
+  barCount = 4, layout: Partial<EngravingLayout> = {}): EngravingPage {
+  container.replaceChildren();
+  const minBarWidth = layout.minBarWidth ?? (barCount > 4 ? 175 : 205);
+  const timeSignature = layout.timeSignature !== 'opening' || firstMeasure === 1;
+  const lastMeasure = Math.min(firstMeasure + barCount - 1, score.measures);
+  const prepared: PreparedMeasure[] = [];
+  for (let measure = firstMeasure; measure <= lastMeasure; measure++)
+    prepared.push(prepareMeasure(score, measure, measure === firstMeasure, minBarWidth, timeSignature));
+  if (layout.pageWidth) {
+    // A short final page keeps the same bar scale as the full pages.
+    const target = layout.pageWidth * prepared.length / barCount - 48;
+    const natural = prepared.reduce((sum, item) => sum + item.width, 0);
+    if (natural < target) for (const item of prepared) item.width = Math.floor(item.width * target / natural);
   }
   const width = 48 + prepared.reduce((sum, item) => sum + item.width, 0);
   const renderer = new Renderer(container, Renderer.Backends.SVG);
@@ -234,15 +271,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
         overlay.setAttribute('fill', GLIDE_COLOR[pitch.displayStaff as 1 | 2]);
         overlay.setAttribute('stroke', GLIDE_COLOR[pitch.displayStaff as 1 | 2]);
         original.parentElement?.appendChild(overlay);
-        const total = source.segments.reduce((sum, segment) => sum + segment.durationTicks, 0);
-        let preceding = 0;
-        let inMeasure = 0;
-        for (const segment of source.segments) {
-          if (segment.measure < measure) preceding += segment.durationTicks;
-          else if (segment.measure === measure) inMeasure += segment.durationTicks;
-        }
-        highlights.push({ source, clip: rect, left: bounds.x - 2, width: bounds.width + 4,
-          from: preceding / total, to: (preceding + inMeasure) / total });
+        highlights.push({ clip: rect, width: bounds.width + 4, ...glideWindow(score, item.model, source) });
       });
     }
     beams.forEach(beam => beam.setContext(context).draw());
@@ -276,16 +305,23 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
     const finalMeasure = finalSource.segments.at(-1)!.measure;
     terminal = { audioEnd: finalSource.audioEnd, x: measureEndX.get(finalMeasure) || x };
   }
+  anchors.sort((a, b) => a.audioStart - b.audioStart || a.x - b.x);
   return { anchors, highlights, svg, terminal };
 }
 
-export function onsetToX(anchors: readonly NoteAnchor[], time: number, terminal?: EngravingPage['terminal']): number {
-  const points = [...anchors].sort((a, b) => a.audioStart - b.audioStart || a.x - b.x);
+/** Interpolates the playhead between anchors, which must be sorted as an EngravingPage returns them. */
+export function onsetToX(points: readonly NoteAnchor[], time: number, terminal?: EngravingPage['terminal']): number {
   if (!points.length) return 0;
   if (time <= points[0].audioStart) return points[0].x;
-  for (let index = 1; index < points.length; index++) {
-    if (time > points[index].audioStart) continue;
-    const before = points[index - 1], after = points[index];
+  // First anchor at or after `time`.
+  let low = 1, high = points.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (points[middle].audioStart < time) low = middle + 1;
+    else high = middle;
+  }
+  if (low < points.length) {
+    const before = points[low - 1], after = points[low];
     const span = after.audioStart - before.audioStart;
     return span > 0 ? before.x + (after.x - before.x) * (time - before.audioStart) / span : after.x;
   }

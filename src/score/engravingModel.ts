@@ -51,12 +51,18 @@ export interface OttavaSpan {
   octaveShift: number;
 }
 
+export interface BeatClock {
+  /** Media time at an absolute score tick; the tempo is constant within each beat. */
+  timeAt(tick: number): number;
+}
+
 export interface EngravingScore {
   readonly sources: ReadonlyMap<string, SourceNote>;
   readonly notes: readonly EngravingNote[];
   readonly ottavas: readonly OttavaSpan[];
   readonly clefs: ReadonlyMap<string, 'treble' | 'bass'>;
   readonly measures: number;
+  readonly clock: BeatClock;
 }
 
 interface RawMapNote {
@@ -65,7 +71,9 @@ interface RawMapNote {
 }
 
 const BAR_TICKS = timingMap.score.measureTicks;
+const BEAT_TICKS = timingMap.score.divisionsPerQuarter;
 const QUANTUM = 120; // A sixteenth note in the source's 480 divisions per quarter.
+const DURATION_TICKS: Record<string, number> = { h: 960, q: 480, '8': 240, '16': 120 };
 const PITCH_NAMES = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
 const VALUES: { ticks: number; duration: string; dots: number }[] = [
   { ticks: 1440, duration: 'h', dots: 1 },
@@ -76,6 +84,90 @@ const VALUES: { ticks: number; duration: string; dots: number }[] = [
   { ticks: 240, duration: '8', dots: 0 },
   { ticks: 120, duration: '16', dots: 0 }
 ];
+
+/** The engraved value of a note in score ticks, including dots and triplets. */
+export function noteValueTicks(note: EngravingNote): number {
+  if (note.tupletGroup) return 160;
+  const ticks = DURATION_TICKS[note.writtenDuration] ?? QUANTUM;
+  return note.dotCount ? ticks * 1.5 : ticks;
+}
+
+function noteTick(note: EngravingNote): number {
+  return (note.measure - 1) * BAR_TICKS + note.offsetTicks;
+}
+
+/**
+ * The window in which a notehead glides. It starts when the performance
+ * reaches the note: the source attack, or the barline for a tied
+ * continuation. It lasts the note's written value at the local tempo.
+ */
+export function glideWindow(score: EngravingScore, note: EngravingNote, source: SourceNote): { start: number; end: number } {
+  const tick = noteTick(note);
+  const duration = score.clock.timeAt(tick + noteValueTicks(note)) - score.clock.timeAt(tick);
+  const start = source.segments[0].measure === note.measure ? source.audioStart : score.clock.timeAt(tick);
+  return { start, end: start + duration };
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = sorted.length >> 1;
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+/**
+ * Derives the performed beat grid from attacks that fall on a beat. Beats
+ * without an attack (sustains, rests) are interpolated between their
+ * neighbours, and the ends are extrapolated from the nearest known tempo.
+ */
+function buildBeatClock(notes: readonly EngravingNote[], sources: ReadonlyMap<string, SourceNote>, measures: number): BeatClock {
+  const attacks = new Map<number, number[]>();
+  for (const note of notes) {
+    const tick = noteTick(note);
+    if (tick % BEAT_TICKS) continue;
+    for (const pitch of note.pitches) {
+      const source = sources.get(pitch.sourceId)!;
+      if (source.segments[0].measure !== note.measure) continue;
+      const times = attacks.get(tick / BEAT_TICKS) || [];
+      times.push(source.audioStart); attacks.set(tick / BEAT_TICKS, times);
+    }
+  }
+  // Transcription noise can place a beat at or before its predecessor;
+  // such beats are dropped and filled by interpolation instead.
+  const known: { beat: number; time: number }[] = [];
+  for (const beat of [...attacks.keys()].sort((a, b) => a - b)) {
+    const time = median(attacks.get(beat)!);
+    if (!known.length || time > known.at(-1)!.time) known.push({ beat, time });
+  }
+  const beatCount = measures * (BAR_TICKS / BEAT_TICKS) + 1;
+  const times = new Float64Array(beatCount);
+  if (known.length < 2) {
+    const start = known[0]?.time ?? 0;
+    times.forEach((_, beat) => { times[beat] = start + beat * 0.5; });
+  } else {
+    const first = known[0], second = known[1];
+    const leading = (second.time - first.time) / (second.beat - first.beat);
+    const tail = known.slice(-4);
+    const trailing = (tail.at(-1)!.time - tail[0].time) / (tail.at(-1)!.beat - tail[0].beat);
+    let segment = 0;
+    for (let beat = 0; beat < beatCount; beat++) {
+      while (segment < known.length - 2 && known[segment + 1].beat <= beat) segment++;
+      const before = known[segment], after = known[segment + 1];
+      if (beat < first.beat) times[beat] = first.time - (first.beat - beat) * leading;
+      else if (beat > known.at(-1)!.beat) times[beat] = known.at(-1)!.time + (beat - known.at(-1)!.beat) * trailing;
+      else times[beat] = before.time + (after.time - before.time) * (beat - before.beat) / (after.beat - before.beat);
+    }
+  }
+  const last = beatCount - 1;
+  const finalBeat = times[last] - times[last - 1];
+  return {
+    timeAt(tick: number): number {
+      const position = Math.max(0, tick / BEAT_TICKS);
+      const beat = Math.floor(position);
+      if (beat >= last) return times[last] + (position - last) * finalBeat;
+      return times[beat] + (times[beat + 1] - times[beat]) * (position - beat);
+    }
+  };
+}
 
 function pitchKey(midi: number): string {
   return `${PITCH_NAMES[midi % 12]}/${Math.floor(midi / 12) - 1}`;
@@ -303,7 +395,8 @@ export function buildEngravingScore(): EngravingScore {
   }
   // A final transcription-only tail can contain no visible notes after
   // removing short source fragments. Do not engrave an empty closing bar.
-  return { sources, notes, ottavas, clefs, measures: Math.max(...notes.map(note => note.measure)) };
+  const measures = Math.max(...notes.map(note => note.measure));
+  return { sources, notes, ottavas, clefs, measures, clock: buildBeatClock(notes, sources, measures) };
 }
 
 export const engravingScore = buildEngravingScore();

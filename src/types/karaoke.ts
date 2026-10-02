@@ -45,6 +45,8 @@ export interface SongLyricFile extends SongMetadata {
 export interface SongCatalogItem extends SongMetadata {
   isOnR2: boolean;
   hasLyrics: boolean;
+  /** Whether R2 holds a live lyric overlay; undefined when R2 could not be listed. */
+  hasLiveLyrics?: boolean;
   videoUrl: string;
   instrumentalUrl?: string | null;
   lyricsUrl?: string | null;
