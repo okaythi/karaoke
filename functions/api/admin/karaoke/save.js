@@ -1,9 +1,23 @@
 // Multi-tier Save Handler for Karaoke in Cloudflare Pages
+
+/** The ID becomes an R2 key and a repository path, so it must stay a single path segment. */
+function isSongId(id) {
+  return typeof id === 'string' && id.length > 0 && id.length <= 200 && !/[\/\\]/.test(id) && !id.includes('..');
+}
+
+/** UTF-8 safe base64 for the GitHub contents API. */
+function toBase64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binary);
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     const payload = await request.json();
 
-    if (!payload || !payload.id || !payload.videoFile || !Array.isArray(payload.lyricsData)) {
+    if (!payload || !isSongId(payload.id) || !payload.videoFile || !Array.isArray(payload.lyricsData)) {
       return new Response(JSON.stringify({ error: 'Invalid SaveLyricsPayload structure' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -50,7 +64,7 @@ export async function onRequestPost({ request, env }) {
           sha = fileData.sha;
         }
 
-        const lyricContentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+        const lyricContentBase64 = toBase64(JSON.stringify(payload, null, 2));
 
         const putLyricRes = await fetch(`https://api.github.com/repos/${repo}/contents/${lyricPath}`, {
           method: 'PUT',

@@ -6,8 +6,13 @@ import { createRenderEngine, type RenderEngineController } from '../renderer/ren
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
 import { collectFingerprint } from '../fingerprint/fingerprint';
-const PIANO_SONG_ID = 'itsumo-nando-demo';
 import type { MusicXmlScoreController } from '../score/musicxmlRenderer';
+
+const PIANO_SONG_ID = 'itsumo-nando-demo';
+
+const HTML_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escapeHtml = (text: string): string => String(text).replace(/[&<>"']/g, ch => HTML_ESCAPES[ch]);
+const safeHref = (url: string): string => /^https?:\/\//i.test(url) ? escapeHtml(url) : '#';
 
 
 export interface PlayerElements {
@@ -180,8 +185,8 @@ export function initKaraokeTheater(els: PlayerElements) {
         <span class="song-card-num">${trackNum}</span>
         <img class="song-card-art" src="${placeholderSrc}" alt="" />
         <div class="song-card-info">
-          <div class="song-card-title">${song.title}</div>
-          <div class="song-card-artist">${song.artist}</div>
+          <div class="song-card-title">${escapeHtml(song.title)}</div>
+          <div class="song-card-artist">${escapeHtml(song.artist)}</div>
         </div>
         ${badgesHTML}
       `;
@@ -201,9 +206,13 @@ export function initKaraokeTheater(els: PlayerElements) {
     });
   };
 
+  // Incremented per selection so slower async work from an earlier pick can tell it is stale.
+  let selectionSerial = 0;
+
   const selectSong = async (song: SongCatalogItem) => {
     if (activeSong?.id === song.id && !els.video.paused) return;
 
+    const selection = ++selectionSerial;
     activeSong = song;
     // Explicit language covers romanized titles; script detection covers other Japanese tracks.
     const isJapaneseSong = song.language === 'ja' || song.itunesCountry?.toLowerCase() === 'jp' || /[\u3040-\u30ff\u3400-\u9fff]/u.test(`${song.title} ${song.artist}`);
@@ -250,8 +259,8 @@ export function initKaraokeTheater(els: PlayerElements) {
             itemLink: 'https://phatmarkcollective.bandcamp.com/'
           }]);
           els.supportMenu.innerHTML = items.map(item => `
-            <a href="${item.itemLink}" target="_blank" rel="noopener noreferrer" class="support-menu-item">
-              <span>${item.itemName}</span>
+            <a href="${safeHref(item.itemLink)}" target="_blank" rel="noopener noreferrer" class="support-menu-item">
+              <span>${escapeHtml(item.itemName)}</span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
           `).join('');
@@ -313,7 +322,9 @@ export function initKaraokeTheater(els: PlayerElements) {
     if (els.timeDuration) els.timeDuration.textContent = '0:00';
     if (els.timecodeDisplay) els.timecodeDisplay.textContent = '0:00 / 0:00';
 
-    const lyricFile = await loadLyrics(song.id);
+    const lyricFile = await loadLyrics(song.id, { live: song.hasLiveLyrics });
+    // A newer selection may have started while the lyrics loaded; it owns the stage now.
+    if (selection !== selectionSerial) return;
     const verses: Verse[] = (lyricFile?.lyricsData || []).map(verse => {
       if (song.id !== 'the-fairly-odd-parents-theme-song' || verse.speaker) return verse;
       const line = verse.words.map(word => word.word).join(' ').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -335,7 +346,7 @@ export function initKaraokeTheater(els: PlayerElements) {
 
     if (song.id === PIANO_SONG_ID && scoreContainer) {
       const { createMusicXmlScoreRenderer } = await import('../score/musicxmlRenderer');
-      if (activeSong?.id !== song.id) return;
+      if (selection !== selectionSerial) return;
       scoreController = createMusicXmlScoreRenderer(els.video, scoreContainer);
     }
 
@@ -390,6 +401,8 @@ export function initKaraokeTheater(els: PlayerElements) {
       const qs = new URLSearchParams({ file_name: videoKey });
       if (krId) qs.set('kr_id', krId);
       const res = await fetch(`/api/vote?${qs}`);
+      // Counts for a song the listener already skipped past must not overwrite the current one.
+      if (activeSong?.videoFile !== videoKey) return;
       if (res.ok) {
         const data = await res.json() as { liked: boolean; disliked: boolean; totalLikes: number; totalDislikes: number };
         currentVote = data.liked ? 'like' : data.disliked ? 'dislike' : null;
@@ -412,13 +425,15 @@ export function initKaraokeTheater(els: PlayerElements) {
     updateVoteStyles();
     isVoting = true;
 
+    const videoKey = activeSong.videoFile;
     try {
       const krId = await getKrId();
       const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file_name: activeSong.videoFile, action, ...(krId ? { kr_id: krId } : {}) }),
+        body: JSON.stringify({ file_name: videoKey, action, ...(krId ? { kr_id: krId } : {}) }),
       });
+      if (activeSong?.videoFile !== videoKey) return;
       if (res.ok) {
         const data = await res.json() as { liked: boolean; disliked: boolean; totalLikes: number; totalDislikes: number };
         currentVote = data.liked ? 'like' : data.disliked ? 'dislike' : null;
@@ -430,6 +445,7 @@ export function initKaraokeTheater(els: PlayerElements) {
         updateVoteStyles();
       }
     } catch (_) {
+      if (activeSong?.videoFile !== videoKey) return;
       currentVote = prev;
       updateVoteStyles();
     } finally {
@@ -464,8 +480,9 @@ export function initKaraokeTheater(els: PlayerElements) {
     // Start accumulating time
     viewPlayStartedAt = performance.now();
     const remaining = VIEW_THRESHOLD_MS - viewAccumulatedTime;
+    const videoKey = activeSong.videoFile;
     viewPlayTimer = setTimeout(async () => {
-      if (viewCountedForCurrentSong || !activeSong) return;
+      if (viewCountedForCurrentSong || activeSong?.videoFile !== videoKey) return;
       viewCountedForCurrentSong = true;
       viewPlayTimer = null;
       // Fire-and-forget view increment
@@ -475,7 +492,7 @@ export function initKaraokeTheater(els: PlayerElements) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            file_name: activeSong.videoFile,
+            file_name: videoKey,
             count_view: true,
             ...(krId ? { kr_id: krId } : {}),
           }),

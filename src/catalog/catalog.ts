@@ -62,6 +62,7 @@ export async function loadCatalog(): Promise<SongCatalogItem[]> {
       ...song,
       isOnR2,
       hasLyrics: true,
+      hasLiveLyrics: r2Data ? liveLyricsSet.has(song.id) : undefined,
       videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`,
       instrumentalUrl: hasInst ? `https://cdn.sudothy.me/${encodeURIComponent(instKey)}` : null
     };
@@ -84,6 +85,7 @@ export async function loadCatalog(): Promise<SongCatalogItem[]> {
           isDialect: false,
           isOnR2: true,
           hasLyrics,
+          hasLiveLyrics: hasLyrics,
           videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(videoKey)}`
         });
       }
@@ -96,22 +98,25 @@ export async function loadCatalog(): Promise<SongCatalogItem[]> {
 /**
  * Dynamically loads word/verse timing data for a specific song on demand.
  * Checks for live overlay from R2/cache first for zero-build-delay live updates,
- * then falls back to static git bundled JSON.
+ * then falls back to static git bundled JSON. `live: false` (the catalog saw
+ * no overlay in R2) skips the overlay request.
  */
-export async function loadLyrics(songId: string): Promise<SongLyricFile | null> {
+export async function loadLyrics(songId: string, options: { live?: boolean } = {}): Promise<SongLyricFile | null> {
   // Check live overlay API first (if hosted on Cloudflare Pages)
-  try {
-    const liveRes = await fetch(`/api/karaoke/lyrics?id=${encodeURIComponent(songId)}`, {
-      headers: { 'Accept': 'application/json' }
-    });
-    if (liveRes.ok) {
-      const liveData = (await liveRes.json()) as any;
-      if (liveData && liveData.lyricsData) {
-        return liveData as SongLyricFile;
+  if (options.live !== false) {
+    try {
+      const liveRes = await fetch(`/api/karaoke/lyrics?id=${encodeURIComponent(songId)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (liveRes.ok) {
+        const liveData = (await liveRes.json()) as any;
+        if (liveData && liveData.lyricsData) {
+          return liveData as SongLyricFile;
+        }
       }
+    } catch (_) {
+      // Non-blocking fallback to local bundle
     }
-  } catch (_) {
-    // Non-blocking fallback to local bundle
   }
 
   // Fallback to static bundled module
