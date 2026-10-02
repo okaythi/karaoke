@@ -1,0 +1,248 @@
+/**
+ * The score under the video, following playback.
+ *
+ * Lines of music are engraved to fit the score area: on wide screens one
+ * line fills it, and the page turns when playback reaches the next line. On
+ * phones in portrait two narrower lines sit side by side; when playback
+ * moves into one, the one it left is replaced by the line after, so there is
+ * always music to read ahead without a full page flip. Every line of a piece
+ * shares one vertical frame, so the music keeps one size.
+ *
+ * Media time is the only clock: every frame reads `video.currentTime`, so
+ * seeking and pausing never drift. The next frame is scheduled before
+ * drawing, so a failed draw cannot stop the score following playback.
+ */
+import { engrave } from '../layout/engrave';
+import type { Engraving } from '../layout/engrave';
+import type { EngravedSystem } from '../layout/system';
+import { GlideController } from '../playback/glide';
+import { renderSystemView } from '../render/svg';
+import type { RenderedSystem } from '../render/svg';
+import type { SongScore } from '../songs';
+import { DEFAULT_SHEET, StyleResolver } from '../style/style';
+
+export interface ScoreViewController {
+  renderNow(): void;
+  destroy(): void;
+}
+
+const COMPACT_QUERY = '(max-width: 768px) and (orientation: portrait)';
+const SVG_NS = 'http://www.w3.org/2000/svg';
+/** Staff spaces of height a wide score area is scaled to hold. */
+const WIDE_FRAME = 30;
+/** Staff spaces of width each half holds on a phone (about two bars). */
+const COMPACT_SPACES = 36;
+/** Space kept around the music inside its frame, and room for the brace on the left. */
+const MARGIN = 1.2;
+const LEFT_ROOM = 3;
+/** How far above and below the staves the shared frame may reach. */
+const FRAME_LIMIT = 9;
+
+interface Anchor { readonly time: number; readonly x: number }
+
+interface Shown {
+  readonly system: number;
+  readonly view: RenderedSystem;
+  readonly glide: GlideController;
+  readonly anchors: readonly Anchor[];
+  readonly playhead: SVGLineElement;
+  readonly end: { readonly time: number; readonly x: number };
+}
+
+interface Slot {
+  readonly element: HTMLDivElement;
+  shown?: Shown;
+}
+
+export function createScoreView(video: HTMLVideoElement, container: HTMLElement, song: SongScore): ScoreViewController {
+  const style = new StyleResolver(song.style ? [DEFAULT_SHEET, song.style] : [DEFAULT_SHEET], {
+    measureNumber: measure => song.score.measures[measure].number,
+    sectionOf: measure => {
+      for (let search = measure; search >= 0; search--) if (song.score.measures[search].section) return song.score.measures[search].section;
+      return undefined;
+    }
+  });
+  const compactQuery = typeof matchMedia === 'function' ? matchMedia(COMPACT_QUERY) : undefined;
+  let compact = false;
+  let engraving: Engraving | undefined;
+  let frame = { top: -6, bottom: 21 };
+  let width = 0;
+  let starts: number[] = [];
+  let slots: Slot[] = [];
+  let finalEnd = 0;
+  let frameRequest = 0;
+  let destroyed = false;
+  let lastTime = NaN;
+  let laidOutFor = '';
+
+  /** When a line starts sounding: its earliest note. */
+  const systemStart = (system: EngravedSystem): number => {
+    let earliest = Infinity;
+    for (const item of system.items) for (const ref of item.refs) {
+      const timing = song.timing.notes.get(ref);
+      if (timing && timing.start < earliest) earliest = timing.start;
+    }
+    return earliest;
+  };
+
+  function layout(): void {
+    const rect = container.getBoundingClientRect();
+    compact = !!compactQuery?.matches;
+    const key = `${Math.round(rect.width)}x${Math.round(rect.height)}:${compact}`;
+    if (!rect.width || key === laidOutFor) return;
+    laidOutFor = key;
+    const slotCount = compact ? 2 : 1;
+    const gap = compact ? 8 : 0;
+    const slotWidth = (rect.width - gap * (slotCount - 1)) / slotCount;
+    const spacePx = compact ? slotWidth / COMPACT_SPACES : Math.max(4, rect.height / WIDE_FRAME);
+    width = Math.max(24, slotWidth / spacePx - LEFT_ROOM - MARGIN);
+    engraving = engrave(song.score, { width, settings: song.layout });
+    // One frame for every line: the extremes of the music, within limits.
+    const staffTop = Math.min(...engraving.systems.map(system => Math.min(...system.staffTops.values())));
+    const staffBottom = Math.max(...engraving.systems.map(system => Math.max(...system.staffTops.values()) + 4));
+    frame = {
+      top: Math.max(staffTop - FRAME_LIMIT, Math.min(...engraving.systems.map(system => system.box.y0))),
+      bottom: Math.min(staffBottom + FRAME_LIMIT, Math.max(...engraving.systems.map(system => system.box.y1)))
+    };
+    starts = engraving.systems.map(systemStart);
+    for (let position = starts.length - 2; position >= 0; position--) if (!Number.isFinite(starts[position])) starts[position] = starts[position + 1];
+    finalEnd = Math.max(...[...song.timing.notes.values()].map(note => note.soundingEnd));
+
+    container.replaceChildren();
+    container.classList.toggle('score-halves', compact);
+    const aspect = `${width + LEFT_ROOM + MARGIN} / ${frame.bottom - frame.top + 2 * MARGIN}`;
+    container.style.setProperty('--score-half-aspect', aspect);
+    slots = Array.from({ length: slotCount }, () => {
+      const element = document.createElement('div');
+      element.className = compact ? 'score-half' : 'score-page';
+      container.appendChild(element);
+      return { element };
+    });
+    lastTime = NaN;
+  }
+
+  function show(slot: Slot, system: number, animate: boolean): void {
+    slot.element.replaceChildren();
+    slot.shown = undefined;
+    const engraved = engraving?.systems[system];
+    if (!engraved) return;
+    const view = renderSystemView(engraved, {
+      style, glides: true, margin: MARGIN, frame,
+      extent: { left: -LEFT_ROOM, right: width },
+      title: `Score, bars ${song.score.measures[engraved.first].number}–${song.score.measures[engraved.last].number}`
+    });
+    view.svg.setAttribute('preserveAspectRatio', 'xMinYMid meet');
+    const anchors: Anchor[] = [];
+    for (const target of view.glides) {
+      const timing = song.timing.notes.get(target.noteId);
+      if (timing) anchors.push({ time: timing.start, x: (target.box.x0 + target.box.x1) / 2 });
+    }
+    anchors.sort((a, b) => a.time - b.time || a.x - b.x);
+    const next = starts[system + 1];
+    const end = { time: Number.isFinite(next) ? next : finalEnd, x: engraved.width };
+    const playhead = document.createElementNS(SVG_NS, 'line');
+    playhead.setAttribute('class', 'score-playhead');
+    playhead.setAttribute('y1', String(Math.min(...engraved.staffTops.values()) - 1.5));
+    playhead.setAttribute('y2', String(Math.max(...engraved.staffTops.values()) + 5.5));
+    view.svg.appendChild(playhead);
+    slot.element.appendChild(view.svg);
+    slot.shown = { system, view, glide: new GlideController(view.glides, song.timing), anchors, playhead, end };
+    if (animate) {
+      slot.element.classList.remove('score-half-turned');
+      void slot.element.offsetWidth;
+      slot.element.classList.add('score-half-turned');
+    }
+  }
+
+  /** Playhead position: between the attacks around `time`, then on to the line's end. */
+  function playheadX(shown: Shown, time: number): number {
+    const points = shown.anchors;
+    if (!points.length) return 0;
+    if (time <= points[0].time) return points[0].x;
+    let low = 1, high = points.length;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (points[middle].time < time) low = middle + 1; else high = middle;
+    }
+    if (low < points.length) {
+      const before = points[low - 1], after = points[low];
+      const span = after.time - before.time;
+      return span > 0 ? before.x + (after.x - before.x) * (time - before.time) / span : after.x;
+    }
+    const last = points.at(-1)!;
+    if (time >= shown.end.time || shown.end.time <= last.time) return Math.min(shown.end.x, last.x + (time >= shown.end.time ? shown.end.x - last.x : 0));
+    return last.x + (shown.end.x - last.x) * (time - last.time) / (shown.end.time - last.time);
+  }
+
+  function currentSystem(time: number): number {
+    let low = 0, high = starts.length;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (starts[middle] <= time) low = middle + 1; else high = middle;
+    }
+    return Math.max(0, low - 1);
+  }
+
+  function renderNow(): void {
+    if (destroyed || !engraving) return;
+    const time = video.currentTime;
+    const current = currentSystem(time);
+    let changed = false;
+    slots.forEach((slot, position) => {
+      // On phones a line always occupies the half matching its parity.
+      const wanted = compact ? (current % 2 === position ? current : current + 1) : current;
+      if (slot.shown?.system === wanted) return;
+      const turning = compact && slot.shown !== undefined && Math.abs(wanted - slot.shown.system) === 2 && !video.paused;
+      show(slot, wanted, turning);
+      changed = true;
+    });
+    if (!changed && time === lastTime) return;
+    lastTime = time;
+    for (const slot of slots) {
+      const shown = slot.shown;
+      if (!shown) continue;
+      shown.glide.update(time);
+      const active = shown.system === current;
+      shown.playhead.setAttribute('visibility', active ? 'visible' : 'hidden');
+      if (active) {
+        const x = String(Math.round(playheadX(shown, time) * 1000) / 1000);
+        shown.playhead.setAttribute('x1', x);
+        shown.playhead.setAttribute('x2', x);
+      }
+    }
+    container.style.opacity = String(1 - Math.max(0, Math.min(1, time - finalEnd)));
+  }
+
+  const loop = () => {
+    if (!destroyed) frameRequest = requestAnimationFrame(loop);
+    renderNow();
+  };
+  let resizeTimer = 0;
+  const relayout = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => { layout(); renderNow(); }, 120);
+  };
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(relayout) : undefined;
+  resizeObserver?.observe(container);
+  compactQuery?.addEventListener('change', relayout);
+  video.addEventListener('seeked', renderNow);
+  layout();
+  frameRequest = requestAnimationFrame(loop);
+  renderNow();
+
+  return {
+    renderNow,
+    destroy() {
+      destroyed = true;
+      cancelAnimationFrame(frameRequest);
+      clearTimeout(resizeTimer);
+      resizeObserver?.disconnect();
+      compactQuery?.removeEventListener('change', relayout);
+      video.removeEventListener('seeked', renderNow);
+      container.classList.remove('score-halves');
+      container.style.removeProperty('--score-half-aspect');
+      container.style.removeProperty('opacity');
+      container.replaceChildren();
+    }
+  };
+}

@@ -1,21 +1,29 @@
-# Itsumo Nando Demo piano karaoke
+# Piano karaoke scores
 
-The existing R2 MP4 is the only playback medium and its `<video>.currentTime` is the runtime clock. The source `itsumo-transcribed.mid` is ignored by Git and must remain unchanged. The checked-in `src/data/score/itsumo-midi.json` is a deterministic extraction of the MIDI's 1,711 paired notes and 140 sustain-pedal intervals. It preserves MIDI pitch, velocity, channel, onset/offset ticks, onset/offset seconds, and a pedal-aware sounding end. The transcription contains one note track and one channel, so semantic voices are inferred rather than read from tracks.
+A song shows a score under its video when `src/data/score/<song-id>/score.json` exists. Everything about engraving lives in the song-agnostic notation engine (`src/notation`, specified in [09-notation-engine.md](./09-notation-engine.md)); a song folder holds only data.
+
+## A song's folder
+
+| File | What it is |
+| :--- | :--- |
+| `song.json` | Where the source is, and the import settings: staves, meter, key, chord and roll detection, tie threshold, octave-line thresholds, tempo-mark thresholds, and reviewed source **corrections** (per source note, each with a reason). |
+| `source/` | The source itself. For いつも何度でも: a Transkun transcription of the recording aligned to a purchased MuseScore reference (`karaoke-map.json`). |
+| `score.generated.json` | The import's output. Never edited by hand. |
+| `edits.json` | Reviewed notation choices on top of the import (octave lines, cross-staff notes, tuplet sides…), each with a reason. |
+| `score.json` | `score.generated.json` with the edits applied; what the site loads. |
+| `timing.json` | When every note sounds in the recording, and the performed beat clock. |
+| `style.json` | Glide and played colours (rose for the right hand, teal for the left in いつも何度でも). |
+
+Rebuild after changing anything: `npm run import:score -- itsumo-nando-demo`. An edit whose target no longer exists fails the import instead of disappearing silently.
 
 ## Timing
 
-`src/data/score/itsumo-midi-config.json` records an explicit zero-second media offset. Read-only attack comparisons between the existing MP4 audio and MIDI at 2.453, 36.159, 39.068, 48.240, 51.196, 90.377, 93.260, 102.356, and 105.284 seconds found no material fixed offset or drift. The import uses MIDI's tempo event only to turn its ticks into seconds; the renderer never uses a nominal BPM or an animation clock. Its only tempo map is the performed beat grid, read from the attacks that land on beats. Every frame recomputes note progress from the video element's current time. Seeking and pausing cannot accumulate drift.
+The video's `currentTime` is the only clock. A note's glide starts at its recorded attack (a tied continuation starts when its beat arrives) and lasts its written value at the local performed tempo, read from the beat clock. A note stays lit for as long as it sounds; then it takes its played colour.
 
-## Import and corrections
+## Import
 
-Install `scripts/requirements-piano.txt` into a Python environment and run `python3 scripts/import-transkun-midi.py` to regenerate the performance JSON from the source MIDI. Run `python3 scripts/derive-piano-notation.py` to regenerate the separate notation draft. The source MIDI and MP4 remain untouched. Voice classification lives in `src/score/classify.ts`, with confidence, reason, and automatic/manual provenance. The four assignments are `main`, `response`, `leftHand`, and `ignore`. `src/data/score/itsumo-voice-overrides.json` is a separate, reviewed correction layer keyed by stable MIDI note IDs.
+`src/notation/import/aligned.ts` turns aligned notes into notation with general rules: rolled chords become one chord with an arpeggio, near-simultaneous attacks merge (both hands share a position), each beat is read in sixteenths or in triplets when the onsets demand it, a lone inner-voice note becomes voice 2, and notes last to the next onset unless their sound clearly stopped, with ties only while a note still sounds over a barline. Octave lines (`import/ottavas.ts`) and rit./a tempo/fermatas (`import/tempo.ts`) are inferred from the notes and the performance.
 
-For development, use `npm run dev` and `?song=itsumo-nando-demo&calibratePiano=1`. The panel shows exact MP4 time, engraved bar/beat position and source MIDI tick, nearby pitches, velocity, voice, confidence, provenance, note start/end, pedal-extended sounding end, and pedal state. Seek with a millisecond-entry field or 100 ms steps. Toggle the three voices visually or audition them independently with the development synthesizer, which reads the same MP4 clock. Changing an assignment saves a local draft; export the JSON and replace `itsumo-voice-overrides.json` when reviewed. The panel is excluded from production builds.
+## Review
 
-## Engraving and glide
-
-The two data layers are separate. `itsumo-midi.json` stores the exact performance events and timestamps. `itsumo-notation.json` stores a sixteenth-note score grid in **3/4**, conventional duration symbols, measure/beat positions, and the corresponding `performanceId`. `scripts/derive-piano-notation.py` generates the notation draft from lower-register pulse attacks and source event onsets/releases. Its beat grid is only an engraving aid. The runtime never uses that grid to compute playback progress. Every rendered notehead looks up its original MIDI note ID. Its glide starts at that note's unquantized MP4 onset (or at the barline for a tied continuation) and lasts exactly the note's written value: a half note glides for two beats at the local performed tempo (`glideWindow` and `buildBeatClock` in `src/score/engravingModel.ts`). Phones in portrait show four bars per page instead of six, cropped to the grand staff and drawn larger.
-
-The key signature is E major's **four sharps: F♯, C♯, G♯, D♯**, as specified for this arrangement. The transcription MIDI's 4/4 metadata is ignored for engraving. VexFlow supplies clefs, staff lines, barlines, noteheads, stems, flags, beams, rests, accidentals, dots, ties, and ledger lines. The app chooses the visible measures, staff hierarchy, spacing, SVG colors, and orange notehead wipe. Short values are beamed within 3/4 beats. The notation stays fixed while each sounding MIDI event has an independent clip width. Chord pitches share an engraved group when their quantized onset and duration agree.
-
-The generated notation is a **draft**: automatic beat tracking, rhythmic spelling, and main/response/leftHand classification still need musician review. Score metadata and performance events can be corrected independently. The current calibration panel handles voice corrections; `itsumo-notation-overrides.json` stores reviewed score positions, durations, and enharmonic spellings by performance ID, separate from both generated files and MIDI timing.
+`/admin/score-review?song=<id>&width=100&from=80&to=90` (development) shows a song engraved line by line, with inferred elements in brass and edited ones in green. `/admin/notation-gallery` shows every notation the engine knows.

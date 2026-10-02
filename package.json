@@ -12,18 +12,19 @@
     "sync:server": "tsx scripts/sync-server.ts",
     "sync:links": "tsx scripts/generate-share-links.ts",
     "test:notation": "node --import tsx --test src/notation/tests/*.test.ts",
-    "fonts:notation": "python3 scripts/notation/build-fonts.py"
+    "fonts:notation": "python3 scripts/notation/build-fonts.py",
+    "import:score": "tsx scripts/notation/import-song.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "astro": "^5.4.2",
-    "typescript": "^5.7.3",
-    "vexflow": "^5.0.0"
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260911.1",
     "@types/node": "^26.5.1",
     "tsx": "^4.19.3",
+    "vexflow": "^5.0.0",
     "wrangler": "^4.86.0"
   }
 }

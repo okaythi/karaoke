@@ -787,8 +787,10 @@ Built and checked in the gallery (`/admin/notation-gallery`, development only):
 - Layout: shapes, spring spacing, fit-width line breaking, systems, beams, ties, slurs, and one generic placer for every attachment and spanner with shared baselines and contour avoidance (§8).
 - Rendering to SVG with per-item style variables and notehead glide overlays; the style cascade (§9); nominal timing and the glide controller (§10). The gallery's *Styled playback* section shows them working together.
 
+Also built: the edits file (§11), import from aligned performances with its inference passes, octave-line and tempo-mark inference (§7), the performed beat clock and stored timing (§10), and the theater score view. いつも何度でも runs on the engine; see [piano-karaoke.md](./piano-karaoke.md).
+
 Not built yet:
 
 - Collapsing silent bars into one multi-bar rest (`rest.multi-bar`), and hiding repeated pedal patterns after *simile* (`pedal.simile`). The gallery marks both as partial.
-- `edits.json` operations (§11), the MIDI importer and its inference passes (§7), score-to-performance alignment and real timing maps (§10).
-- Moving the Itsumo score to the engine, deleting the old `src/score/` pipeline and VexFlow, and Fantaisie-Impromptu.
+- Import from engraved MIDI (LilyPond) and score-to-recording alignment, needed for Fantaisie-Impromptu.
+- Inferred octave lines start at the first note of their bar, so a low chord opening that bar is written an octave down (いつも何度でも bar 90); the line should start at the first note that needs it.

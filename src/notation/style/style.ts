@@ -81,11 +81,11 @@ export const DEFAULT_SHEET: StyleSheet = {
     'accent-brass': 'var(--accent-brass)',
     'accent-brass-hover': 'var(--accent-brass-hover)'
   },
+  // Noteheads and signs in the muted text tone; lines, stems and beams a step dimmer.
   rules: [
     { select: {}, set: { ink: 'theater-text-muted', glide: 'accent-brass', opacity: 1 } },
-    { select: { kind: ['staff.lines', 'staff.ledger', 'staff.system-line', 'barline.*', 'staff.brace', 'staff.bracket'] }, set: { ink: 'theater-text-dim' } },
-    { select: { kind: ['note.*', 'grace.*', 'cue.*', 'acc.*', 'rest.*'] }, set: { ink: 'theater-text' } },
-    { select: { kind: ['note.stem', 'note.beam', 'note.flag'] }, set: { ink: 'theater-text-muted' } }
+    { select: { kind: ['staff.lines', 'staff.ledger', 'staff.system-line', 'barline.*', 'staff.brace', 'staff.bracket', 'note.stem', 'note.beam', 'note.flag'] },
+      set: { ink: 'theater-text-dim' } }
   ]
 };
 

@@ -1,8 +1,0 @@
-{
-  "mediaOffsetSeconds": 0,
-  "timingEvidence": "MIDI attacks at 2.453, 36.159, 39.068, 48.240, 51.196, 90.377, 93.260, 102.356 and 105.284 seconds match attacks in the existing MP4 within the audio-analysis window. No drift or material fixed offset found.",
-  "engravingKeySignature": "E",
-  "keyProvenance": "Four sharps (F#, C#, G#, D#), supplied by the user.",
-  "notationMeter": "3/4",
-  "notationMeterProvenance": "Arrangement metadata supplied by the user; separate from the transcription MIDI 4/4 metadata."
-}
