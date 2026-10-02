@@ -1,4 +1,6 @@
-import { Accidental, Beam, Clef, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Stroke, TextBracket, Tuplet, Voice } from 'vexflow';
+import { Accidental, Beam, Clef, Dot, Formatter, GhostNote, Renderer, Stave, StaveConnector, StaveNote, StaveTie, Stroke, Tuplet, Voice } from 'vexflow';
+import { deriveTempoDirections } from './directions';
+import type { TempoDirection } from './directions';
 import { engravingScore, glideWindow, noteValueTicks } from './engravingModel';
 import type { EngravingNote, EngravingScore } from './engravingModel';
 
@@ -148,8 +150,6 @@ function prepareMeasure(score: EngravingScore, measure: number, first: boolean, 
     upper.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
     lower.getModifiers(undefined, Clef.CATEGORY)[0]?.setStyle({ fillStyle: HEAD_COLOR, strokeStyle: HEAD_COLOR });
   }
-  if (measure === 121) upper.setTempo({ duration: 'q', bpm: 84 }, 0);
-  if (measure === 123) upper.setTempo({ duration: 'q', bpm: 112 }, 0);
   const top = [1, 2].map(displayVoice => buildVoice(
     score.notes.filter(note => note.measure === measure && note.staff === 1 && note.displayVoice === displayVoice), upper, displayVoice, 'treble', lower));
   const bottom = [1, 2].map(displayVoice => buildVoice(
@@ -165,6 +165,97 @@ function prepareMeasure(score: EngravingScore, measure: number, first: boolean, 
   const minimum = voices.length ? formatter.preCalculateMinTotalWidth(voices) : 0;
   const width = Math.max(minBarWidth, Math.ceil(left + minimum * 1.16 + 32));
   return { measure, first, width, left, upper, lower, top, bottom, topVoices, bottomVoices, formatter };
+}
+
+interface Box { x0: number; x1: number; y0: number; y1: number }
+
+const MARK_COLOR = HEAD_COLOR;
+const MARK_PAD = 4;
+const directionCache = new WeakMap<EngravingScore, TempoDirection[]>();
+
+function tempoDirections(score: EngravingScore): TempoDirection[] {
+  let directions = directionCache.get(score);
+  if (!directions) directionCache.set(score, directions = deriveTempoDirections(score));
+  return directions;
+}
+
+function boxOf(element: SVGGraphicsElement): Box {
+  const bounds = element.getBBox();
+  return { x0: bounds.x, x1: bounds.x + bounds.width, y0: bounds.y, y1: bounds.y + bounds.height };
+}
+
+function union(boxes: Box[]): Box {
+  return boxes.reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), x1: Math.max(a.x1, b.x1), y0: Math.min(a.y0, b.y0), y1: Math.max(a.y1, b.y1) }));
+}
+
+let measuring: CanvasRenderingContext2D | null | undefined;
+/**
+ * The inked extent of an SVG text element. getBBox reports the font's
+ * ascent and descent instead, which for music fonts is several staff
+ * spaces taller than the glyph and would push marks far from the staff.
+ */
+function inkBox(text: SVGTextElement): Box {
+  measuring ??= document.createElement('canvas').getContext('2d');
+  const style = getComputedStyle(text);
+  const fallback = boxOf(text);
+  if (!measuring) return fallback;
+  measuring.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  measuring.textAlign = (text.getAttribute('text-anchor') === 'middle' ? 'center' : 'left');
+  const metrics = measuring.measureText(text.textContent || '');
+  const x = Number(text.getAttribute('x')), y = Number(text.getAttribute('y'));
+  return { x0: x - metrics.actualBoundingBoxLeft, x1: x + metrics.actualBoundingBoxRight,
+    y0: y - metrics.actualBoundingBoxAscent, y1: y + metrics.actualBoundingBoxDescent };
+}
+
+/** A note's inked extent (heads, stem, flag, modifiers) from VexFlow's own metrics. */
+function vexBox(element: { getBoundingBox(): { getX(): number; getY(): number; getW(): number; getH(): number } | undefined }): Box | undefined {
+  const bounds = element.getBoundingBox();
+  return bounds && { x0: bounds.getX(), x1: bounds.getX() + bounds.getW(), y0: bounds.getY(), y1: bounds.getY() + bounds.getH() };
+}
+
+/**
+ * Stacks marks outside a staff without collisions. Each side keeps the
+ * outline of everything already drawn there; a mark is placed just beyond
+ * the outline across its own width, then becomes part of it. Callers place
+ * marks from the staff outward in the conventional order (Gould, Behind
+ * Bars): fermatas, then octave lines, then tempo words.
+ */
+class Skyline {
+  private readonly boxes: Box[];
+  constructor(boxes: Box[], private readonly limit: number, private readonly side: 'above' | 'below') {
+    this.boxes = [...boxes];
+  }
+
+  /** How far `box` must move to clear the outline, keeping `clearance` from the staff. */
+  shiftFor(box: Box, clearance = 0): number {
+    const hits = this.boxes.filter(item => item.x1 > box.x0 - MARK_PAD && item.x0 < box.x1 + MARK_PAD);
+    return this.side === 'above'
+      ? Math.min(this.limit - clearance, ...hits.map(item => item.y0 - MARK_PAD)) - box.y1
+      : Math.max(this.limit + clearance, ...hits.map(item => item.y1 + MARK_PAD)) - box.y0;
+  }
+
+  /** Moves `element`, whose inked extent is `box`, so it clears the outline, and records it. */
+  place(element: SVGGraphicsElement, box: Box, shift = this.shiftFor(box)): Box {
+    element.setAttribute('transform', `translate(0 ${shift})`);
+    const placed = { x0: left, x1: right, y0: box.y0 + shift, y1: box.y1 + shift };
+    this.boxes.push(placed);
+    return placed;
+  }
+}
+
+function svgElement<K extends keyof SVGElementTagNameMap>(parent: Element, name: K, attributes: Record<string, string | number>): SVGElementTagNameMap[K] {
+  const element = document.createElementNS(SVG_NS, name);
+  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, String(value));
+  parent.appendChild(element);
+  return element;
+}
+
+/** Italic expression text in the engraving's text face. */
+function markText(parent: Element, x: number, content: string, extra: Record<string, string | number> = {}): SVGTextElement {
+  const text = svgElement(parent, 'text', { x, y: 0, fill: MARK_COLOR, stroke: 'none', 'font-family': 'Academico, Georgia, serif',
+    'font-style': 'italic', 'font-size': 18, ...extra });
+  text.textContent = content;
+  return text;
 }
 
 /**
@@ -214,6 +305,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
   const allDrawn: Drawn[] = [];
   const bySource = new Map<string, { vex: StaveNote; index: number; measure: number }[]>();
   const measureEndX = new Map<number, number>();
+  const tuplets: Tuplet[] = [];
   let x = 24;
   for (const item of prepared) {
     const { measure, first, upper, lower, top, bottom, topVoices, bottomVoices, formatter } = item;
@@ -275,7 +367,9 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
       });
     }
     beams.forEach(beam => beam.setContext(context).draw());
-    [...top, ...bottom].flatMap(voice => voice.tuplets).forEach(tuplet => tuplet.setContext(context).draw());
+    const measureTuplets = [...top, ...bottom].flatMap(voice => voice.tuplets);
+    measureTuplets.forEach(tuplet => tuplet.setContext(context).draw());
+    tuplets.push(...measureTuplets);
     measureEndX.set(measure, x + item.width);
     x += item.width;
   }
@@ -288,16 +382,88 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
         firstIndexes: [before.index], lastIndexes: [after.index] }).setContext(context).draw();
     }
   }
+  // Marks outside the staves are placed after every note, beam, tuplet and
+  // tie is drawn, so each one can clear what is already there.
+  const upperTop = prepared[0].upper.getYForLine(0), upperBottom = prepared[0].upper.getYForLine(4);
+  const lowerTop = prepared[0].lower.getYForLine(0), lowerBottom = prepared[0].lower.getYForLine(4);
+  const split = (upperBottom + lowerTop) / 2;
+  // Beams and ties are plain paths, so their SVG bounds are exact; notes and
+  // tuplets contain music-font text and use VexFlow's glyph metrics instead.
+  const drawnBoxes = [
+    ...allDrawn.map(item => vexBox(item.vex)),
+    ...tuplets.map(tuplet => vexBox(tuplet)),
+    ...[...svg.querySelectorAll<SVGGraphicsElement>('.vf-beam, .vf-stavetie')].map(boxOf)
+  ].filter((box): box is Box => !!box && box.x1 > box.x0);
+  const upperBoxes = drawnBoxes.filter(box => (box.y0 + box.y1) / 2 < split);
+  const lowerBoxes = drawnBoxes.filter(box => (box.y0 + box.y1) / 2 >= split);
+  const sides = {
+    1: new Skyline(upperBoxes, upperTop, 'above'),
+    2: new Skyline(lowerBoxes, lowerTop, 'above'),
+    below: new Skyline(lowerBoxes, lowerBottom, 'below')
+  };
+  const marks = svgElement(svg, 'g', { class: 'score-marks' });
+  const directions = tempoDirections(score).filter(item => item.measure >= firstMeasure && item.measure <= lastMeasure);
+  const noteAt = (direction: TempoDirection, anyStaff: boolean) => allDrawn
+    .filter(item => item.model.measure === direction.measure && item.model.offsetTicks === direction.offsetTicks &&
+      (anyStaff || item.model.staff === direction.staff))
+    .sort((a, b) => a.model.staff - b.model.staff || a.model.displayVoice - b.model.displayVoice)[0];
+  const headBox = (item: Drawn) => {
+    const heads = item.vex.noteHeads.map(head => vexBox(head)).filter((box): box is Box => !!box);
+    return heads.length ? union(heads) : { x0: item.vex.getAbsoluteX(), x1: item.vex.getAbsoluteX() + 10, y0: 0, y1: 0 };
+  };
+
+  // 1. Fermatas sit nearest the note: above the upper staff, inverted below the lower.
+  for (const direction of directions.filter(item => item.kind === 'fermata')) {
+    const item = noteAt(direction, false);
+    if (!item) continue;
+    const head = headBox(item);
+    const above = direction.staff === 1;
+    const glyph = svgElement(marks, 'text', { x: (head.x0 + head.x1) / 2, y: 0, 'text-anchor': 'middle', fill: MARK_COLOR,
+      stroke: 'none', 'font-family': 'Bravura', 'font-size': '30pt' });
+    glyph.textContent = above ? '\uE4C0' : '\uE4C1'; // SMuFL fermataAbove, fermataBelow
+    glyph.setAttribute('class', 'score-fermata');
+    (above ? sides[1] : sides.below).place(glyph, inkBox(glyph));
+  }
+
+  // 2. Octave lines: "8va" (or "(8)" when continued from an earlier page),
+  // a dashed extension, and a closing hook where the shift ends.
   for (const span of score.ottavas) {
     if (span.lastMeasure < firstMeasure || span.firstMeasure > lastMeasure) continue;
     const members = allDrawn.filter(item => item.model.ottavaSpan === span.id && item.model.staff === span.staff);
     if (!members.length) continue;
-    new TextBracket({ start: members[0].vex, stop: members.at(-1)!.vex,
-      text: '8', superscript: span.octaveShift < 0 ? 'va' : 'vb',
-      position: span.octaveShift < 0 ? TextBracket.Position.TOP : TextBracket.Position.BOTTOM })
-      .setLine(span.staff === 1 && members.some(item => item.model.tupletGroup) ? 5 : 1)
-      .setContext(context).draw();
+    const start = headBox(members[0]).x0;
+    const ends = span.lastMeasure <= lastMeasure;
+    const stop = ends ? headBox(members.at(-1)!).x1 + 4 : measureEndX.get(lastMeasure)! - 4;
+    const group = svgElement(marks, 'g', { class: 'score-ottava' });
+    const continued = span.firstMeasure < firstMeasure;
+    const label = markText(group, start, continued ? '(8)' : '8', { 'font-weight': 'bold', 'font-size': 14 });
+    if (!continued) {
+      const suffix = svgElement(label, 'tspan', { dy: -5, 'font-size': 10 });
+      suffix.textContent = span.octaveShift < 0 ? 'va' : 'vb';
+    }
+    // Measured as one run of text; the raised suffix adds its lift on top.
+    const ink = inkBox(label);
+    const labelBox = continued ? ink : { ...ink, y0: ink.y0 - 5 };
+    const lineY = labelBox.y0 + 5;
+    if (stop > labelBox.x1 + 6) {
+      svgElement(group, 'path', { d: `M ${labelBox.x1 + 3} ${lineY} H ${stop}` + (ends ? ` V ${lineY + 7}` : ''),
+        fill: 'none', stroke: MARK_COLOR, 'stroke-width': 1, 'stroke-dasharray': '4 3' });
+    }
+    sides[span.staff as 1 | 2].place(group, { ...labelBox, x1: Math.max(stop, labelBox.x1), y1: Math.max(labelBox.y1, lineY + (ends ? 7 : 0)) });
   }
+
+  // 3. Tempo words above the system, aligned with the beat they start on.
+  // They share one baseline per page and keep two spaces from the staff.
+  const words = directions.filter(item => item.kind === 'text').map(direction => {
+    const item = noteAt(direction, false) || noteAt(direction, true);
+    const x = item ? headBox(item).x0 : (measureEndX.get(direction.measure - 1) ?? 24) + 12;
+    const text = markText(marks, x, direction.text!);
+    text.setAttribute('class', 'score-tempo');
+    return { text, box: inkBox(text) };
+  });
+  const wordShift = Math.min(...words.map(word => sides[1].shiftFor(word.box, 20)));
+  for (const word of words) sides[1].place(word.text, word.box, wordShift);
+
   let terminal: EngravingPage['terminal'];
   if (lastMeasure === score.measures) {
     const finalSource = [...score.sources.values()].reduce((latest, source) =>
