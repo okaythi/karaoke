@@ -10,7 +10,9 @@
     "check": "astro check",
     "deploy": "npm run build && wrangler pages deploy dist --project-name karaoke --branch main",
     "sync:server": "tsx scripts/sync-server.ts",
-    "sync:links": "tsx scripts/generate-share-links.ts"
+    "sync:links": "tsx scripts/generate-share-links.ts",
+    "test:notation": "node --import tsx --test src/notation/tests/*.test.ts",
+    "fonts:notation": "python3 scripts/notation/build-fonts.py"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

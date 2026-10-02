@@ -28,6 +28,7 @@ The system combines four tightly integrated environments:
 | **[06. Sync Server & Multi-Tier Persistence](./06-sync-server-and-multi-tier-persistence.md)** | Persistence & AI Audio Pipeline | Local sync daemon (`scripts/sync-server.ts`), Cloudflare Pages serverless save handler, GitHub API commits, Demucs neural vocal isolation + Silero VAD acoustic alignment (`scripts/align-vocals.py`), share link generator. |
 | **[07. Cloud Infrastructure & Catalog](./07-cloud-infrastructure-and-catalog.md)** | Cloudflare Edge & Security | Cloudflare Pages, R2 Media Bucket (`https://cdn.sudothy.me`), D1 SQLite database (`system_data`), anti-scraper middleware, dynamic 6-character shortlinks (`[code].js`), passive browser fingerprinting (`kr-XXXX-XXXX`), 5.47s genuine view counter. |
 | **[08. Standalone Engine Blueprint](./08-standalone-engine-blueprint.md)** | SDK Decoupling & Future Roadmap | Architecture blueprint for packaging the core engine as a headless `@nixlabs/karaoke-core` SDK, framework adapters (React, Vue, Svelte), custom persistence adapters, pitch detection & audio worklets roadmap. |
+| **[09. Notation Engine](./09-notation-engine.md)** | Piano Score Engraving | Song-agnostic notation catalogue (~140 entries) and behaviours, exact-fraction score model, MIDI import inference, layout & collision rules, per-song/voice/role style cascade for glide colours, playback contract. |
 
 ---
 
@@ -148,7 +149,8 @@ karaoke/
 │   ├── 05-synchronization-studio-workstation.md
 │   ├── 06-sync-server-and-multi-tier-persistence.md
 │   ├── 07-cloud-infrastructure-and-catalog.md
-│   └── 08-standalone-engine-blueprint.md
+│   ├── 08-standalone-engine-blueprint.md
+│   └── 09-notation-engine.md
 ├── functions/                     # Cloudflare Pages Functions (Edge API)
 │   ├── _middleware.js             # Anti-crawler and link preview suppression middleware
 │   ├── [code].js                  # Dynamic 6-character shortlink redirect router
