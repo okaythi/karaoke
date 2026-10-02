@@ -1,0 +1,233 @@
+---
+import '../../styles/theater.css';
+import '../../notation/render/notation.css';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notation Gallery</title>
+    <style is:global>
+      :root { color-scheme: dark; }
+      body { margin: 0; background: var(--theater-bg); color: var(--theater-text); font-family: var(--font-sans); }
+      header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
+        padding: 16px 24px; background: color-mix(in srgb, var(--theater-bg) 92%, transparent); backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--theater-border); }
+      h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: .01em; }
+      h1 span { color: var(--accent-brass); }
+      .summary { color: var(--theater-text-muted); font: 12px var(--font-mono); }
+      input[type=search] { flex: 1 1 220px; max-width: 360px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--theater-border);
+        background: var(--theater-surface); color: var(--theater-text); font: inherit; }
+      main { padding: 8px 24px 64px; max-width: 1280px; margin: 0 auto; }
+      h2 { margin: 32px 0 12px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--accent-brass); }
+      .grid { display: grid; grid-template-columns: repeat(var(--gallery-columns, auto-fill), minmax(min(100%, 520px), 1fr)); gap: 16px; }
+      article { background: var(--theater-surface); border: 1px solid var(--theater-border); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+      article header { all: unset; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+      article h3 { margin: 0; font-size: 15px; font-weight: 600; }
+      code { font: 11px var(--font-mono); color: var(--theater-text-muted); }
+      .aliases { font-size: 12px; color: var(--theater-text-dim); }
+      .badge { margin-left: auto; font: 10px var(--font-mono); padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; }
+      .badge.ok { color: #8fbf8a; } .badge.fail { color: #e88a7a; } .badge.warn { color: var(--accent-brass); }
+      article p { margin: 6px 0 10px; font-size: 13px; line-height: 1.45; color: var(--theater-text-muted); }
+      figure { margin: 10px 0 0; }
+      figcaption { font-size: 11px; color: var(--theater-text-dim); margin-bottom: 4px; }
+      .music { width: 100%; overflow-x: auto; }
+      .music svg { width: 100%; height: auto; }
+      .pending { color: var(--accent-brass); font-size: 12px; }
+      .controls { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+      .controls button { padding: 6px 16px; border-radius: 99px; border: 1px solid var(--accent-brass); background: transparent;
+        color: var(--accent-brass); font: 600 12px var(--font-sans); cursor: pointer; }
+      .controls input { flex: 1; accent-color: var(--accent-brass); }
+      .error { color: #e88a7a; font: 11px/1.4 var(--font-mono); white-space: pre-wrap; }
+      details { margin-top: 8px; }
+      summary { cursor: pointer; font-size: 11px; color: var(--theater-text-dim); }
+      pre.source { margin: 6px 0 0; padding: 8px 10px; border-radius: 6px; background: var(--theater-bg); color: var(--theater-text-muted);
+        font: 11px/1.5 var(--font-mono); white-space: pre-wrap; }
+      @media (max-width: 600px) { header, main { padding-left: 16px; padding-right: 16px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Notation <span>Gallery</span></h1>
+      <span class="summary" id="summary">Loading…</span>
+      <input type="search" id="filter" placeholder="Filter by name, id or alias" aria-label="Filter notations" />
+    </header>
+    <main id="gallery"></main>
+    <script>
+      import { ENTRIES as CATALOGUE } from '../../notation/catalogue/registry';
+      import { engrave } from '../../notation/layout/engrave';
+      import { validateScore } from '../../notation/model/validate';
+      import { renderSystem, renderSystemView } from '../../notation/render/svg';
+      import { parseShorthand } from '../../notation/shorthand/parse';
+      import { ScoreIndex } from '../../notation/model/query';
+      import { DEFAULT_SHEET, StyleResolver } from '../../notation/style/style';
+      import type { StyleSheet } from '../../notation/style/style';
+      import { nominalTiming } from '../../notation/playback/timing';
+      import { GlideController } from '../../notation/playback/glide';
+
+      /** A short piece styled per staff and per role, played on a nominal clock. */
+      const DEMO = [
+        'key: 4 minor',
+        'time: 2/2 cut',
+        'upper: r/8 G#5[dyn.p tempo.text="Allegro agitato" role=melody +slur] F##5/16 G#5 A5 G#5 F##5 G#5 C#6 D#6 C#6 B#5[-slur] C#6/8 | E6/4[role=melody] D#6/8 C#6 B#5/4[artic.fermata] r/4 |',
+        'lower: 3:2{C#3/8[+pedal.ped-text] G#3 C#4} 3:2{E4/8 C#4 G#3} 3:2{C#3/8 G#3 C#4} 3:2{E4/8 C#4 G#3[-pedal.ped-text]} | 3:2{G#2/8[+pedal.ped-text] D#3 G#3} 3:2{B#3/8 G#3 D#3} <G#2 G#3>/4[-pedal.ped-text] r/4 |'
+      ].join('\n');
+      const DEMO_STYLE: StyleSheet = {
+        palette: { rose: '#de8adc', teal: '#6fccd9' },
+        rules: [
+          { select: { staff: 'upper' }, set: { glide: 'rose' } },
+          { select: { staff: 'lower' }, set: { glide: 'teal' } },
+          { select: { role: 'melody' }, set: { glide: 'accent-brass' } },
+          { select: { state: 'played', kind: ['note.*', 'grace.*'] }, set: { ink: 'theater-text-dim' } }
+        ]
+      };
+
+      function buildDemo() {
+        const section = element('section');
+        add(section, element('h2', undefined, 'Styled playback'));
+        const card = element('article');
+        add(card, element('p', undefined, 'Glide colours by staff, a role overriding them, and dimmed notes once played. Notes stay lit while the pedal holds them.'));
+        const music = element('div', 'music');
+        const controls = element('div', 'controls');
+        const play = element('button', undefined, 'Play');
+        const slider = element('input') as HTMLInputElement;
+        slider.type = 'range'; slider.min = '0'; slider.step = '0.01'; slider.setAttribute('aria-label', 'Playback position');
+        add(controls, play, slider);
+        add(card, music, controls);
+        add(section, card);
+        add(gallery, section);
+
+        const score = parseShorthand(DEMO, 'Demo');
+        const index = new ScoreIndex(score);
+        const resolver = new StyleResolver([DEFAULT_SHEET, DEMO_STYLE], {
+          measureNumber: measure => score.measures[measure].number,
+          sectionOf: () => undefined
+        });
+        const timing = nominalTiming(index, 2.4, 0.5);
+        const result = engrave(score, { width: Math.floor(Math.min(1100, innerWidth - 120) / 9) });
+        const controllers = result.systems.map(system => {
+          const view = renderSystemView(system, { style: resolver, glides: true });
+          add(music, view.svg);
+          return new GlideController(view.glides, timing);
+        });
+        const end = Math.max(...[...timing.notes.values()].map(note => note.soundingEnd)) + 0.5;
+        slider.max = String(end);
+        let started = 0, frame = 0;
+        const show = (time: number) => { for (const controller of controllers) controller.update(time); slider.value = String(time); };
+        const tick = () => {
+          const time = (performance.now() - started) / 1000;
+          show(time);
+          if (time < end) frame = requestAnimationFrame(tick); else play.textContent = 'Play';
+        };
+        play.addEventListener('click', () => {
+          cancelAnimationFrame(frame);
+          if (play.textContent === 'Pause') { play.textContent = 'Play'; return; }
+          started = performance.now() - Number(slider.value >= slider.max ? 0 : slider.value) * 1000;
+          play.textContent = 'Pause';
+          frame = requestAnimationFrame(tick);
+        });
+        slider.addEventListener('input', () => { cancelAnimationFrame(frame); play.textContent = 'Play'; show(Number(slider.value)); });
+        show(0);
+      }
+
+      const FAMILIES: Record<string, string> = {
+        staff: 'Staff & system', barline: 'Barlines', clef: 'Clefs', key: 'Key signatures', time: 'Time signatures',
+        note: 'Notes', grace: 'Grace notes', cue: 'Cue notes', rest: 'Rests', acc: 'Accidentals', tuplet: 'Tuplets',
+        tie: 'Ties', slur: 'Slurs', gliss: 'Glissando', artic: 'Articulations', orn: 'Ornaments', arp: 'Arpeggios',
+        dyn: 'Dynamics', pedal: 'Pedals', ottava: 'Octave lines', tempo: 'Tempo', expr: 'Expression', nav: 'Navigation',
+        finger: 'Fingering'
+      };
+      const params = new URLSearchParams(location.search);
+      /** `?focus=artic.staccato` (or a family, `?focus=dyn`) shows only those entries, drawn larger. */
+      const focus = params.get('focus');
+      /** Pixels per staff space in the gallery. */
+      const SPACE = Number(params.get('space')) || (focus ? 12 : 7);
+      const gallery = document.getElementById('gallery')!;
+      const summary = document.getElementById('summary')!;
+      const filter = document.getElementById('filter') as HTMLInputElement;
+
+      /** Appends children (Node.append is shadowed by the Workers types this project also loads). */
+      function add<T extends Node>(parent: T, ...children: Node[]): T {
+        for (const child of children) parent.appendChild(child);
+        return parent;
+      }
+
+      function element<K extends keyof HTMLElementTagNameMap>(name: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
+        const node = document.createElement(name);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+
+      async function build() {
+        await document.fonts.load('20px Bravura');
+        await document.fonts.load('20px Academico');
+        let failures = 0, warnings = 0, partial = 0;
+        const cards: { card: HTMLElement; text: string }[] = [];
+        const sections = new Map<string, HTMLElement>();
+        if (!focus || focus === 'demo') buildDemo();
+        const shown = focus === 'demo' ? [] : focus ? CATALOGUE.filter(item => item.id === focus || item.family === focus || item.id.startsWith(`${focus}.`)) : CATALOGUE;
+        if (focus) document.documentElement.style.setProperty('--gallery-columns', '1');
+        for (const item of shown) {
+          let grid = sections.get(item.family);
+          if (!grid) {
+            const section = element('section');
+            section.dataset.family = item.family;
+            add(section, element('h2', undefined, FAMILIES[item.family] ?? item.family));
+            grid = element('div', 'grid');
+            add(section, grid);
+            add(gallery, section);
+            sections.set(item.family, grid);
+          }
+          const card = element('article');
+          card.id = item.id;
+          const head = element('header');
+          add(head, element('h3', undefined, item.name), element('code', undefined, item.id));
+          const badge = element('span', 'badge ok', 'ok');
+          add(head, badge);
+          add(card, head);
+          if (item.aliases?.length) add(card, element('div', 'aliases', item.aliases.join(' · ')));
+          add(card, element('p', undefined, `${item.summary} §${item.spec}`));
+          let failed = false, warned = false;
+          for (const example of item.examples) {
+            const figure = element('figure');
+            if (example.title) add(figure, element('figcaption', undefined, example.title));
+            const music = element('div', 'music');
+            add(figure, music);
+            try {
+              const score = parseShorthand(example.score, item.name);
+              const issues = validateScore(score);
+              if (issues.some(issue => issue.level === 'error')) throw new Error(issues.map(issue => issue.message).join('\n'));
+              if (issues.length) warned = true;
+              const width = example.width ?? Math.max(30, Math.floor((focus ? Math.min(1100, innerWidth - 120) : 480) / SPACE));
+              const result = engrave(score, { width });
+              for (const system of result.systems) add(music, renderSystem(system));
+            } catch (error) {
+              failed = true;
+              add(music, element('div', 'error', String(error instanceof Error ? error.message : error)));
+            }
+            const details = element('details');
+            add(details, element('summary', undefined, 'shorthand'), element('pre', 'source', example.score));
+            add(figure, details);
+            add(card, figure);
+          }
+          if ('pending' in item && item.pending) add(card, element('p', 'pending', `Not built yet: ${item.pending}`));
+          if (failed) { badge.className = 'badge fail'; badge.textContent = 'error'; failures++; }
+          else if ('pending' in item && item.pending) { badge.className = 'badge warn'; badge.textContent = 'partial'; partial++; }
+          else if (warned) { badge.className = 'badge warn'; badge.textContent = 'warnings'; warnings++; }
+          add(grid, card);
+          cards.push({ card, text: `${item.id} ${item.name} ${(item.aliases ?? []).join(' ')}`.toLowerCase() });
+        }
+        summary.textContent = `${shown.length} notations · ${failures} failing · ${partial} partial · ${warnings} with warnings`;
+        filter.addEventListener('input', () => {
+          const query = filter.value.trim().toLowerCase();
+          for (const { card, text } of cards) card.hidden = !!query && !text.includes(query);
+          for (const section of gallery.querySelectorAll('section'))
+            (section as HTMLElement).hidden = ![...section.querySelectorAll('article')].some(card => !(card as HTMLElement).hidden);
+        });
+        if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+      }
+      build();
+    </script>
+  </body>
+</html>

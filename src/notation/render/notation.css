@@ -1,0 +1,24 @@
+/* Engraving fonts (SIL Open Font License, Steinberg). */
+@font-face { font-family: 'Bravura'; src: url('/fonts/bravura.woff2') format('woff2'); font-display: block; }
+@font-face { font-family: 'Academico'; src: url('/fonts/academico.woff2') format('woff2'); font-display: block; }
+@font-face { font-family: 'AcademicoBold'; src: url('/fonts/academicobold.woff2') format('woff2'); font-display: block; }
+
+/*
+ * Every drawn item takes its colour from --ink, set per item by the style
+ * layer (docs §9). Playback switches an item's state; the state picks the
+ * matching variable. Glide overlays are filled with --glide and revealed by
+ * their clip rectangle.
+ */
+.notation-system { display: block; overflow: visible; user-select: none; }
+.notation-system .n-glyph,
+.notation-system .n-text,
+.notation-system .n-polygon,
+.notation-system .n-path { fill: var(--ink, currentColor); }
+.notation-system .n-path[fill='none'] { fill: none; stroke: var(--ink, currentColor); }
+.notation-system .n-line,
+.notation-system .n-rect { stroke: var(--ink, currentColor); }
+
+.notation-system [data-state='upcoming'] { fill: var(--upcoming, var(--ink)); }
+.notation-system [data-state='played'] { fill: var(--played, var(--ink)); }
+.notation-system .n-glide { fill: var(--glide, var(--accent-brass)); pointer-events: none; }
+.notation-system .n-glide[data-state='played'] { visibility: hidden; }
