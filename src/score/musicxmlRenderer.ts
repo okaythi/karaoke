@@ -213,7 +213,9 @@ export function createMusicXmlScoreRenderer(video: HTMLVideoElement, container: 
     renderNow();
   };
 
-  const loop = () => { renderNow(); if (!destroyed) frame = requestAnimationFrame(loop); };
+  // Schedule the next frame first: a failed draw must not stop the score
+  // following playback.
+  const loop = () => { if (!destroyed) frame = requestAnimationFrame(loop); renderNow(); };
   video.addEventListener('seeked', renderNow);
   compactQuery?.addEventListener('change', onLayoutChange);
   setLayout();
