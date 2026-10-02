@@ -207,6 +207,23 @@ function inkBox(text: SVGTextElement): Box {
     y0: y - metrics.actualBoundingBoxAscent, y1: y + metrics.actualBoundingBoxDescent };
 }
 
+/**
+ * A note's heads, stem and flag. StaveNote.getBoundingBox also merges its
+ * modifiers, and an arpeggio stroke reports a box reaching the top of the
+ * SVG, which would push every mark above it off the page.
+ */
+function noteBox(note: StaveNote): Box | undefined {
+  const heads = note.noteHeads.map(head => vexBox(head)).filter((box): box is Box => !!box);
+  if (!heads.length) return undefined;
+  const box = union(heads);
+  if (note.hasStem()) {
+    const { topY, baseY } = note.getStemExtents();
+    box.y0 = Math.min(box.y0, topY, baseY) - (note.hasFlag() ? 4 : 0);
+    box.y1 = Math.max(box.y1, topY, baseY) + (note.hasFlag() ? 4 : 0);
+  }
+  return box;
+}
+
 /** A note's inked extent (heads, stem, flag, modifiers) from VexFlow's own metrics. */
 function vexBox(element: { getBoundingBox(): { getX(): number; getY(): number; getW(): number; getH(): number } | undefined }): Box | undefined {
   const bounds = element.getBoundingBox();
@@ -237,7 +254,7 @@ class Skyline {
   /** Moves `element`, whose inked extent is `box`, so it clears the outline, and records it. */
   place(element: SVGGraphicsElement, box: Box, shift = this.shiftFor(box)): Box {
     element.setAttribute('transform', `translate(0 ${shift})`);
-    const placed = { x0: left, x1: right, y0: box.y0 + shift, y1: box.y1 + shift };
+    const placed = { ...box, y0: box.y0 + shift, y1: box.y1 + shift };
     this.boxes.push(placed);
     return placed;
   }
@@ -390,7 +407,7 @@ export function renderEngravingPage(container: HTMLDivElement, firstMeasure: num
   // Beams and ties are plain paths, so their SVG bounds are exact; notes and
   // tuplets contain music-font text and use VexFlow's glyph metrics instead.
   const drawnBoxes = [
-    ...allDrawn.map(item => vexBox(item.vex)),
+    ...allDrawn.map(item => noteBox(item.vex)),
     ...tuplets.map(tuplet => vexBox(tuplet)),
     ...[...svg.querySelectorAll<SVGGraphicsElement>('.vf-beam, .vf-stavetie')].map(boxOf)
   ].filter((box): box is Box => !!box && box.x1 > box.x0);
