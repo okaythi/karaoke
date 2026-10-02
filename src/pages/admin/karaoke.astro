@@ -13,9 +13,7 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="preload" href="https://cdn.sudothy.me/fonts/ZenKurenaido-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="preload" href="https://cdn.sudothy.me/fonts/NotoSansJP-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <script is:inline src="https://accounts.nixlabs.tech/widget.js" defer></script>
 </head>
 <body>
@@ -59,7 +57,14 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
             <button class="filter-btn" data-filter="needs_sync">Unsynced</button>
             <button class="filter-btn" data-filter="synced">Synced</button>
           </div>
-          <select id="track-selector" class="track-dropdown"></select>
+          <div class="track-picker" id="track-picker">
+            <select id="track-selector" class="track-picker-native" tabindex="-1" aria-hidden="true"></select>
+            <button type="button" class="track-picker-button" id="track-picker-button" aria-label="Select track" aria-haspopup="listbox" aria-expanded="false" aria-controls="track-picker-list">
+              <span class="track-picker-selection" id="track-picker-selection">Loading tracks…</span>
+              <svg class="track-picker-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="track-picker-list" id="track-picker-list" role="listbox" aria-label="Tracks" hidden></div>
+          </div>
         </div>
       </div>
 
@@ -305,7 +310,7 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
           Paste lyrics text or a synchronized LRC file. Each line becomes a verse. Furigana bracket syntax like <code class="kbd-chip">漢字[かんじ]</code> is automatically detected and parsed into Japanese ruby annotations.
         </p>
 
-        <textarea id="raw-lyrics-input" class="field-input" style="height: 240px; font-family: var(--font-mono); font-size: 12px; resize: vertical;" placeholder="Paste raw song lyrics here...&#10;Line 1 will be Verse 1&#10;Line 2 will be Verse 2"></textarea>
+        <textarea id="raw-lyrics-input" class="field-input" style="height: 240px; font-size: 12px; resize: vertical;" placeholder="Paste raw song lyrics here...&#10;Line 1 will be Verse 1&#10;Line 2 will be Verse 2"></textarea>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btn-cancel-ingest">Cancel</button>
@@ -352,7 +357,7 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
         <p style="color: var(--text-muted); font-size: 12px;">
           Directly inspect or download the JSON payload for this track. Use this if saving offline or committing via git manually.
         </p>
-        <textarea id="export-json-display" class="field-input" style="height: 280px; font-family: var(--font-mono); font-size: 11px; white-space: pre;" readonly></textarea>
+        <textarea id="export-json-display" class="field-input" style="height: 280px; font-size: 11px; white-space: pre;" readonly></textarea>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btn-copy-export">Copy JSON</button>
