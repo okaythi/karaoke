@@ -61,7 +61,7 @@ export async function loadCatalog(): Promise<SongCatalogItem[]> {
     return {
       ...song,
       isOnR2,
-      hasLyrics: true,
+      hasLyrics: !song.scoreOnly,
       hasLiveLyrics: r2Data ? liveLyricsSet.has(song.id) : undefined,
       videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`,
       instrumentalUrl: hasInst ? `https://cdn.sudothy.me/${encodeURIComponent(instKey)}` : null

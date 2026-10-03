@@ -27,6 +27,16 @@ import '../../notation/render/notation.css';
       body.show-provenance .is-edited:is(.n-line, .n-rect) { stroke: #8fd3a8 !important; }
       .legend { font-size: 12px; color: var(--theater-text-muted); }
       .legend b { font-weight: 600; }
+      .review-tools { padding: 16px 24px; border-bottom: 1px solid var(--theater-border); }
+      .review-tools p { color: var(--theater-text-muted); font-size: 13px; }
+      .review-tools audio { width: min(100%, 640px); }
+      #playback-score { height: 320px; margin: 16px 0; overflow: hidden; position: relative; }
+      #playback-score .score-page, #playback-score .score-half { height: 100%; }
+      #playback-score svg { width: 100%; height: 100%; }
+      #playback-score.score-halves { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .timing-inferred { fill: var(--accent-brass) !important; }
+      .review-tools button { margin: 5px 8px 5px 0; border: 1px solid var(--theater-border); border-radius: 6px;
+        background: var(--theater-surface); color: var(--theater-text); padding: 8px 12px; cursor: pointer; }
       @media (max-width: 600px) { header, main { padding-left: 16px; padding-right: 16px; } }
     </style>
   </head>
@@ -37,6 +47,16 @@ import '../../notation/render/notation.css';
       <label><input type="checkbox" id="provenance" checked /> Highlight inferred and edited</label>
       <span class="legend"><b style="color:#e5c27b">inferred</b> by an import pass · <b style="color:#8fd3a8">edited</b> by edits.json</span>
     </header>
+    <section class="review-tools" id="review-tools" hidden>
+      <p id="alignment-facts"></p>
+      <audio id="review-audio" controls preload="metadata" hidden></audio>
+      <div id="playback-score" hidden></div>
+      <details id="alignment-details" hidden>
+        <summary>Review notes with interpolated timing</summary>
+        <p>The written notes come from the reference score. Brass noteheads below identify attacks whose recording times were interpolated. Select a bar to seek the preview.</p>
+        <div id="review-bars"></div>
+      </details>
+    </section>
     <main id="lines"></main>
     <script>
       import { loadSongScore } from '../../notation/songs';
@@ -44,6 +64,16 @@ import '../../notation/render/notation.css';
       import { renderSystemView } from '../../notation/render/svg';
       import { DEFAULT_SHEET, StyleResolver } from '../../notation/style/style';
       import { validateScore } from '../../notation/model/validate';
+      import { createScoreView } from '../../notation/view/theater';
+
+      interface AlignmentReport {
+        matchedAttacks: number;
+        scoreAttacks: number;
+        interpolatedAttacks: { id: string; measure: number; predictedTime: number }[];
+        performanceEnd: number;
+        trailingPerformedNotes: number;
+      }
+      const reports = import.meta.glob('../../data/score/*/alignment-report.json', { import: 'default' });
 
       const params = new URLSearchParams(location.search);
       const songId = params.get('song') ?? 'itsumo-nando-demo';
@@ -56,6 +86,44 @@ import '../../notation/render/notation.css';
         const song = await loadSongScore(songId);
         if (!song) { lines.textContent = `No score for ${songId}`; return; }
         const { score } = song;
+        const reportLoader = reports[`../../data/score/${songId}/alignment-report.json`];
+        const report = reportLoader ? await reportLoader() as AlignmentReport : undefined;
+        const unmatched = new Set(report?.interpolatedAttacks.map(note => note.id) ?? []);
+        const audio = document.getElementById('review-audio') as HTMLAudioElement;
+        const audioPath = params.get('audio');
+        if (report || audioPath) {
+          document.getElementById('review-tools')!.hidden = false;
+          document.getElementById('alignment-facts')!.textContent = report
+            ? `${report.matchedAttacks} of ${report.scoreAttacks} attacks matched · ${unmatched.size} interpolated · score ends at ${report.performanceEnd.toFixed(2)} s. Review against the original audio timeline.`
+            : 'Playback preview uses the supplied audio timeline.';
+        }
+        if (audioPath) {
+          const url = new URL(audioPath, location.href);
+          if (url.origin !== location.origin) throw new Error('Preview audio must be served from this site');
+          audio.src = url.href;
+          audio.hidden = false;
+          const preview = document.getElementById('playback-score')!;
+          preview.hidden = false;
+          const controller = createScoreView(audio, preview, song);
+          window.addEventListener('pagehide', () => controller.destroy(), { once: true });
+        }
+        if (report && unmatched.size) {
+          document.getElementById('alignment-details')!.hidden = false;
+          const bars = new Map<number, number>();
+          for (const note of report.interpolatedAttacks) {
+            bars.set(note.measure, Math.min(bars.get(note.measure) ?? Infinity, note.predictedTime));
+          }
+          for (const [bar, time] of [...bars].sort((a, b) => a[0] - b[0])) {
+            const button = document.createElement('button');
+            button.textContent = `Bar ${bar} · ${time.toFixed(2)} s`;
+            button.addEventListener('click', () => {
+              if (audioPath) audio.currentTime = Math.max(0, time - 1);
+              const target = [...lines.children].reverse().find(line => Number(line.getAttribute('data-from')) <= bar);
+              target?.scrollIntoView({ block: 'center' });
+            });
+            document.getElementById('review-bars')!.appendChild(button);
+          }
+        }
         const origin = new Map<string, string>();
         for (const event of score.events) {
           if (event.provenance) origin.set(event.id, event.provenance.origin);
@@ -76,10 +144,12 @@ import '../../notation/render/notation.css';
           for (const [ref, nodes] of view.nodes) {
             const kind = origin.get(ref);
             if (kind === 'inferred' || kind === 'edited') for (const node of nodes) node.classList.add(`is-${kind}`);
+            if (unmatched.has(ref)) for (const node of nodes) if (node.classList.contains('n-note-head') || node.classList.contains('nf-grace')) node.classList.add('timing-inferred');
           }
           const line = document.createElement('div');
           line.className = 'line';
           line.id = `bar-${from}`;
+          line.setAttribute('data-from', String(from));
           line.appendChild(view.svg);
           lines.appendChild(line);
           shown++;

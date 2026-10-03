@@ -1,0 +1,34 @@
+{
+  "id": "chopin-fantaisie-impromptu",
+  "meta": {
+    "title": "Fantaisie-Impromptu, Op. 66",
+    "composer": "Frédéric Chopin",
+    "source": "Mutopia-2009/09/05-1693 · Herrmann Scholtz edition, typeset by Guy D. Lederfein; public domain"
+  },
+  "source": {
+    "format": "score-json",
+    "file": "source/score.json",
+    "timing": "source/timing.json"
+  },
+  "tempo": false,
+  "preparation": {
+    "music": "source/music.json",
+    "referenceMidi": "source/reference.mid",
+    "performanceMidi": "source/performance.mid",
+    "audio": "../../../../Fantaisie-impromptu op 66/fantaisie impromptu - autoritative.mp3",
+    "performanceEnd": 340.160417,
+    "lilypond": "source/reference.converted.ly"
+  },
+  "media": {
+    "videoFile": "Frédéric Chopin - Fantaisie-Impromptu, Op. 66.mp4",
+    "status": "local-review",
+    "localFile": "Fantaisie-impromptu op 66/fantaisie-tokyo-ghoul-final-720p.mp4",
+    "timingAuthority": "Original MP3 timeline; do not trim or prepend audio when muxing into MP4.",
+    "audioDuration": 363.252971,
+    "scoreEnd": 340.160417
+  },
+  "reference": {
+    "url": "https://www.mutopiaproject.org/ftp/ChopinFF/O66/chopin_fantaisie-impromptu/",
+    "midiByteIdentical": true
+  }
+}

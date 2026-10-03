@@ -21,6 +21,8 @@ export interface SupportItem {
 export interface SongMetadata {
   id: string;
   videoFile: string;
+  /** Instrumental piece whose primary content is its synchronized score. */
+  scoreOnly?: boolean;
   title: string;
   artist: string;
   language?: string;
