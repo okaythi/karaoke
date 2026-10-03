@@ -12,6 +12,7 @@
     "sync:server": "tsx scripts/sync-server.ts",
     "sync:links": "tsx scripts/generate-share-links.ts",
     "test:notation": "node --import tsx --test src/notation/tests/*.test.ts",
+    "test:player": "node --import tsx --test src/player/tests/*.test.ts",
     "fonts:notation": "python3 scripts/notation/build-fonts.py",
     "import:score": "tsx scripts/notation/import-song.ts"
   },

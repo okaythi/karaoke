@@ -5,6 +5,7 @@ import { sortSongs } from '../catalog/sorter';
 import { createRenderEngine, type RenderEngineController } from '../renderer/renderEngine';
 import { initDynamicBacklight } from '../renderer/backlight';
 import { fuzzyFilterSongs } from './fuzzySearch';
+import { LIBRARY_MODES, groupSongsByMode, otherMode, readStoredMode, resolveInitialMode, storeMode, type LibraryMode, type SongsByMode } from './libraryMode';
 import { collectFingerprint } from '../fingerprint/fingerprint';
 import { hasSongScore, loadSongScore } from '../notation/songs';
 import type { ScoreViewController } from '../notation/view/theater';
@@ -20,7 +21,11 @@ export interface PlayerElements {
   sidebarList: HTMLElement;
   searchPillInput: HTMLInputElement;
   searchPillClear: HTMLButtonElement;
-  songCountBadge: HTMLElement;
+  /** Announces the list's size to screen readers; the visible counts sit in the mode switch. */
+  songListStatus: HTMLElement;
+  libraryMode: HTMLElement;
+  libraryModeInputs: Record<LibraryMode, HTMLInputElement>;
+  libraryModeCounts: Record<LibraryMode, HTMLElement>;
 
   // Center Theater Viewport
   videoContainer: HTMLElement;
@@ -66,8 +71,15 @@ export interface PlayerElements {
   btnFullscreen: HTMLButtonElement;
 }
 
+const LIBRARY_COPY: Record<LibraryMode, { label: string; one: string; many: string; placeholder: string }> = {
+  lyrics: { label: 'Lyrics', one: 'song', many: 'songs', placeholder: 'Search songs or artists...' },
+  piano: { label: 'Piano', one: 'piece', many: 'pieces', placeholder: 'Search pieces or composers...' }
+};
+
 export function initKaraokeTheater(els: PlayerElements) {
   let allSongs: SongCatalogItem[] = [];
+  let songsByMode: SongsByMode = { lyrics: [], piano: [] };
+  let libraryMode: LibraryMode = 'lyrics';
   let filteredSongs: SongCatalogItem[] = [];
   let activeSong: SongCatalogItem | null = null;
   let renderController: RenderEngineController | null = null;
@@ -144,20 +156,25 @@ export function initKaraokeTheater(els: PlayerElements) {
     '#6e6284'  // Lavender / Purple
   ];
 
-  const renderSidebar = (songs: SongCatalogItem[]) => {
-    els.sidebarList.innerHTML = '';
-    els.songCountBadge.textContent = `${songs.length} track${songs.length === 1 ? '' : 's'} in queue`;
+  // The list is empty: say why, and point at the other mode when the search matches there.
+  const renderEmptyState = (query: string, matchesElsewhere: number) => {
+    const copy = LIBRARY_COPY[libraryMode];
+    const other = otherMode(libraryMode);
+    const title = query ? `No ${copy.many} match “${escapeHtml(query)}”` : `No ${copy.many} yet`;
+    const hint = !query
+      ? ''
+      : matchesElsewhere > 0
+        ? `<button class="empty-search-switch" type="button">${matchesElsewhere} ${matchesElsewhere === 1 ? 'match' : 'matches'} in ${LIBRARY_COPY[other].label}</button>`
+        : '<div class="empty-search-hint">Try a different title or artist</div>';
+    els.sidebarList.innerHTML = `<div class="empty-search-state"><div class="empty-search-title">${title}</div>${hint}</div>`;
+    els.sidebarList.querySelector('.empty-search-switch')?.addEventListener('click', () => {
+      setLibraryMode(other);
+      els.libraryModeInputs[other].focus();
+    });
+  };
 
-    if (songs.length === 0) {
-      els.sidebarList.innerHTML = `
-        <div class="empty-search-state">
-          <div class="empty-search-icon">🔍</div>
-          <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">No matching songs</div>
-          <div style="font-size: 12px; color: var(--theater-text-muted);">Try a different keyword or artist name</div>
-        </div>
-      `;
-      return;
-    }
+  const renderSongCards = (songs: SongCatalogItem[]) => {
+    els.sidebarList.innerHTML = '';
 
     songs.forEach((song, idx) => {
       const isSelected = activeSong?.id === song.id;
@@ -203,6 +220,36 @@ export function initKaraokeTheater(els: PlayerElements) {
       els.sidebarList.appendChild(item);
     });
   };
+
+  // Redraws the list for the current mode and search; the counts show what the search finds in each mode.
+  const refreshSidebar = () => {
+    const query = els.searchPillInput.value.trim();
+    const matches = {
+      lyrics: fuzzyFilterSongs(songsByMode.lyrics, query),
+      piano: fuzzyFilterSongs(songsByMode.piano, query)
+    };
+    for (const mode of LIBRARY_MODES) els.libraryModeCounts[mode].textContent = String(matches[mode].length);
+
+    filteredSongs = matches[libraryMode];
+    const copy = LIBRARY_COPY[libraryMode];
+    els.songListStatus.textContent = `${filteredSongs.length} ${filteredSongs.length === 1 ? copy.one : copy.many}`;
+    if (filteredSongs.length === 0) renderEmptyState(query, matches[otherMode(libraryMode)].length);
+    else renderSongCards(filteredSongs);
+  };
+
+  // Changes which list is shown. Playback carries on: the mode filters the library, not the stage.
+  const setLibraryMode = (mode: LibraryMode, remember = true) => {
+    libraryMode = mode;
+    els.libraryModeInputs[mode].checked = true;
+    els.searchPillInput.placeholder = LIBRARY_COPY[mode].placeholder;
+    if (remember) storeMode(mode);
+    els.sidebarList.scrollTop = 0;
+    refreshSidebar();
+  };
+
+  for (const mode of LIBRARY_MODES) {
+    els.libraryModeInputs[mode].addEventListener('change', () => setLibraryMode(mode));
+  }
 
   // Incremented per selection so slower async work from an earlier pick can tell it is stale.
   let selectionSerial = 0;
@@ -733,15 +780,13 @@ export function initKaraokeTheater(els: PlayerElements) {
   els.searchPillInput.addEventListener('input', () => {
     const q = els.searchPillInput.value;
     els.searchPillClear.style.display = q ? 'block' : 'none';
-    filteredSongs = fuzzyFilterSongs(allSongs, q);
-    renderSidebar(filteredSongs);
+    refreshSidebar();
   });
 
   els.searchPillClear.addEventListener('click', () => {
     els.searchPillInput.value = '';
     els.searchPillClear.style.display = 'none';
-    filteredSongs = allSongs;
-    renderSidebar(filteredSongs);
+    refreshSidebar();
     els.searchPillInput.focus();
   });
 
@@ -843,15 +888,19 @@ export function initKaraokeTheater(els: PlayerElements) {
   // Initial Boot
   loadCatalog().then(catalog => {
     allSongs = sortSongs(catalog.filter(s => s.isOnR2 && s.hasLyrics));
-    filteredSongs = allSongs;
-    renderSidebar(filteredSongs);
+    songsByMode = groupSongsByMode(allSongs, s => hasSongScore(s.id));
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetSongId = urlParams.get('song');
     const targetTime = parseFloat(urlParams.get('t') || urlParams.get('time') || '0');
+    const linkedSong = targetSongId ? allSongs.find(s => s.id === targetSongId || s.shareCode === targetSongId) : undefined;
+
+    setLibraryMode(resolveInitialMode(songsByMode, readStoredMode(), linkedSong), false);
+    for (const mode of LIBRARY_MODES) els.libraryModeInputs[mode].disabled = false;
+    requestAnimationFrame(() => els.libraryMode.classList.add('is-settled'));
 
     if (filteredSongs.length > 0) {
-      const initialSong = (targetSongId && filteredSongs.find(s => s.id === targetSongId || s.shareCode === targetSongId)) || filteredSongs[0];
+      const initialSong = linkedSong || filteredSongs[0];
       selectSong(initialSong).then(() => {
         if (targetTime > 0) {
           els.video.currentTime = targetTime;

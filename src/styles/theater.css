@@ -243,11 +243,118 @@
   color: var(--theater-text);
 }
 
-.search-meta-row {
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Library mode: two-segment switch between lyrics songs and piano pieces */
+.library-mode {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 2px;
+  background: #181817;
+  border: 1px solid var(--theater-border);
+  border-radius: 6px;
+}
+
+/* Kept focusable and in the accessibility tree; the label is the visible control */
+.library-mode-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.library-mode-option {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  font-size: 11px;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 28px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theater-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.library-mode-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.library-mode-count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   color: var(--theater-text-dim);
+}
+
+.library-mode-input:not(:checked):not(:disabled) + .library-mode-option:hover {
+  color: var(--theater-text);
+}
+
+.library-mode-input:checked + .library-mode-option {
+  color: var(--accent-brass);
+  cursor: default;
+}
+
+.library-mode-input:checked + .library-mode-option .library-mode-count {
+  color: var(--theater-text-muted);
+}
+
+.library-mode-input:disabled + .library-mode-option {
+  cursor: default;
+}
+
+.library-mode-input:focus-visible + .library-mode-option {
+  outline: 2px solid var(--accent-brass);
+  outline-offset: 1px;
+}
+
+.library-mode-thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: 4px;
+  background: var(--theater-surface-hover);
+  box-shadow: inset 0 0 0 1px var(--theater-border-hover);
+}
+
+.library-mode-input[value="piano"]:checked ~ .library-mode-thumb {
+  transform: translateX(100%);
+}
+
+/* Enabled once the opening mode is settled, so the thumb never slides in on load */
+.library-mode.is-settled .library-mode-thumb {
+  transition: transform 0.18s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+@media (pointer: coarse) {
+  .library-mode-option {
+    height: 40px;
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-mode.is-settled .library-mode-thumb {
+    transition: none;
+  }
 }
 
 /* Sidebar Song Cards: Boring hover, no scale, no lift, no shadow */
@@ -357,10 +464,38 @@
   padding: 20px;
 }
 
-.empty-search-icon {
-  font-size: 24px;
-  margin-bottom: 8px;
-  opacity: 0.5;
+.empty-search-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theater-text);
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.empty-search-hint {
+  font-size: 12px;
+}
+
+.empty-search-switch {
+  margin-top: 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--theater-border-hover);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-brass);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.empty-search-switch:hover {
+  background: var(--theater-surface-hover);
+  border-color: var(--accent-brass);
+}
+
+.empty-search-switch:focus-visible {
+  outline: 2px solid var(--accent-brass);
+  outline-offset: 2px;
 }
 
 /* ==========================================================================
