@@ -612,7 +612,7 @@ Every pass is a pure function `(score, settings) → score` with a name, reads o
 6. **Voices** (§7.5).
 7. **Spelling** (§7.6).
 8. **Written values and ties** (§6.5).
-9. **Ottavas and clef changes** (§7.8, §5.2).
+9. **Clef changes, then ottavas** (§7.9, §7.8): an octave line is judged in the clef its notes are read in.
 10. **Pedal, dynamics, tempo text** from source events.
 11. **Arpeggios** from alignment (§5.13), once timing exists.
 12. **Apply edits** (`edits.json`), then **validate**.
@@ -650,7 +650,7 @@ The algorithm works on the line of fifths with a windowed key centre (a known ap
 
 ### 7.8 Ottava inference
 
-See §5.16. Preference order when a passage is out of range: ottava (if within one octave beyond the comfortable range) → clef change (if it fits the other clef) → 15ma/15mb.
+See §5.16. Preference order when a passage is out of range: clef change where the staff has an alternate clef (§7.9; a keyboard left hand takes treble clef, never an 8va over a bass staff) → ottava (if within one octave beyond the comfortable range) → 15ma/15mb.
 
 An octave line exists to spare the reader ledger lines over a passage, it governs every note on its staff, and it must not misrepresent the shape of the music. The inference follows from those three points, with thresholds from the song's import settings, per clef:
 
@@ -659,6 +659,14 @@ An octave line exists to spare the reader ledger lines over a passage, it govern
 3. **Harm.** A chord that would need more ledger lines under the line than at pitch (a low note in a wide chord, a dip below the staff) is never covered. Its figure is left out, which splits the line; when that figure itself reaches the peak, only the chord is left out.
 
 Notes count for the staff they are drawn on, so notes crossing from another staff's chord are seen too. A low note that belongs to the other hand is moved before this pass, by hand reach (§7.4), which is what usually removes the conflict.
+
+### 7.9 Clef-change inference
+
+A staff whose part ranges beyond its clef changes to an alternate clef: a pianist's left hand reads bass and treble, so it takes treble clef where it stays high rather than ledger lines or an octave line. The song's import settings name the alternate clef and the thresholds, per staff.
+
+1. **Fit.** Everything a staff draws at one position is read in one clef. A position fits the alternate clef when none of its notes needs more than `fitLedgers` ledger lines there, so a low bass note stays in the home clef whatever follows it.
+2. **Fewest ledger lines.** Among the readings that fit, the one with the fewest ledger lines over the whole staff wins, where a change of clef counts as `changeCost` ledger lines at a barline and `splitCost` inside a measure. A short excursion therefore stays on ledger lines, a passage that stays away takes the other clef, and a measure is split only for chords far off the staff.
+3. **Stability.** Equal readings keep the clef they are in and change at a barline rather than inside a measure. Silence keeps the clef it is reached in: a change is written where the next note needs it. The staff sets out from its home clef and is costed back to it, so an excursion at either end of the piece must earn both changes.
 
 ---
 

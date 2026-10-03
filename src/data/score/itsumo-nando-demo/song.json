@@ -16,7 +16,7 @@
       },
       {
         "id": "lower",
-        "clef": "baritone-f"
+        "clef": "bass"
       }
     ],
     "group": "brace",
@@ -89,20 +89,20 @@
       }
     }
   },
+  "clefs": {
+    "lower": {
+      "alternate": "treble",
+      "fitLedgers": 2,
+      "changeCost": 2,
+      "splitCost": 4
+    }
+  },
   "ottavas": {
     "treble": {
       "peakLedgers": 3,
       "supportLedgers": 1,
       "supportNotes": 2,
       "loneMeasureNotes": 3,
-      "bridgeMeasures": 1,
-      "figureLeap": 6
-    },
-    "baritone-f": {
-      "peakLedgers": 4,
-      "supportLedgers": 3,
-      "supportNotes": 0,
-      "loneMeasureNotes": 0,
       "bridgeMeasures": 1,
       "figureLeap": 6
     }
