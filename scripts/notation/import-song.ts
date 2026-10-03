@@ -84,5 +84,5 @@ write('score.json', encodeScore(edited));
 
 const count = (kind: string) => edited.attachments.filter(item => item.kind === kind).length + edited.spanners.filter(item => item.kind === kind).length;
 console.log(`${id}: ${edited.measures.length} measures, ${edited.events.length} events, ${warnings} warnings`);
-console.log(`  rolled chords ${imported.report.rolledChords}, triplet beats ${imported.report.tripletBeats}, ties ${imported.report.ties}, corrections ${imported.report.corrections}`);
+console.log(`  rolled chords ${imported.report.rolledChords}, triplet beats ${imported.report.tripletBeats}, ties ${imported.report.ties}, corrections ${imported.report.corrections}, notes moved to the other hand ${imported.report.handMoves}`);
 console.log(`  ottavas ${count('ottava.8va')}, fermatas ${count('artic.fermata')}, tempo changes ${count('tempo.change')}, a tempo ${count('tempo.return')}, edits ${edits.length}`);

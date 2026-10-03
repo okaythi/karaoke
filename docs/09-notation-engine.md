@@ -471,11 +471,12 @@ Entry IDs are `family.name`. Glyph names are SMuFL names in the Bravura font and
 | `ottava.loco` | *loco* text after a line | text |
 
 - **Anchor**: span on one staff. 8va and 15ma above the staff; 8vb and 15mb below.
-- **Line**: dashed, starting at the left edge of the first note and ending with a hook toward the staff after the last note. The height clears every note, stem, beam and mark under the span on one level.
+- **One staff**: a line governs every note drawn on its staff while it lasts, and nothing else. A note that a chord under the line draws on the other staff is written at pitch there; a note another staff's chord draws on this staff is under the line. A line over such crossed notes names its staff (`staff` on the spanner), since its chord belongs to the other one.
+- **Line**: dashed, starting at the left edge of the first note and ending with a hook toward the staff after the last note. Over a single note it still runs two dashes past its mark, so the hook never falls inside the mark. The height clears every note, stem, beam and mark under the span on one level.
 - **Written pitch**: notes under an ottava are *written* at the shifted pitch; the model keeps sounding pitch and layout derives written position. Accidentals are re-evaluated on written pitch.
 - **Breaks**: continues on the next line with the number in parentheses, e.g. "(8)".
-- **Interactions**: a clef change inside an ottava ends it. An ottava never starts or ends in the middle of a beam group unless the group crosses the staff.
-- **Inference**: §7.8: a passage needing more than K ledger lines above the treble staff (or below the bass staff) for at least N notes gets an ottava, joining passages separated by short gaps and preferring to start at a beat, phrase or beam-group boundary.
+- **Interactions**: a clef change inside an ottava ends it. A line starts and ends with a figure (§7.8), never inside one; where a figure ends inside a beam group, the figure decides.
+- **Inference**: §7.8.
 
 ### 5.17 Tempo and expression
 
@@ -625,6 +626,8 @@ Every pass is a pure function `(score, settings) → score` with a name, reads o
 
 Track or channel per staff when the source has them (`upper` / `lower`). Otherwise a continuity-aware split: notes are assigned to minimize hand-span violations (default max span a 10th per hand per onset) and staff jumps between consecutive events, not by a fixed middle-C split.
 
+**Hand reach** (built, in the aligned import): with `reach` set (semitones; 16 is a major tenth), the upper hand keeps what its highest note can reach and the lower hand what its lowest can. A note beyond that joins the chord the neighbouring staff's hand strikes at the same moment, when it fits within that hand's reach. Rolled chords are left alone (rolling is how one hand covers more), and so are notes with a reviewed staff correction. Moved notes are marked `inferred` (`hand-reach`) for review.
+
 ### 7.5 Voices
 
 Within a staff, notes overlapping in time with different onsets go to separate voices. Melody detection (highest line with longer values) gets voice 1. Voices are kept to the minimum that avoids overlaps.
@@ -648,6 +651,14 @@ The algorithm works on the line of fifths with a windowed key centre (a known ap
 ### 7.8 Ottava inference
 
 See §5.16. Preference order when a passage is out of range: ottava (if within one octave beyond the comfortable range) → clef change (if it fits the other clef) → 15ma/15mb.
+
+An octave line exists to spare the reader ledger lines over a passage, it governs every note on its staff, and it must not misrepresent the shape of the music. The inference follows from those three points, with thresholds from the song's import settings, per clef:
+
+1. **Passages.** A measure is marked when its highest note needs `peakLedgers` ledger lines and `supportNotes` of its notes need `supportLedgers`. Neighbouring marked measures form a passage, which takes in further neighbours that reach the peak. A lone marked measure stays only with `loneMeasureNotes` high notes. Passages at most `bridgeMeasures` apart join when nothing between them would be harmed (point 3): carrying a line over a short lower stretch reads better than stopping and restarting it.
+2. **Figures.** Inside a passage the music divides into figures: stretches with no silence on the staff and no leap of `figureLeap` staff steps between successive top notes. A line that starts or stops inside a figure makes a step look like a leap, so a line covers whole figures: from the first that reaches the peak to the last, with the lower ones between them.
+3. **Harm.** A chord that would need more ledger lines under the line than at pitch (a low note in a wide chord, a dip below the staff) is never covered. Its figure is left out, which splits the line; when that figure itself reaches the peak, only the chord is left out.
+
+Notes count for the staff they are drawn on, so notes crossing from another staff's chord are seen too. A low note that belongs to the other hand is moved before this pass, by hand reach (§7.4), which is what usually removes the conflict.
 
 ---
 

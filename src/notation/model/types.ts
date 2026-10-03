@@ -181,6 +181,11 @@ export interface Spanner extends Element {
   readonly kind: NotationId;
   readonly start: Anchor;
   readonly end: Anchor;
+  /**
+   * The staff a line belongs to, when it is not the staff of its first chord: an octave line over
+   * notes that a chord of the other staff has drawn here.
+   */
+  readonly staff?: StaffId;
   readonly side?: 'above' | 'below';
   readonly text?: string;
   readonly params?: MarkParams;

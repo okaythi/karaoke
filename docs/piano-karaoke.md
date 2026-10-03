@@ -6,7 +6,7 @@ A song shows a score under its video when `src/data/score/<song-id>/score.json` 
 
 | File | What it is |
 | :--- | :--- |
-| `song.json` | Where the source is, and the import settings: staves, meter, key, chord and roll detection, tie threshold, octave-line thresholds, tempo-mark thresholds, and reviewed source **corrections** (per source note, each with a reason). |
+| `song.json` | Where the source is, and the import settings: staves, meter, key, chord and roll detection, hand reach, tie threshold, octave-line thresholds, tempo-mark thresholds, and reviewed source **corrections** (per source note, each with a reason). |
 | `source/` | The source itself. For いつも何度でも: a Transkun transcription of the recording aligned to a purchased MuseScore reference (`karaoke-map.json`). |
 | `score.generated.json` | The import's output. Never edited by hand. |
 | `edits.json` | Reviewed notation choices on top of the import (octave lines, cross-staff notes, tuplet sides…), each with a reason. |
@@ -22,7 +22,7 @@ The video's `currentTime` is the only clock. A note's glide starts at its record
 
 ## Import
 
-`src/notation/import/aligned.ts` turns aligned notes into notation with general rules: rolled chords become one chord with an arpeggio, near-simultaneous attacks merge (both hands share a position), each beat is read in sixteenths or in triplets when the onsets demand it, a lone inner-voice note becomes voice 2, and notes last to the next onset unless their sound clearly stopped, with ties only while a note still sounds over a barline. Octave lines (`import/ottavas.ts`) and rit./a tempo/fermatas (`import/tempo.ts`) are inferred from the notes and the performance.
+`src/notation/import/aligned.ts` turns aligned notes into notation with general rules: rolled chords become one chord with an arpeggio, near-simultaneous attacks merge (both hands share a position), a note out of one hand's reach joins the other hand's chord, each beat is read in sixteenths or in triplets when the onsets demand it, a lone inner-voice note becomes voice 2, and notes last to the next onset unless their sound clearly stopped, with ties only while a note still sounds over a barline. Octave lines (`import/ottavas.ts`) and rit./a tempo/fermatas (`import/tempo.ts`) are inferred from the notes and the performance. An octave line covers whole figures (it never starts or stops inside a run) and never a chord it would push onto more ledger lines; see §7.8 of the engine spec.
 
 ## Review
 
