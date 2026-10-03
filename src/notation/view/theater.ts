@@ -31,6 +31,8 @@ const COMPACT_QUERY = '(max-width: 768px) and (orientation: portrait)';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** Staff spaces of height a wide score area is scaled to hold. */
 const WIDE_FRAME = 30;
+/** Tighten desktop horizontal layout by 4.32%, keeping the glyph size unchanged. */
+const WIDE_SPACING_SCALE = 0.9568;
 /** On a phone a line is at least this many staff spaces wide (two bars) and at most this many. */
 const COMPACT_MIN_SPACES = 46;
 const COMPACT_MAX_SPACES = 80;
@@ -102,7 +104,7 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
     const spacePx = compact
       ? Math.max(slotWidth / COMPACT_MAX_SPACES, Math.min(slotWidth / COMPACT_MIN_SPACES, byHeight))
       : Math.max(4, rect.height / WIDE_FRAME);
-    width = Math.max(24, slotWidth / spacePx - LEFT_ROOM - MARGIN);
+    width = Math.max(24, (slotWidth / spacePx - LEFT_ROOM - MARGIN) * (compact ? 1 : WIDE_SPACING_SCALE));
     engraving = engrave(song.score, { width, settings: song.layout });
     // Include all ink: clipping tall slurs hides a layout error and cuts off music.
     frame = {
@@ -133,10 +135,15 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
     if (!engraved) return;
     const view = renderSystemView(engraved, {
       style, glides: true, margin: MARGIN, frame,
-      extent: { left: -LEFT_ROOM, right: width },
+      // Centre the actual line, including its brace, rather than a wider
+      // requested extent that may leave unused space on the right.
+      extent: compact ? { left: -LEFT_ROOM, right: width } : {
+        left: Math.min(engraved.box.x0, 0) - MARGIN,
+        right: Math.max(engraved.box.x1, engraved.width)
+      },
       title: `Score, bars ${song.score.measures[engraved.first].number}–${song.score.measures[engraved.last].number}`
     });
-    view.svg.setAttribute('preserveAspectRatio', 'xMinYMid meet');
+    view.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     const anchors: Anchor[] = [];
     for (const target of view.glides) {
       const timing = song.timing.notes.get(target.noteId);

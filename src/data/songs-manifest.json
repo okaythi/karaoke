@@ -1,5 +1,15 @@
 [
   {
+    "id": "chopin-fantaisie-impromptu",
+    "videoFile": "Frédéric Chopin - Fantaisie-Impromptu, Op. 66.mp4",
+    "title": "Fantaisie-Impromptu, Op. 66",
+    "artist": "Frédéric Chopin",
+    "scoreOnly": true,
+    "globalOffset": 0,
+    "isDialect": false,
+    "hasTranslation": false
+  },
+  {
     "id": "itsumo-nando-demo",
     "videoFile": "Itsumo Nando Demo - karaoke.mp4",
     "title": "いつも何度でも",
