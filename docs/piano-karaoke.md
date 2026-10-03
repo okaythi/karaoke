@@ -20,6 +20,8 @@ Rebuild after changing anything: `npm run import:score -- itsumo-nando-demo`. An
 
 The video's `currentTime` is the only clock. A note's glide starts at its recorded attack (a tied continuation starts when its beat arrives) and lasts its written value at the local performed tempo, read from the beat clock. A note stays lit for as long as it sounds; then it takes its played colour.
 
+The running bar interpolates between shared rhythmic columns using the performed beat clock, including rests, and reaches the closing barline at the written line's end. Individual hand attacks and displaced chord noteheads do not change its path. It updates on each browser animation frame; line changes follow the same beat clock.
+
 ## Import
 
 The importer also accepts `source.format: "score-json"` with `source.file` and

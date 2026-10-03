@@ -16,8 +16,11 @@
  */
 import { engrave } from '../layout/engrave';
 import type { Engraving } from '../layout/engrave';
-import type { EngravedSystem } from '../layout/system';
+import * as F from '../core/fraction';
+import { ScoreIndex } from '../model/query';
 import { GlideController } from '../playback/glide';
+import { playheadAnchors, playheadX } from '../playback/playhead';
+import type { PlayheadAnchor } from '../playback/playhead';
 import { renderSystemView } from '../render/svg';
 import type { RenderedSystem } from '../render/svg';
 import type { SongScore } from '../songs';
@@ -45,15 +48,12 @@ const COMPACT_GAP = 10;
 const MARGIN = 1.2;
 const LEFT_ROOM = 3;
 
-interface Anchor { readonly time: number; readonly x: number }
-
 interface Shown {
   readonly system: number;
   readonly view: RenderedSystem;
   readonly glide: GlideController;
-  readonly anchors: readonly Anchor[];
+  readonly anchors: readonly PlayheadAnchor[];
   readonly playhead: SVGLineElement;
-  readonly end: { readonly time: number; readonly x: number };
 }
 
 interface Slot {
@@ -62,6 +62,7 @@ interface Slot {
 }
 
 export function createScoreView(video: HTMLMediaElement, container: HTMLElement, song: SongScore): ScoreViewController {
+  const index = new ScoreIndex(song.score);
   const style = new StyleResolver(song.style ? [DEFAULT_SHEET, song.style] : [DEFAULT_SHEET], {
     measureNumber: measure => song.score.measures[measure].number,
     sectionOf: measure => {
@@ -81,16 +82,6 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
   let destroyed = false;
   let lastTime = NaN;
   let laidOutFor = '';
-
-  /** When a line starts sounding: its earliest note. */
-  const systemStart = (system: EngravedSystem): number => {
-    let earliest = Infinity;
-    for (const item of system.items) for (const ref of item.refs) {
-      const timing = song.timing.notes.get(ref);
-      if (timing && timing.start < earliest) earliest = timing.start;
-    }
-    return earliest;
-  };
 
   function layout(): void {
     const rect = container.getBoundingClientRect();
@@ -114,8 +105,7 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
       top: Math.min(...engraving.systems.map(system => system.box.y0)),
       bottom: Math.max(...engraving.systems.map(system => system.box.y1))
     };
-    starts = engraving.systems.map(systemStart);
-    for (let position = starts.length - 2; position >= 0; position--) if (!Number.isFinite(starts[position])) starts[position] = starts[position + 1];
+    starts = engraving.systems.map(system => song.timing.timeAt(F.toNumber(index.measureStarts[system.first])));
     finalEnd = Math.max(...[...song.timing.notes.values()].map(note => note.soundingEnd));
 
     container.replaceChildren();
@@ -148,46 +138,19 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
       title: `Score, bars ${song.score.measures[engraved.first].number}–${song.score.measures[engraved.last].number}`
     });
     view.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    const anchors: Anchor[] = [];
-    for (const target of view.glides) {
-      const timing = song.timing.notes.get(target.noteId);
-      if (timing) anchors.push({ time: timing.start, x: (target.box.x0 + target.box.x1) / 2 });
-    }
-    anchors.sort((a, b) => a.time - b.time || a.x - b.x);
-    const next = starts[system + 1];
-    const end = { time: Number.isFinite(next) ? next : finalEnd, x: engraved.width };
+    const anchors = playheadAnchors(engraved, index, song.timing);
     const playhead = document.createElementNS(SVG_NS, 'line');
     playhead.setAttribute('class', 'score-playhead');
     playhead.setAttribute('y1', String(Math.min(...engraved.staffTops.values()) - 1.5));
     playhead.setAttribute('y2', String(Math.max(...engraved.staffTops.values()) + 5.5));
     view.svg.appendChild(playhead);
     slot.element.appendChild(view.svg);
-    slot.shown = { system, view, glide: new GlideController(view.glides, song.timing), anchors, playhead, end };
+    slot.shown = { system, view, glide: new GlideController(view.glides, song.timing), anchors, playhead };
     if (animate) {
       slot.element.classList.remove('score-half-turned');
       void slot.element.offsetWidth;
       slot.element.classList.add('score-half-turned');
     }
-  }
-
-  /** Playhead position: between the attacks around `time`, then on to the line's end. */
-  function playheadX(shown: Shown, time: number): number {
-    const points = shown.anchors;
-    if (!points.length) return 0;
-    if (time <= points[0].time) return points[0].x;
-    let low = 1, high = points.length;
-    while (low < high) {
-      const middle = (low + high) >> 1;
-      if (points[middle].time < time) low = middle + 1; else high = middle;
-    }
-    if (low < points.length) {
-      const before = points[low - 1], after = points[low];
-      const span = after.time - before.time;
-      return span > 0 ? before.x + (after.x - before.x) * (time - before.time) / span : after.x;
-    }
-    const last = points.at(-1)!;
-    if (time >= shown.end.time || shown.end.time <= last.time) return Math.min(shown.end.x, last.x + (time >= shown.end.time ? shown.end.x - last.x : 0));
-    return last.x + (shown.end.x - last.x) * (time - last.time) / (shown.end.time - last.time);
   }
 
   function currentSystem(time: number): number {
@@ -221,7 +184,7 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
       const active = shown.system === current;
       shown.playhead.setAttribute('visibility', active ? 'visible' : 'hidden');
       if (active) {
-        const x = String(Math.round(playheadX(shown, time) * 1000) / 1000);
+        const x = String(Math.round(playheadX(shown.anchors, time) * 1000) / 1000);
         shown.playhead.setAttribute('x1', x);
         shown.playhead.setAttribute('x2', x);
       }
