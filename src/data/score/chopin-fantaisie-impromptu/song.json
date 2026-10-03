@@ -8,7 +8,8 @@
   "source": {
     "format": "score-json",
     "file": "source/score.json",
-    "timing": "source/timing.json"
+    "timing": "source/timing.json",
+    "closingPassage": "source/closing-passage.json"
   },
   "tempo": false,
   "preparation": {
@@ -28,7 +29,9 @@
     "uploadedMd5": "9403cf165542eefde5bd53a3ba290ffe",
     "timingAuthority": "Original MP3 timeline; do not trim or prepend audio when muxing into MP4.",
     "audioDuration": 363.252971,
-    "scoreEnd": 340.160417
+    "scoreEnd": 363.279583,
+    "referenceScoreEnd": 340.160417,
+    "closingPassage": "Pitches and attack/release times from performance MIDI; written rhythm and hand assignment inferred."
   },
   "reference": {
     "url": "https://www.mutopiaproject.org/ftp/ChopinFF/O66/chopin_fantaisie-impromptu/",

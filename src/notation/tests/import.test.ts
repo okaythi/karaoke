@@ -7,6 +7,7 @@ import { engrave } from '../layout/engrave';
 import { ScoreIndex } from '../model/query';
 import * as F from '../core/fraction';
 import { overlaps } from '../layout/display';
+import { midi } from '../core/pitch';
 
 test('いつも何度でも score validates and engraves', () => {
   const score = decodeScore(JSON.parse(readFileSync('src/data/score/itsumo-nando-demo/score.json', 'utf8')));
@@ -50,7 +51,7 @@ test('Fantaisie-Impromptu preserves polyrhythm, key changes, ornaments and recor
   const score = decodeScore(JSON.parse(readFileSync(`${folder}/score.json`, 'utf8')));
   const index = new ScoreIndex(score);
   assert.deepEqual(validateScore(score), []);
-  assert.equal(score.measures.length, 138);
+  assert.ok(score.measures.length > 138, 'The recorded closing passage must follow the 138 reference bars');
   assert.deepEqual([index.keyAt(0).fifths, index.keyAt(40).fifths, index.keyAt(82).fifths], [4, -5, 4]);
   const upper = index.eventsIn(4, 'upper').filter(event => event.kind === 'chord');
   const lower = index.eventsIn(4, 'lower').filter(event => event.kind === 'chord');
@@ -68,11 +69,26 @@ test('Fantaisie-Impromptu preserves polyrhythm, key changes, ornaments and recor
     assert.ok(value.start >= 0 && value.start < value.glideEnd && value.glideEnd <= value.soundingEnd);
   }
   assert.ok(timing.notes['lower.1.1.0:G#2'].start > 5, 'Leading silence must remain in the media timeline');
-  assert.ok(timing.notes['upper.138.1.0:C#4'].start < 335, 'Outro must not capture the final chord');
+  assert.ok(timing.notes['upper.138.1.0:C#4'].start < 335, 'Appending the closing passage must preserve reference attacks');
+  const passage = JSON.parse(readFileSync(`${folder}/source/closing-passage.json`, 'utf8'));
+  assert.equal(passage.notes.length, 82);
+  const pitches = new Map(score.events.flatMap(event => event.kind === 'chord' ? event.notes.map(note => [note.id, midi(note.pitch)] as const) : []));
+  for (const note of passage.notes) {
+    assert.equal(timing.notes[`closing.${note.id}`].start, note.audioStart, `Lost recorded attack ${note.id}`);
+    assert.equal(pitches.get(`closing.${note.id}`), note.midi, `Changed closing pitch ${note.id}`);
+  }
+  assert.equal(timing.beats.at(-1).time, passage.mediaEnd);
+  assert.equal(Math.max(...Object.values(timing.notes).map((note: any) => note.soundingEnd)), passage.mediaEnd);
+  const reference = JSON.parse(readFileSync(`${folder}/source/timing.json`, 'utf8'));
+  for (const [id, value] of Object.entries(reference.notes)) assert.deepEqual(timing.notes[id], value, `Shifted reference note ${id}`);
   for (let i = 1; i < timing.beats.length; i++) assert.ok(timing.beats[i].time > timing.beats[i - 1].time);
   for (const width of [48, 160]) {
     const result = engrave(score, { width });
-    assert.equal(result.systems.at(-1)?.last, 137);
+    assert.equal(result.systems.at(-1)?.last, score.measures.length - 1);
     for (const system of result.systems) for (const value of Object.values(system.box)) assert.ok(Number.isFinite(value));
+    const referenceEnding = result.systems.find(system => system.first <= 137 && system.last >= 137)!;
+    const gap = referenceEnding.items.find(item => item.refs.includes('closing.gap.upper'));
+    if (gap) for (const item of referenceEnding.items.filter(item => item.refs.includes('dyn.text-dim.27') || item.refs.includes('pedal.bracket.231')))
+      assert.ok(item.box.x1 < gap.box.x0, 'Reference diminuendo/pedal must stop before the appended passage');
   }
 });

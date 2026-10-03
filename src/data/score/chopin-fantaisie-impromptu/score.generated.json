@@ -3,7 +3,7 @@
  "meta": {
   "title": "Fantaisie-Impromptu, Op. 66",
   "composer": "Frédéric Chopin",
-  "source": "Mutopia-2009/09/05-1693 · Herrmann Scholtz edition, typeset by Guy D. Lederfein; public domain"
+  "source": "Mutopia-2009/09/05-1693 · Herrmann Scholtz edition, typeset by Guy D. Lederfein; public domain; closing passage transcribed from the recording, rhythm inferred"
  },
  "staves": [
   {
@@ -460,6 +460,53 @@
   },
   {
    "number": 138,
+   "end": "barline.double"
+  },
+  {
+   "number": 139
+  },
+  {
+   "number": 140,
+   "time": {
+    "beats": 4,
+    "beatType": 4,
+    "symbol": "numeric"
+   },
+   "key": {
+    "fifths": 0,
+    "mode": "major"
+   },
+   "section": "Recorded closing passage"
+  },
+  {
+   "number": 141
+  },
+  {
+   "number": 142
+  },
+  {
+   "number": 143
+  },
+  {
+   "number": 144
+  },
+  {
+   "number": 145
+  },
+  {
+   "number": 146
+  },
+  {
+   "number": 147
+  },
+  {
+   "number": 148
+  },
+  {
+   "number": 149
+  },
+  {
+   "number": 150,
    "end": "barline.final"
   }
  ],
@@ -80920,6 +80967,2238 @@
      }
     }
    ]
+  },
+  {
+   "id": "closing.gap.upper",
+   "kind": "rest",
+   "measure": 138,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "whole",
+    "dots": 0
+   },
+   "fullBar": true
+  },
+  {
+   "id": "closing.gap.lower",
+   "kind": "rest",
+   "measure": 138,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "whole",
+    "dots": 0
+   },
+   "fullBar": true
+  },
+  {
+   "id": "closing.r.upper.1.1.0",
+   "measure": 139,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.1.1.0",
+   "kind": "chord",
+   "measure": 139,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "whole",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n1",
+     "pitch": "D2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.1.1.1/4",
+   "kind": "chord",
+   "measure": 139,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n2",
+     "pitch": "C4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.1.1.3/8",
+   "kind": "chord",
+   "measure": 139,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n3",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.1.1.1/2",
+   "kind": "chord",
+   "measure": 139,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/2",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n4",
+     "pitch": "F#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.1.1.5/8",
+   "kind": "chord",
+   "measure": 139,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "5/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n5",
+     "pitch": "A#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.1.1.3/4",
+   "kind": "chord",
+   "measure": 139,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n6",
+     "pitch": "A4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.1.1.7/8",
+   "kind": "chord",
+   "measure": 139,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "7/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n7",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.2.1.0",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n7~2",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.2.1.0",
+   "measure": 140,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.2.1.1/8",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n10",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.2.1.1/8",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n9",
+     "pitch": "G2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n8",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.upper.2.1.1/4",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.2.1.1/4",
+   "measure": 140,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/4",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.2.1.3/8",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n11",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.2.1.3/8",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "3/8",
+   "value": {
+    "base": "quarter",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n13",
+     "pitch": "G2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n12",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.upper.2.1.1/2",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/2",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.2.1.5/8",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "5/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n14",
+     "pitch": "D5",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.2.1.3/4",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n14~2",
+     "pitch": "D5",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.2.1.3/4",
+   "measure": 140,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "3/4",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.2.1.7/8",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "7/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n17",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n15",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.2.1.7/8",
+   "kind": "chord",
+   "measure": 140,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "7/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n16",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.upper.3.1.0",
+   "measure": 141,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.3.1.0",
+   "measure": 141,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.3.1.1/8",
+   "kind": "chord",
+   "measure": 141,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n19",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n20",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.3.1.1/8",
+   "kind": "chord",
+   "measure": 141,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/8",
+   "value": {
+    "base": "quarter",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n18",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.3.1.1/4",
+   "kind": "chord",
+   "measure": 141,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n19~2",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n20~2",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.3.1.3/8",
+   "kind": "chord",
+   "measure": 141,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/8",
+   "value": {
+    "base": "quarter",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n21",
+     "pitch": "C5",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.3.1.1/2",
+   "measure": 141,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/2",
+   "kind": "rest",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.3.1.3/4",
+   "kind": "chord",
+   "measure": 141,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n25",
+     "pitch": "C4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n22",
+     "pitch": "D#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n24",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.3.1.3/4",
+   "kind": "chord",
+   "measure": 141,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n23",
+     "pitch": "A3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.upper.4.1.0",
+   "measure": 142,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.4.1.0",
+   "measure": 142,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.4.1.1/4",
+   "kind": "chord",
+   "measure": 142,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "half",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n26",
+     "pitch": "C4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n27",
+     "pitch": "D#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n28",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.4.1.1/4",
+   "kind": "chord",
+   "measure": 142,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "half",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n29",
+     "pitch": "A3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.5.1.0",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n30",
+     "pitch": "C4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.5.1.0",
+   "measure": 143,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.5.1.1/8",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/8",
+   "value": {
+    "base": "quarter",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n31",
+     "pitch": "D2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.5.1.1/4",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n32",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.5.1.3/8",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n33",
+     "pitch": "F#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.5.1.1/2",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/2",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n35",
+     "pitch": "A#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.5.1.1/2",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/2",
+   "value": {
+    "base": "half",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n34",
+     "pitch": "D2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.5.1.5/8",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "5/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n36",
+     "pitch": "A4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.5.1.3/4",
+   "kind": "chord",
+   "measure": 143,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n37",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.6.1.0",
+   "kind": "chord",
+   "measure": 144,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n39",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.6.1.0",
+   "kind": "chord",
+   "measure": 144,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n40",
+     "pitch": "G2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n38",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.6.1.1/4",
+   "kind": "chord",
+   "measure": 144,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n41",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.6.1.1/4",
+   "kind": "chord",
+   "measure": 144,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "half",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n42",
+     "pitch": "G2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n43",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.6.1.1/2",
+   "kind": "chord",
+   "measure": 144,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/2",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n44",
+     "pitch": "E4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.6.1.3/4",
+   "kind": "chord",
+   "measure": 144,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n45",
+     "pitch": "C#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.6.1.3/4",
+   "kind": "chord",
+   "measure": 144,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n46",
+     "pitch": "A2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n48",
+     "pitch": "G3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n47",
+     "pitch": "A3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.7.1.0",
+   "kind": "chord",
+   "measure": 145,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "quarter",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n50",
+     "pitch": "C#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.7.1.0",
+   "kind": "chord",
+   "measure": 145,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "half",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n51",
+     "pitch": "A2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n49",
+     "pitch": "G3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n52",
+     "pitch": "A3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.7.1.3/8",
+   "kind": "chord",
+   "measure": 145,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/8",
+   "value": {
+    "base": "quarter",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n53",
+     "pitch": "F#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.7.1.3/4",
+   "kind": "chord",
+   "measure": 145,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n56",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.7.1.3/4",
+   "kind": "chord",
+   "measure": 145,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n57",
+     "pitch": "D2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n55",
+     "pitch": "F#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n54",
+     "pitch": "A3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.upper.8.1.0",
+   "measure": 146,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.8.1.0",
+   "measure": 146,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.8.1.1/4",
+   "kind": "chord",
+   "measure": 146,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "half",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n59",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.8.1.1/4",
+   "kind": "chord",
+   "measure": 146,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "half",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n61",
+     "pitch": "D2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n58",
+     "pitch": "F#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n60",
+     "pitch": "A3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.9.1.0",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n62",
+     "pitch": "C4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.9.1.0",
+   "measure": 147,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "kind": "rest",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.9.1.1/8",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/8",
+   "value": {
+    "base": "quarter",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n63",
+     "pitch": "D3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.9.1.1/4",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n64",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.9.1.3/8",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n65",
+     "pitch": "F#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.9.1.1/2",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/2",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n67",
+     "pitch": "A#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.9.1.1/2",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/2",
+   "value": {
+    "base": "half",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n66",
+     "pitch": "D3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.9.1.5/8",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "5/8",
+   "value": {
+    "base": "eighth",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n68",
+     "pitch": "A4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.9.1.3/4",
+   "kind": "chord",
+   "measure": 147,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n69",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.10.1.0",
+   "kind": "chord",
+   "measure": 148,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n71",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.10.1.0",
+   "kind": "chord",
+   "measure": 148,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n70",
+     "pitch": "G2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n72",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.10.1.1/4",
+   "kind": "chord",
+   "measure": 148,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n74",
+     "pitch": "D4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.lower.10.1.1/4",
+   "kind": "chord",
+   "measure": 148,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "1/4",
+   "value": {
+    "base": "half",
+    "dots": 1
+   },
+   "notes": [
+    {
+     "id": "closing.n73",
+     "pitch": "G2",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n75",
+     "pitch": "A#3",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.10.1.1/2",
+   "kind": "chord",
+   "measure": 148,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "1/2",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n76",
+     "pitch": "G5",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.10.1.3/4",
+   "kind": "chord",
+   "measure": 148,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "3/4",
+   "value": {
+    "base": "quarter",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n79",
+     "pitch": "E4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n78",
+     "pitch": "G4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n77",
+     "pitch": "A#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n80",
+     "pitch": "C#5",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.upper.11.1.0",
+   "kind": "chord",
+   "measure": 149,
+   "staff": "upper",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "whole",
+    "dots": 0
+   },
+   "notes": [
+    {
+     "id": "closing.n82",
+     "pitch": "A#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    },
+    {
+     "id": "closing.n81",
+     "pitch": "C#5",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "recorded-closing-passage",
+      "confidence": 0.5
+     }
+    }
+   ],
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.r.lower.11.1.0",
+   "kind": "rest",
+   "measure": 149,
+   "staff": "lower",
+   "voice": 1,
+   "offset": "0",
+   "value": {
+    "base": "whole",
+    "dots": 0
+   },
+   "fullBar": true,
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
   }
  ],
  "tuplets": [
@@ -99214,17 +101493,17 @@
     "event": "upper.125.1.0"
    },
    "end": {
-    "position": {
+    "barline": {
      "measure": 137,
-     "offset": "1",
-     "staff": "upper"
+     "side": "end"
     }
    },
    "provenance": {
     "origin": "imported",
     "rule": "lilypond-source"
    },
-   "text": "dim."
+   "text": "dim.",
+   "staff": "upper"
   },
   {
    "id": "pedal.bracket.231",
@@ -99233,15 +101512,75 @@
     "event": "lower.138.1.0"
    },
    "end": {
-    "position": {
+    "barline": {
      "measure": 137,
-     "offset": "1",
-     "staff": "lower"
+     "side": "end"
     }
    },
    "provenance": {
     "origin": "imported",
     "rule": "lilypond-source"
+   },
+   "staff": "lower"
+  },
+  {
+   "id": "closing.tie@n7",
+   "kind": "tie",
+   "start": {
+    "note": "closing.n7"
+   },
+   "end": {
+    "note": "closing.n7~2"
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.tie@n14",
+   "kind": "tie",
+   "start": {
+    "note": "closing.n14"
+   },
+   "end": {
+    "note": "closing.n14~2"
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.tie@n19",
+   "kind": "tie",
+   "start": {
+    "note": "closing.n19"
+   },
+   "end": {
+    "note": "closing.n19~2"
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
+   }
+  },
+  {
+   "id": "closing.tie@n20",
+   "kind": "tie",
+   "start": {
+    "note": "closing.n20"
+   },
+   "end": {
+    "note": "closing.n20~2"
+   },
+   "provenance": {
+    "origin": "inferred",
+    "rule": "recorded-closing-passage",
+    "confidence": 0.5
    }
   }
  ]

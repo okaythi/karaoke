@@ -12,6 +12,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import mido
+from closing_passage import prepare_closing_passage
 import numpy as np
 from numba import njit
 
@@ -217,6 +218,9 @@ def main():
         for name, value in prep.items() if name in ('music', 'referenceMidi', 'performanceMidi', 'audio')}
     for name, value in [('source/score.json', score), ('source/timing.json', timing), ('alignment-report.json', report)]:
         (folder / name).write_text(json.dumps(value, ensure_ascii=False, indent=1) + '\n')
+    if settings['source'].get('closingPassage'):
+        passage = prepare_closing_passage(performance, prep['performanceEnd'], settings['media']['scoreEnd'])
+        (folder / settings['source']['closingPassage']).write_text(json.dumps(passage, ensure_ascii=False, indent=1) + '\n')
     print(f"{sys.argv[1]}: {len(score['measures'])} bars, {len(notes)} notes, {report['matchRate']:.1%} matched attacks; {len(report['interpolatedAttacks'])} interpolated")
 
 
