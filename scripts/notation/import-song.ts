@@ -12,6 +12,8 @@ import { join } from 'node:path';
 import * as F from '../../src/notation/core/fraction';
 import { importAligned } from '../../src/notation/import/aligned';
 import type { AlignedImportSettings } from '../../src/notation/import/aligned';
+import { inferClefChanges } from '../../src/notation/import/clefs';
+import type { ClefRule } from '../../src/notation/import/clefs';
 import { inferOttavas } from '../../src/notation/import/ottavas';
 import type { OttavaRule } from '../../src/notation/import/ottavas';
 import { fromKaraokeMap } from '../../src/notation/import/sources/karaokeMap';
@@ -28,6 +30,7 @@ interface SongFile {
   readonly id: string;
   readonly source: { readonly format: 'karaoke-map'; readonly file: string };
   readonly import: AlignedImportSettings;
+  readonly clefs?: Record<string, ClefRule>;
   readonly ottavas?: Partial<Record<ClefKind, OttavaRule>>;
   readonly tempo?: TempoSettings | false;
 }
@@ -43,6 +46,8 @@ const source = fromKaraokeMap(read(song.source.file), song.import.staves.map(sta
 const imported = importAligned(source, song.import);
 let score: Score = imported.score;
 
+// Clefs first: an octave line is judged in the clef its notes are read in.
+if (song.clefs) score = inferClefChanges(score, song.clefs);
 if (song.ottavas) score = { ...score, spanners: [...score.spanners, ...inferOttavas(score, song.ottavas)] };
 
 if (song.tempo !== false) {

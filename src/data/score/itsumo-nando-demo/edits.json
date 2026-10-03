@@ -1,43 +1,5 @@
 [
  {
-  "op": "removeSpanner",
-  "id": "ottava@lower.64",
-  "reason": "Replaced by the line over bars 61–64."
- },
- {
-  "op": "addSpanner",
-  "spanner": {
-   "id": "ottava@lower.61-64",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.61.1.0"
-   },
-   "end": {
-    "event": "lower.64.1.1/2"
-   }
-  },
-  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
- },
- {
-  "op": "removeSpanner",
-  "id": "ottava@lower.77",
-  "reason": "Replaced by the line over bars 77–81."
- },
- {
-  "op": "addSpanner",
-  "spanner": {
-   "id": "ottava@lower.77-81",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.77.1.0"
-   },
-   "end": {
-    "event": "lower.81.1.1/2"
-   }
-  },
-  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
- },
- {
   "op": "addSpanner",
   "spanner": {
    "id": "ottava@upper.177-flourish",
@@ -92,20 +54,5 @@
   "note": "n1684",
   "staff": "lower",
   "reason": "Played by the left hand inside the right hand's figure: drawn on the lower staff, kept in the figure's beam and voice."
- },
- {
-  "op": "addSpanner",
-  "spanner": {
-   "id": "ottava@lower.170-roll",
-   "kind": "ottava.8va",
-   "staff": "lower",
-   "start": {
-    "event": "upper.170.1.0"
-   },
-   "end": {
-    "event": "upper.170.1.0"
-   }
-  },
-  "reason": "The left hand's three notes of the rolled chord are drawn on the lower staff. The upper staff's octave line does not govern them, so they take one of their own instead of five ledger lines."
  }
 ]
