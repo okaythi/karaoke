@@ -23,6 +23,9 @@
     "videoFile": "Frédéric Chopin - Fantaisie-Impromptu, Op. 66.mp4",
     "status": "local-review",
     "localFile": "Fantaisie-impromptu op 66/fantaisie-tokyo-ghoul-final-720p.mp4",
+    "uploaded": true,
+    "uploadedBytes": 113817657,
+    "uploadedMd5": "9403cf165542eefde5bd53a3ba290ffe",
     "timingAuthority": "Original MP3 timeline; do not trim or prepend audio when muxing into MP4.",
     "audioDuration": 363.252971,
     "scoreEnd": 340.160417

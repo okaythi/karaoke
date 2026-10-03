@@ -120,4 +120,9 @@ Review the MP4 with the moving score, especially the first attack, bars 41/83
 and the final chord. Upload the final MP4
 to the existing R2/CDN path, resolve the release review queue, build, and deploy
 the score bundle together. No separate MP3 upload or audio-only public player
-is required. No upload/deployment was performed during this implementation.
+is required.
+
+On 2026-10-03 the supplied MP4 was uploaded to `gewoonthy-media` under the
+manifest's exact filename. The CDN returns HTTP 200, `video/mp4`,
+113,817,657 bytes and ETag `9403cf165542eefde5bd53a3ba290ffe`, matching the
+local file's MD5. The score bundle still awaits release review and deployment.
