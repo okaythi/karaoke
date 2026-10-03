@@ -72,6 +72,12 @@ test('Fantaisie-Impromptu preserves polyrhythm, key changes, ornaments and recor
   assert.ok(timing.notes['upper.138.1.0:C#4'].start < 335, 'Appending the closing passage must preserve reference attacks');
   const passage = JSON.parse(readFileSync(`${folder}/source/closing-passage.json`, 'utf8'));
   assert.equal(passage.notes.length, 82);
+  assert.equal(index.keyAt(139).fifths, -2, 'Closing notation uses its own two-flat signature');
+  assert.ok(F.eq(index.measureLength(139), F.frac(1, 2)), 'The closing pickup is a half bar');
+  assert.equal(timing.beats.at(-1).position, F.toNumber(index.measureStarts.at(-1)!));
+  assert.equal(score.events.flatMap(event => event.kind === 'chord' ? event.notes : []).find(note => note.id === 'closing.n5')?.pitch.step, 'B', 'B-flat must not be written as A-sharp');
+  const pickupEvent = score.events.find(event => event.kind === 'chord' && event.notes.some(note => note.id === 'closing.n2'))!;
+  assert.ok(F.eq(pickupEvent.offset, F.frac(3, 8)));
   const pitches = new Map(score.events.flatMap(event => event.kind === 'chord' ? event.notes.map(note => [note.id, midi(note.pitch)] as const) : []));
   for (const note of passage.notes) {
     assert.equal(timing.notes[`closing.${note.id}`].start, note.audioStart, `Lost recorded attack ${note.id}`);

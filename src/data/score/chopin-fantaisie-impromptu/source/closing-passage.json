@@ -6,822 +6,909 @@
    "midi": 38,
    "audioStart": 345.5,
    "audioEnd": 347.195833,
-   "tick": 0,
+   "tick": 960,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D2"
   },
   {
    "id": "n2",
    "midi": 60,
    "audioStart": 346.040625,
    "audioEnd": 347.172396,
-   "tick": 480,
+   "tick": 1680,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C4"
   },
   {
    "id": "n3",
    "midi": 62,
    "audioStart": 346.31875,
    "audioEnd": 346.986458,
-   "tick": 720,
+   "tick": 1920,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n4",
    "midi": 66,
    "audioStart": 346.550521,
    "audioEnd": 346.846875,
-   "tick": 960,
+   "tick": 2160,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "F#4"
   },
   {
    "id": "n5",
    "midi": 70,
    "audioStart": 346.750521,
    "audioEnd": 346.986979,
-   "tick": 1200,
+   "tick": 2400,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb4"
   },
   {
    "id": "n6",
    "midi": 69,
    "audioStart": 346.941667,
    "audioEnd": 347.21875,
-   "tick": 1440,
+   "tick": 2640,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A4"
   },
   {
    "id": "n7",
    "midi": 67,
    "audioStart": 347.152604,
    "audioEnd": 348.054688,
-   "tick": 1680,
+   "tick": 2880,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n8",
    "midi": 58,
    "audioStart": 347.565625,
    "audioEnd": 347.8,
-   "tick": 2160,
+   "tick": 3360,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n9",
    "midi": 43,
    "audioStart": 347.566667,
    "audioEnd": 347.8,
-   "tick": 2160,
+   "tick": 3360,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G2"
   },
   {
    "id": "n10",
    "midi": 62,
    "audioStart": 347.570833,
    "audioEnd": 347.798958,
-   "tick": 2160,
+   "tick": 3360,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n11",
    "midi": 62,
    "audioStart": 347.982292,
    "audioEnd": 348.054688,
-   "tick": 2640,
+   "tick": 3840,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n12",
    "midi": 58,
    "audioStart": 347.988542,
    "audioEnd": 348.427604,
-   "tick": 2640,
+   "tick": 3840,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n13",
    "midi": 43,
    "audioStart": 347.990104,
    "audioEnd": 348.054688,
-   "tick": 2640,
+   "tick": 3840,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G2"
   },
   {
    "id": "n14",
    "midi": 74,
    "audioStart": 348.46875,
    "audioEnd": 350.00625,
-   "tick": 3120,
+   "tick": 4320,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D5"
   },
   {
    "id": "n15",
    "midi": 67,
    "audioStart": 348.929688,
    "audioEnd": 349.169792,
-   "tick": 3600,
+   "tick": 4800,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n16",
    "midi": 58,
    "audioStart": 348.930208,
    "audioEnd": 349.216146,
-   "tick": 3600,
+   "tick": 4800,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n17",
    "midi": 62,
    "audioStart": 348.933854,
    "audioEnd": 349.215625,
-   "tick": 3600,
+   "tick": 4800,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n18",
    "midi": 58,
    "audioStart": 349.429167,
    "audioEnd": 349.98125,
-   "tick": 4080,
+   "tick": 5280,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n19",
    "midi": 62,
    "audioStart": 349.429688,
    "audioEnd": 350.052604,
-   "tick": 4080,
+   "tick": 5280,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n20",
    "midi": 67,
    "audioStart": 349.43125,
    "audioEnd": 350.051042,
-   "tick": 4080,
+   "tick": 5280,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n21",
    "midi": 72,
    "audioStart": 349.961458,
    "audioEnd": 351.909375,
-   "tick": 4560,
+   "tick": 5760,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C5"
   },
   {
    "id": "n22",
    "midi": 63,
    "audioStart": 350.613542,
    "audioEnd": 350.980729,
-   "tick": 5280,
+   "tick": 6240,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Eb4"
   },
   {
    "id": "n23",
    "midi": 57,
    "audioStart": 350.616146,
    "audioEnd": 351.004167,
-   "tick": 5280,
+   "tick": 6240,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A3"
   },
   {
    "id": "n24",
    "midi": 67,
    "audioStart": 350.616667,
    "audioEnd": 350.934896,
-   "tick": 5280,
+   "tick": 6240,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n25",
    "midi": 60,
    "audioStart": 350.627083,
    "audioEnd": 351.003125,
-   "tick": 5280,
+   "tick": 6240,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C4"
   },
   {
    "id": "n26",
    "midi": 60,
    "audioStart": 351.45,
    "audioEnd": 351.908854,
-   "tick": 6240,
+   "tick": 6720,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C4"
   },
   {
    "id": "n27",
    "midi": 63,
    "audioStart": 351.450521,
    "audioEnd": 351.908854,
-   "tick": 6240,
+   "tick": 6720,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Eb4"
   },
   {
    "id": "n28",
    "midi": 67,
    "audioStart": 351.460417,
    "audioEnd": 352.953646,
-   "tick": 6240,
+   "tick": 6720,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n29",
    "midi": 57,
    "audioStart": 351.470313,
    "audioEnd": 351.955729,
-   "tick": 6240,
+   "tick": 6720,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A3"
   },
   {
    "id": "n30",
    "midi": 60,
    "audioStart": 352.866667,
    "audioEnd": 353.999479,
-   "tick": 7680,
+   "tick": 7440,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C4"
   },
   {
    "id": "n31",
    "midi": 38,
    "audioStart": 353.097396,
    "audioEnd": 353.419271,
-   "tick": 7920,
+   "tick": 7680,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D2"
   },
   {
    "id": "n32",
    "midi": 62,
    "audioStart": 353.216146,
    "audioEnd": 354.045313,
-   "tick": 8160,
+   "tick": 7680,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n33",
    "midi": 66,
    "audioStart": 353.421354,
    "audioEnd": 353.673958,
-   "tick": 8400,
+   "tick": 7920,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "F#4"
   },
   {
    "id": "n34",
    "midi": 38,
    "audioStart": 353.602604,
    "audioEnd": 353.973958,
-   "tick": 8640,
+   "tick": 8160,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D2"
   },
   {
    "id": "n35",
    "midi": 70,
    "audioStart": 353.619792,
    "audioEnd": 353.975521,
-   "tick": 8640,
+   "tick": 8160,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb4"
   },
   {
    "id": "n36",
    "midi": 69,
    "audioStart": 353.808333,
    "audioEnd": 354.022396,
-   "tick": 8880,
+   "tick": 8400,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A4"
   },
   {
    "id": "n37",
    "midi": 67,
    "audioStart": 354.000521,
    "audioEnd": 354.857813,
-   "tick": 9120,
+   "tick": 8640,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n38",
    "midi": 58,
    "audioStart": 354.370833,
    "audioEnd": 354.602604,
-   "tick": 9600,
+   "tick": 9120,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n39",
    "midi": 62,
    "audioStart": 354.386458,
    "audioEnd": 354.601562,
-   "tick": 9600,
+   "tick": 9120,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n40",
    "midi": 43,
    "audioStart": 354.386979,
    "audioEnd": 354.602083,
-   "tick": 9600,
+   "tick": 9120,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G2"
   },
   {
    "id": "n41",
    "midi": 62,
    "audioStart": 354.788542,
    "audioEnd": 355.322396,
-   "tick": 10080,
+   "tick": 9600,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n42",
    "midi": 43,
    "audioStart": 354.790625,
    "audioEnd": 355.230729,
-   "tick": 10080,
+   "tick": 9600,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G2"
   },
   {
    "id": "n43",
    "midi": 58,
    "audioStart": 354.794792,
    "audioEnd": 355.252604,
-   "tick": 10080,
+   "tick": 9600,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n44",
    "midi": 64,
    "audioStart": 355.229167,
    "audioEnd": 356.855208,
-   "tick": 10560,
+   "tick": 10080,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "E4"
   },
   {
    "id": "n45",
    "midi": 61,
    "audioStart": 355.670833,
    "audioEnd": 355.926042,
-   "tick": 11040,
+   "tick": 10560,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C#4"
   },
   {
    "id": "n46",
    "midi": 45,
    "audioStart": 355.673438,
    "audioEnd": 355.903125,
-   "tick": 11040,
+   "tick": 10560,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A2"
   },
   {
    "id": "n47",
    "midi": 57,
    "audioStart": 355.673958,
    "audioEnd": 355.949479,
-   "tick": 11040,
+   "tick": 10560,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A3"
   },
   {
    "id": "n48",
    "midi": 55,
    "audioStart": 355.674479,
    "audioEnd": 355.972396,
-   "tick": 11040,
+   "tick": 10560,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G3"
   },
   {
    "id": "n49",
    "midi": 55,
    "audioStart": 356.1625,
    "audioEnd": 356.809375,
-   "tick": 11520,
+   "tick": 11040,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G3"
   },
   {
    "id": "n50",
    "midi": 61,
    "audioStart": 356.179688,
    "audioEnd": 356.855729,
-   "tick": 11520,
+   "tick": 11040,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C#4"
   },
   {
    "id": "n51",
    "midi": 45,
    "audioStart": 356.180208,
    "audioEnd": 356.297917,
-   "tick": 11520,
+   "tick": 11040,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A2"
   },
   {
    "id": "n52",
    "midi": 57,
    "audioStart": 356.182813,
    "audioEnd": 356.599479,
-   "tick": 11520,
+   "tick": 11040,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A3"
   },
   {
    "id": "n53",
    "midi": 66,
    "audioStart": 356.755729,
    "audioEnd": 359.619271,
-   "tick": 12240,
+   "tick": 11520,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "F#4"
   },
   {
    "id": "n54",
    "midi": 57,
    "audioStart": 357.395313,
    "audioEnd": 357.783854,
-   "tick": 12960,
+   "tick": 12000,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A3"
   },
   {
    "id": "n55",
    "midi": 54,
    "audioStart": 357.404688,
    "audioEnd": 357.760417,
-   "tick": 12960,
+   "tick": 12000,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "F#3"
   },
   {
    "id": "n56",
    "midi": 62,
    "audioStart": 357.405729,
    "audioEnd": 357.760417,
-   "tick": 12960,
+   "tick": 12000,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n57",
    "midi": 38,
    "audioStart": 357.408333,
    "audioEnd": 357.783854,
-   "tick": 12960,
+   "tick": 12000,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D2"
   },
   {
    "id": "n58",
    "midi": 54,
    "audioStart": 358.246354,
    "audioEnd": 358.921875,
-   "tick": 13920,
+   "tick": 12480,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "F#3"
   },
   {
    "id": "n59",
    "midi": 62,
    "audioStart": 358.246354,
    "audioEnd": 359.548958,
-   "tick": 13920,
+   "tick": 12480,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n60",
    "midi": 57,
    "audioStart": 358.251042,
    "audioEnd": 358.735938,
-   "tick": 13920,
+   "tick": 12480,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A3"
   },
   {
    "id": "n61",
    "midi": 38,
    "audioStart": 358.272917,
    "audioEnd": 358.735938,
-   "tick": 13920,
+   "tick": 12480,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D2"
   },
   {
    "id": "n62",
    "midi": 60,
    "audioStart": 359.523438,
    "audioEnd": 360.082292,
-   "tick": 15360,
+   "tick": 13200,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C4"
   },
   {
    "id": "n63",
    "midi": 50,
    "audioStart": 359.777083,
    "audioEnd": 360.08125,
-   "tick": 15600,
+   "tick": 13440,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D3"
   },
   {
    "id": "n64",
    "midi": 62,
    "audioStart": 359.876042,
    "audioEnd": 360.26875,
-   "tick": 15840,
+   "tick": 13440,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n65",
    "midi": 66,
    "audioStart": 360.082292,
    "audioEnd": 360.292188,
-   "tick": 16080,
+   "tick": 13680,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "F#4"
   },
   {
    "id": "n66",
    "midi": 50,
    "audioStart": 360.266667,
    "audioEnd": 360.476563,
-   "tick": 16320,
+   "tick": 13920,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D3"
   },
   {
    "id": "n67",
    "midi": 70,
    "audioStart": 360.297917,
    "audioEnd": 360.477604,
-   "tick": 16320,
+   "tick": 13920,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb4"
   },
   {
    "id": "n68",
    "midi": 69,
    "audioStart": 360.498958,
    "audioEnd": 360.709375,
-   "tick": 16560,
+   "tick": 14160,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "A4"
   },
   {
    "id": "n69",
    "midi": 67,
    "audioStart": 360.691667,
    "audioEnd": 361.197396,
-   "tick": 16800,
+   "tick": 14400,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n70",
    "midi": 43,
    "audioStart": 361.059896,
    "audioEnd": 361.220313,
-   "tick": 17280,
+   "tick": 14880,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G2"
   },
   {
    "id": "n71",
    "midi": 62,
    "audioStart": 361.0625,
    "audioEnd": 361.220313,
-   "tick": 17280,
+   "tick": 14880,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n72",
    "midi": 58,
    "audioStart": 361.064583,
    "audioEnd": 361.220833,
-   "tick": 17280,
+   "tick": 14880,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n73",
    "midi": 43,
    "audioStart": 361.471354,
    "audioEnd": 361.545833,
-   "tick": 17760,
+   "tick": 15360,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G2"
   },
   {
    "id": "n74",
    "midi": 62,
    "audioStart": 361.471354,
    "audioEnd": 361.684896,
-   "tick": 17760,
+   "tick": 15360,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "D4"
   },
   {
    "id": "n75",
    "midi": 58,
    "audioStart": 361.475,
    "audioEnd": 361.73125,
-   "tick": 17760,
+   "tick": 15360,
    "staff": "lower",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb3"
   },
   {
    "id": "n76",
    "midi": 79,
    "audioStart": 361.909896,
    "audioEnd": 362.451042,
-   "tick": 18240,
+   "tick": 15840,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G5"
   },
   {
    "id": "n77",
    "midi": 70,
    "audioStart": 362.353646,
    "audioEnd": 362.567188,
-   "tick": 18720,
+   "tick": 16320,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb4"
   },
   {
    "id": "n78",
    "midi": 67,
    "audioStart": 362.354688,
    "audioEnd": 362.867188,
-   "tick": 18720,
+   "tick": 16320,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "G4"
   },
   {
    "id": "n79",
    "midi": 64,
    "audioStart": 362.355729,
    "audioEnd": 362.869792,
-   "tick": 18720,
+   "tick": 16320,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "E4"
   },
   {
    "id": "n80",
    "midi": 73,
    "audioStart": 362.35625,
    "audioEnd": 362.845833,
-   "tick": 18720,
+   "tick": 16320,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C#5"
   },
   {
    "id": "n81",
    "midi": 73,
    "audioStart": 362.863021,
    "audioEnd": 363.217188,
-   "tick": 19200,
+   "tick": 16800,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "C#5"
   },
   {
    "id": "n82",
    "midi": 70,
    "audioStart": 362.863542,
    "audioEnd": 363.217708,
-   "tick": 19200,
+   "tick": 16800,
    "staff": "upper",
    "voice": 1,
-   "confidence": 0.5
+   "confidence": 0.5,
+   "spelling": "Bb4"
   }
  ],
  "mediaEnd": 363.279583,
- "description": "Existing performance MIDI; pitches/onsets/releases retained, rhythm and hands inferred on an eighth-note grid."
+ "key": {
+  "fifths": -2,
+  "mode": "minor"
+ },
+ "pickupQuarters": 2,
+ "description": "Existing performance MIDI; pitches and onsets retained. Reviewed phrase rhythm and enharmonic spelling; hands inferred by register."
 }

@@ -18,7 +18,72 @@
     "performanceMidi": "source/performance.mid",
     "audio": "../../../../Fantaisie-impromptu op 66/fantaisie impromptu - autoritative.mp3",
     "performanceEnd": 340.160417,
-    "lilypond": "source/reference.converted.ly"
+    "lilypond": "source/reference.converted.ly",
+    "closingPassage": {
+      "key": {
+        "fifths": -2,
+        "mode": "minor"
+      },
+      "pickupQuarters": 2,
+      "pitchClasses": [
+        "C",
+        "C#",
+        "D",
+        "Eb",
+        "E",
+        "F",
+        "F#",
+        "G",
+        "Ab",
+        "A",
+        "Bb",
+        "B"
+      ],
+      "rhythmBeats": [
+        2,
+        3.5,
+        4,
+        4.5,
+        5,
+        5.5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15.5,
+        16,
+        16,
+        16.5,
+        17,
+        17.5,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27.5,
+        28,
+        28,
+        28.5,
+        29,
+        29.5,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ]
+    }
   },
   "media": {
     "videoFile": "Frédéric Chopin - Fantaisie-Impromptu, Op. 66.mp4",
@@ -31,7 +96,7 @@
     "audioDuration": 363.252971,
     "scoreEnd": 363.279583,
     "referenceScoreEnd": 340.160417,
-    "closingPassage": "Pitches and attack/release times from performance MIDI; written rhythm and hand assignment inferred."
+    "closingPassage": "Existing recorded pitches and onsets; phrase rhythm, G-minor spelling and pickup corrected separately from performance tempo."
   },
   "reference": {
     "url": "https://www.mutopiaproject.org/ftp/ChopinFF/O66/chopin_fantaisie-impromptu/",

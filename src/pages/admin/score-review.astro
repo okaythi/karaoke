@@ -60,6 +60,8 @@ import '../../notation/render/notation.css';
     <main id="lines"></main>
     <script>
       import { loadSongScore } from '../../notation/songs';
+      import { ScoreIndex } from '../../notation/model/query';
+      import * as F from '../../notation/core/fraction';
       import { engrave } from '../../notation/layout/engrave';
       import { renderSystemView } from '../../notation/render/svg';
       import { DEFAULT_SHEET, StyleResolver } from '../../notation/style/style';
@@ -94,7 +96,7 @@ import '../../notation/render/notation.css';
         if (report || audioPath) {
           document.getElementById('review-tools')!.hidden = false;
           document.getElementById('alignment-facts')!.textContent = report
-            ? `${report.matchedAttacks} of ${report.scoreAttacks} reference attacks matched · ${unmatched.size} interpolated · full score ends at ${song.timing.timeAt(score.measures.length).toFixed(2)} s. Review against the original audio timeline.`
+            ? `${report.matchedAttacks} of ${report.scoreAttacks} reference attacks matched · ${unmatched.size} interpolated · full score ends at ${song.timing.timeAt(F.toNumber(new ScoreIndex(score).measureStarts.at(-1)!)).toFixed(2)} s. Review against the original audio timeline.`
             : 'Playback preview uses the supplied audio timeline.';
         }
         if (audioPath) {
