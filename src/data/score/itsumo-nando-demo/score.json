@@ -12,7 +12,7 @@
   },
   {
    "id": "lower",
-   "clef": "baritone-f"
+   "clef": "bass"
   }
  ],
  "groups": [
@@ -29245,7 +29245,426 @@
    }
   }
  ],
- "clefs": [],
+ "clefs": [
+  {
+   "id": "clef@lower.7",
+   "staff": "lower",
+   "measure": 6,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.11",
+   "staff": "lower",
+   "measure": 10,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.11.2",
+   "staff": "lower",
+   "measure": 10,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.13",
+   "staff": "lower",
+   "measure": 12,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.13.2",
+   "staff": "lower",
+   "measure": 12,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.19",
+   "staff": "lower",
+   "measure": 18,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.24",
+   "staff": "lower",
+   "measure": 23,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.28",
+   "staff": "lower",
+   "measure": 27,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.28.2",
+   "staff": "lower",
+   "measure": 27,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.30",
+   "staff": "lower",
+   "measure": 29,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.30.2",
+   "staff": "lower",
+   "measure": 29,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.31",
+   "staff": "lower",
+   "measure": 30,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.31.2",
+   "staff": "lower",
+   "measure": 30,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.32",
+   "staff": "lower",
+   "measure": 31,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.32.2",
+   "staff": "lower",
+   "measure": 31,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.36",
+   "staff": "lower",
+   "measure": 35,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.59",
+   "staff": "lower",
+   "measure": 58,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.63",
+   "staff": "lower",
+   "measure": 62,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.63.2",
+   "staff": "lower",
+   "measure": 62,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.65",
+   "staff": "lower",
+   "measure": 64,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.76",
+   "staff": "lower",
+   "measure": 75,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.80",
+   "staff": "lower",
+   "measure": 79,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.80.2",
+   "staff": "lower",
+   "measure": 79,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.82",
+   "staff": "lower",
+   "measure": 81,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.93",
+   "staff": "lower",
+   "measure": 92,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.94",
+   "staff": "lower",
+   "measure": 93,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.112",
+   "staff": "lower",
+   "measure": 111,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.116",
+   "staff": "lower",
+   "measure": 115,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.116.2",
+   "staff": "lower",
+   "measure": 115,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.120",
+   "staff": "lower",
+   "measure": 119,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.139",
+   "staff": "lower",
+   "measure": 138,
+   "offset": "0",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.141",
+   "staff": "lower",
+   "measure": 140,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.146",
+   "staff": "lower",
+   "measure": 145,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.150",
+   "staff": "lower",
+   "measure": 149,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.150.2",
+   "staff": "lower",
+   "measure": 149,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.152",
+   "staff": "lower",
+   "measure": 151,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.165",
+   "staff": "lower",
+   "measure": 164,
+   "offset": "1/4",
+   "clef": "treble",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  },
+  {
+   "id": "clef@lower.171",
+   "staff": "lower",
+   "measure": 170,
+   "offset": "0",
+   "clef": "bass",
+   "provenance": {
+    "origin": "inferred",
+    "rule": "clef-ledgers"
+   }
+  }
+ ],
  "attachments": [
   {
    "id": "arp@upper.19.1.0",
@@ -29961,62 +30380,6 @@
    }
   },
   {
-   "id": "ottava@lower.30",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.30.1.0"
-   },
-   "end": {
-    "event": "lower.30.1.1/2"
-   },
-   "provenance": {
-    "origin": "inferred",
-    "rule": "ottava-ledgers"
-   }
-  },
-  {
-   "id": "ottava@lower.116",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.116.1.0"
-   },
-   "end": {
-    "event": "lower.116.1.1/2"
-   },
-   "provenance": {
-    "origin": "inferred",
-    "rule": "ottava-ledgers"
-   }
-  },
-  {
-   "id": "ottava@lower.151",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.151.1.0"
-   },
-   "end": {
-    "event": "lower.151.1.1/2"
-   },
-   "provenance": {
-    "origin": "inferred",
-    "rule": "ottava-ledgers"
-   }
-  },
-  {
-   "id": "ottava@lower.166",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.166.1.0"
-   },
-   "end": {
-    "event": "lower.166.1.1/4"
-   },
-   "provenance": {
-    "origin": "inferred",
-    "rule": "ottava-ledgers"
-   }
-  },
-  {
    "id": "tempo@upper.71.1.0",
    "kind": "tempo.change",
    "start": {
@@ -30059,34 +30422,6 @@
    "provenance": {
     "origin": "inferred",
     "rule": "bars 166–177 down to 63% of ♩=120"
-   }
-  },
-  {
-   "id": "ottava@lower.61-64",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.61.1.0"
-   },
-   "end": {
-    "event": "lower.64.1.1/2"
-   },
-   "provenance": {
-    "origin": "edited",
-    "rule": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
-   }
-  },
-  {
-   "id": "ottava@lower.77-81",
-   "kind": "ottava.8va",
-   "start": {
-    "event": "lower.77.1.0"
-   },
-   "end": {
-    "event": "lower.81.1.1/2"
-   },
-   "provenance": {
-    "origin": "edited",
-    "rule": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
    }
   },
   {
