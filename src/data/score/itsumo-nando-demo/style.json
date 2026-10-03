@@ -1,9 +1,7 @@
 {
-  "palette": { "rose": "#de8adc", "teal": "#6fccd9" },
+  "palette": { "peach": "#f7c2a2", "periwinkle": "#a9b6f2" },
   "rules": [
-    { "select": { "staff": "upper" }, "set": { "glide": "rose" } },
-    { "select": { "staff": "lower" }, "set": { "glide": "teal" } },
-    { "select": { "staff": "upper", "state": "played", "kind": ["note.head", "grace.*"] }, "set": { "played": "rose" } },
-    { "select": { "staff": "lower", "state": "played", "kind": ["note.head", "grace.*"] }, "set": { "played": "teal" } }
+    { "select": {}, "set": { "glide": { "from": "peach", "to": "periwinkle" } } },
+    { "select": { "state": "played", "kind": ["note.head", "grace.*"] }, "set": { "played": "periwinkle" } }
   ]
 }
