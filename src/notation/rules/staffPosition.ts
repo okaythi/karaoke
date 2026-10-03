@@ -33,6 +33,8 @@ const CLEFS: Record<ClefKind, ClefInfo> = {
   'treble-8va': { bottomLine: 'E5', glyph: 'gClef8va', originStep: 2, sharps: TREBLE_SHARPS, flats: TREBLE_FLATS },
   'bass': { bottomLine: 'G2', glyph: 'fClef', originStep: 6, sharps: shift(TREBLE_SHARPS, -2), flats: shift(TREBLE_FLATS, -2) },
   'bass-8vb': { bottomLine: 'G1', glyph: 'fClef8vb', originStep: 6, sharps: shift(TREBLE_SHARPS, -2), flats: shift(TREBLE_FLATS, -2) },
+  // The F clef a line lower: its signature zigzags inside the staff from the middle-line F.
+  'baritone-f': { bottomLine: 'B2', glyph: 'fClef', originStep: 4, sharps: [4, 1, 5, 2, 6, 3, 7], flats: [7, 3, 6, 2, 5, 1, 4] },
   'alto': { bottomLine: 'F3', glyph: 'cClef', originStep: 4, sharps: shift(TREBLE_SHARPS, -1), flats: shift(TREBLE_FLATS, -1) },
   // Tenor clef sharps would sit above the staff in the treble pattern, so they start low.
   'tenor': { bottomLine: 'D3', glyph: 'cClef', originStep: 6, sharps: [2, 6, 3, 7, 4, 8, 5], flats: shift(TREBLE_FLATS, 1) }

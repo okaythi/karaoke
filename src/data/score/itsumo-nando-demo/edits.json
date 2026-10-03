@@ -16,7 +16,7 @@
     "event": "lower.64.1.1/2"
    }
   },
-  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in bass clef)."
+  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
  },
  {
   "op": "removeSpanner",
@@ -35,7 +35,7 @@
     "event": "lower.81.1.1/2"
    }
   },
-  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in bass clef)."
+  "reason": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
  },
  {
   "op": "addSpanner",
