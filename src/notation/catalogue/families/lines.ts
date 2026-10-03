@@ -106,14 +106,14 @@ export const LINES = [
     summary: 'rit., accel. and the like, with a dashed line over their extent.',
     spec: '5.17', model: 'spanner', anchor: 'event', endsAt: 'release',
     drawing: { type: 'line', line: 'dashed', start: { kind: 'text', style: 'expression', default: 'rit.' }, extent: 'duration' },
-    side: 'above', baseline: 'tempo', layer: 8, sizes: ['full'], playback: 'none', inference: 'tempo',
+    side: 'system', baseline: 'tempo', layer: 8, sizes: ['full'], playback: 'none', inference: 'tempo',
     examples: [{ score: `${TREBLE}upper: C5/4 D5[+tempo.change="rit."] E5 F5 | G5/1[-tempo.change] | A5/4[tempo.return="a tempo"] B5 C6/2 |` }]
   },
   {
     id: 'tempo.return', family: 'tempo', name: 'a tempo / Tempo I',
     summary: 'Back to the tempo before a change.',
     spec: '5.17', model: 'attachment', anchor: 'event', drawing: { type: 'text', style: 'expression', align: 'event-left', default: 'a tempo' },
-    side: 'above', baseline: 'tempo', layer: 8, sizes: ['full'], playback: 'none', inference: 'tempo',
+    side: 'system', baseline: 'tempo', layer: 8, sizes: ['full'], playback: 'none', inference: 'tempo',
     examples: [{ score: `${TREBLE}upper: G5/1 | A5/4[tempo.return] B5 C6/2 | D6/1[tempo.return="Tempo I"] |` }]
   },
   {

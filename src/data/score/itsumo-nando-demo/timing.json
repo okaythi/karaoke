@@ -262,28 +262,28 @@
   },
   "n0136": {
    "start": 30.149479,
-   "glideEnd": 30.4227865,
+   "glideEnd": 30.4084635,
    "soundingEnd": 30.429167
   },
   "n0137": {
    "start": 30.410937,
-   "glideEnd": 30.684244500000002,
+   "glideEnd": 30.6699215,
    "soundingEnd": 30.684896
   },
   "n0138": {
    "start": 30.64375,
-   "glideEnd": 31.151823,
+   "glideEnd": 31.180469000000002,
    "soundingEnd": 31.265104
   },
   "n0140": {
    "start": 30.701042,
-   "glideEnd": 31.209115,
-   "soundingEnd": 31.209115
+   "glideEnd": 31.237761000000003,
+   "soundingEnd": 31.237761000000003
   },
   "n0141": {
    "start": 30.78125,
-   "glideEnd": 31.289323,
-   "soundingEnd": 31.289323
+   "glideEnd": 31.317969,
+   "soundingEnd": 31.317969
   },
   "n0144": {
    "start": 31.209375,
@@ -562,28 +562,28 @@
   },
   "n0247": {
    "start": 47.071875,
-   "glideEnd": 47.379557250000005,
+   "glideEnd": 47.359505,
    "soundingEnd": 47.380208
   },
   "n0249": {
    "start": 47.326562,
-   "glideEnd": 47.63424425,
+   "glideEnd": 47.614192,
    "soundingEnd": 47.658854
   },
   "n0250": {
    "start": 47.605208,
-   "glideEnd": 48.15963549999999,
-   "soundingEnd": 48.15963549999999
+   "glideEnd": 48.19974,
+   "soundingEnd": 48.19974
   },
   "n0251": {
    "start": 47.685417,
-   "glideEnd": 48.2398445,
-   "soundingEnd": 48.2398445
+   "glideEnd": 48.279949,
+   "soundingEnd": 48.279949
   },
   "n0253": {
    "start": 47.779167,
-   "glideEnd": 48.3335945,
-   "soundingEnd": 48.3335945
+   "glideEnd": 48.373699,
+   "soundingEnd": 48.373699
   },
   "n0257": {
    "start": 48.241667,
@@ -1142,28 +1142,28 @@
   },
   "n0491": {
    "start": 84.373437,
-   "glideEnd": 84.64531224999999,
+   "glideEnd": 84.63059874999999,
    "soundingEnd": 84.670833
   },
   "n0492": {
    "start": 84.629167,
-   "glideEnd": 84.90104225,
-   "soundingEnd": 84.90104225
+   "glideEnd": 84.88632875,
+   "soundingEnd": 84.88632875
   },
   "n0493": {
    "start": 84.865104,
-   "glideEnd": 85.3684895,
-   "soundingEnd": 85.3684895
+   "glideEnd": 85.3979165,
+   "soundingEnd": 85.3979165
   },
   "n0495": {
    "start": 84.923958,
-   "glideEnd": 85.42734349999999,
-   "soundingEnd": 85.42734349999999
+   "glideEnd": 85.45677049999999,
+   "soundingEnd": 85.45677049999999
   },
   "n0496": {
    "start": 85.002604,
-   "glideEnd": 85.5059895,
-   "soundingEnd": 85.5059895
+   "glideEnd": 85.5354165,
+   "soundingEnd": 85.5354165
   },
   "n0500": {
    "start": 85.421875,
@@ -1692,38 +1692,38 @@
   },
   "n0692": {
    "start": 110.669271,
-   "glideEnd": 111.5191415,
-   "soundingEnd": 111.5191415
+   "glideEnd": 111.4755215,
+   "soundingEnd": 111.4755215
   },
   "n0695": {
    "start": 111.48125,
-   "glideEnd": 111.78085949999999,
-   "soundingEnd": 111.78085949999999
+   "glideEnd": 111.7372395,
+   "soundingEnd": 111.7372395
   },
   "n0697": {
    "start": 111.720313,
-   "glideEnd": 112.06224,
-   "soundingEnd": 112.06224
+   "glideEnd": 112.10586,
+   "soundingEnd": 112.10586
   },
   "n0698": {
    "start": 111.785938,
-   "glideEnd": 112.127865,
-   "soundingEnd": 112.127865
+   "glideEnd": 112.171485,
+   "soundingEnd": 112.171485
   },
   "n0699": {
    "start": 111.836979,
-   "glideEnd": 112.178906,
-   "soundingEnd": 112.178906
+   "glideEnd": 112.222526,
+   "soundingEnd": 112.222526
   },
   "n0700": {
    "start": 111.876562,
-   "glideEnd": 112.218489,
-   "soundingEnd": 112.218489
+   "glideEnd": 112.26210900000001,
+   "soundingEnd": 112.26210900000001
   },
   "n0701": {
    "start": 112.135417,
-   "glideEnd": 112.477344,
-   "soundingEnd": 112.477344
+   "glideEnd": 112.52096399999999,
+   "soundingEnd": 112.52096399999999
   },
   "n0702": {
    "start": 112.469792,
@@ -3387,28 +3387,28 @@
   },
   "n1357": {
    "start": 218.742708,
-   "glideEnd": 219.02265599999998,
+   "glideEnd": 219.00872375,
    "soundingEnd": 219.045312
   },
   "n1358": {
    "start": 219.004167,
-   "glideEnd": 219.284115,
-   "soundingEnd": 219.284115
+   "glideEnd": 219.27018275,
+   "soundingEnd": 219.27018275
   },
   "n1359": {
    "start": 219.250521,
-   "glideEnd": 219.7544275,
+   "glideEnd": 219.78229199999998,
    "soundingEnd": 219.788542
   },
   "n1361": {
    "start": 219.30625,
-   "glideEnd": 219.8101565,
-   "soundingEnd": 219.8101565
+   "glideEnd": 219.838021,
+   "soundingEnd": 219.838021
   },
   "n1362": {
    "start": 219.386458,
-   "glideEnd": 219.8903645,
-   "soundingEnd": 219.8903645
+   "glideEnd": 219.918229,
+   "soundingEnd": 219.918229
   },
   "n1364": {
    "start": 219.80625,
@@ -4117,43 +4117,43 @@
   },
   "n1625": {
    "start": 258.876042,
-   "glideEnd": 259.22552125,
-   "soundingEnd": 259.22552125
+   "glideEnd": 259.15546924999995,
+   "soundingEnd": 259.15546924999995
   },
   "n1626": {
    "start": 258.914583,
-   "glideEnd": 259.26406225,
-   "soundingEnd": 259.26406225
+   "glideEnd": 259.19401024999996,
+   "soundingEnd": 259.215104
   },
   "n1627": {
    "start": 259.217187,
-   "glideEnd": 259.56666625,
-   "soundingEnd": 259.56666625
+   "glideEnd": 259.49661425000005,
+   "soundingEnd": 259.49661425000005
   },
   "n1628": {
    "start": 259.454167,
-   "glideEnd": 260.03880250000003,
-   "soundingEnd": 260.03880250000003
-  },
-  "n1629": {
-   "start": 259.53125,
-   "glideEnd": 260.11588550000005,
-   "soundingEnd": 260.11588550000005
-  },
-  "n1630": {
-   "start": 259.594271,
    "glideEnd": 260.17890650000004,
    "soundingEnd": 260.17890650000004
   },
+  "n1629": {
+   "start": 259.53125,
+   "glideEnd": 260.25598950000006,
+   "soundingEnd": 260.25598950000006
+  },
+  "n1630": {
+   "start": 259.594271,
+   "glideEnd": 260.31901050000005,
+   "soundingEnd": 260.31901050000005
+  },
   "n1631": {
    "start": 259.616146,
-   "glideEnd": 260.20078150000006,
-   "soundingEnd": 260.20078150000006
+   "glideEnd": 260.34088550000007,
+   "soundingEnd": 260.34088550000007
   },
   "n1632": {
    "start": 259.695312,
-   "glideEnd": 260.27994750000005,
-   "soundingEnd": 260.27994750000005
+   "glideEnd": 260.42005150000006,
+   "soundingEnd": 260.42005150000006
   },
   "n1634": {
    "start": 260.182292,
@@ -4167,43 +4167,43 @@
   },
   "n1635": {
    "start": 260.740625,
-   "glideEnd": 261.3276045,
-   "soundingEnd": 261.3276045
+   "glideEnd": 261.2153645,
+   "soundingEnd": 261.2153645
   },
   "n1636": {
    "start": 260.751562,
-   "glideEnd": 261.33854149999996,
-   "soundingEnd": 261.33854149999996
+   "glideEnd": 261.2263015,
+   "soundingEnd": 261.2263015
   },
   "n1637": {
    "start": 261.220833,
-   "glideEnd": 261.8468745,
+   "glideEnd": 261.9591145,
    "soundingEnd": 262.581771
   },
   "n1638": {
    "start": 261.276042,
-   "glideEnd": 261.9020835,
+   "glideEnd": 262.0143235,
    "soundingEnd": 262.558854
   },
   "n1640": {
    "start": 261.353646,
-   "glideEnd": 261.9796875,
+   "glideEnd": 262.0919275,
    "soundingEnd": 262.466146
   },
   "n1639": {
    "start": 261.3125,
-   "glideEnd": 261.9385415,
-   "soundingEnd": 261.9385415
+   "glideEnd": 262.05078149999997,
+   "soundingEnd": 262.05078149999997
   },
   "n1641": {
    "start": 261.38125,
-   "glideEnd": 262.0072915,
-   "soundingEnd": 262.0072915
+   "glideEnd": 262.1195315,
+   "soundingEnd": 262.1195315
   },
   "n1642": {
    "start": 261.45,
-   "glideEnd": 262.0760415,
-   "soundingEnd": 262.0760415
+   "glideEnd": 262.18828149999996,
+   "soundingEnd": 262.18828149999996
   },
   "n1644": {
    "start": 261.959375,
@@ -4227,43 +4227,43 @@
   },
   "n1648": {
    "start": 262.516146,
-   "glideEnd": 262.7815105,
-   "soundingEnd": 262.7815105
+   "glideEnd": 262.71640625000003,
+   "soundingEnd": 262.71640625000003
   },
   "n1647": {
    "start": 262.513021,
-   "glideEnd": 262.7783855,
-   "soundingEnd": 262.7783855
+   "glideEnd": 262.71328125,
+   "soundingEnd": 262.71328125
   },
   "n1649": {
    "start": 262.8,
-   "glideEnd": 263.06536450000004,
-   "soundingEnd": 263.06536450000004
+   "glideEnd": 263.00026025,
+   "soundingEnd": 263.00026025
   },
   "n1650": {
    "start": 262.806771,
-   "glideEnd": 263.07213550000006,
-   "soundingEnd": 263.07213550000006
+   "glideEnd": 263.00703125,
+   "soundingEnd": 263.00703125
   },
   "n1651": {
    "start": 262.915104,
-   "glideEnd": 263.53541649999994,
+   "glideEnd": 263.665625,
    "soundingEnd": 264.045312
   },
   "n1652": {
    "start": 262.999479,
-   "glideEnd": 263.61979149999996,
+   "glideEnd": 263.75,
    "soundingEnd": 263.813021
   },
   "n1653": {
    "start": 263.091146,
-   "glideEnd": 263.71145849999994,
-   "soundingEnd": 263.71145849999994
+   "glideEnd": 263.841667,
+   "soundingEnd": 263.841667
   },
   "n1654": {
    "start": 263.158854,
-   "glideEnd": 263.7791665,
-   "soundingEnd": 263.7791665
+   "glideEnd": 263.909375,
+   "soundingEnd": 263.909375
   },
   "n1656": {
    "start": 263.666667,
@@ -4277,38 +4277,38 @@
   },
   "n1657": {
    "start": 264.246354,
-   "glideEnd": 264.7489585,
-   "soundingEnd": 264.7489585
+   "glideEnd": 264.65312450000005,
+   "soundingEnd": 264.65312450000005
   },
   "n1658": {
    "start": 264.249479,
-   "glideEnd": 264.7520835,
-   "soundingEnd": 264.7520835
+   "glideEnd": 264.65624950000006,
+   "soundingEnd": 264.65624950000006
   },
   "n1659": {
    "start": 264.654687,
-   "glideEnd": 265.3325515,
-   "soundingEnd": 265.3325515
+   "glideEnd": 265.4283855,
+   "soundingEnd": 265.4283855
   },
   "n1660": {
    "start": 264.702083,
-   "glideEnd": 265.3799475,
+   "glideEnd": 265.4757815,
    "soundingEnd": 266.01875
   },
   "n1661": {
    "start": 264.750521,
-   "glideEnd": 265.4283855,
+   "glideEnd": 265.52421949999996,
    "soundingEnd": 266.01875
   },
   "n1662": {
    "start": 264.854687,
-   "glideEnd": 265.5325515,
-   "soundingEnd": 265.5325515
+   "glideEnd": 265.6283855,
+   "soundingEnd": 265.6283855
   },
   "n1663": {
    "start": 264.857812,
-   "glideEnd": 265.5356765,
-   "soundingEnd": 265.5356765
+   "glideEnd": 265.6315105,
+   "soundingEnd": 265.6315105
   },
   "n1665": {
    "start": 265.440625,
@@ -4332,68 +4332,68 @@
   },
   "n1668": {
    "start": 266.033333,
-   "glideEnd": 266.3947915,
-   "soundingEnd": 266.3947915
+   "glideEnd": 266.3167965,
+   "soundingEnd": 266.3167965
   },
   "n1669": {
    "start": 266.042187,
-   "glideEnd": 266.4036455,
-   "soundingEnd": 266.4036455
+   "glideEnd": 266.3256505,
+   "soundingEnd": 266.3256505
   },
   "n1670": {
    "start": 266.375521,
-   "glideEnd": 266.73697949999996,
-   "soundingEnd": 266.73697949999996
+   "glideEnd": 266.6589845,
+   "soundingEnd": 266.6589845
   },
   "n1671": {
    "start": 266.386458,
-   "glideEnd": 266.7479165,
-   "soundingEnd": 266.7479165
+   "glideEnd": 266.6699215,
+   "soundingEnd": 266.6699215
   },
   "n1672": {
    "start": 266.604687,
-   "glideEnd": 268.486197,
-   "soundingEnd": 268.486197
+   "glideEnd": 268.580729,
+   "soundingEnd": 268.580729
   },
   "n1673": {
    "start": 266.674479,
-   "glideEnd": 268.555989,
-   "soundingEnd": 268.555989
+   "glideEnd": 268.650521,
+   "soundingEnd": 268.650521
   },
   "n1674": {
    "start": 266.846875,
-   "glideEnd": 268.728385,
-   "soundingEnd": 268.728385
+   "glideEnd": 268.822917,
+   "soundingEnd": 268.822917
   },
   "n1675": {
    "start": 266.919792,
-   "glideEnd": 268.80130199999996,
-   "soundingEnd": 268.80130199999996
+   "glideEnd": 268.895834,
+   "soundingEnd": 268.895834
   },
   "n1677": {
    "start": 268.580729,
-   "glideEnd": 268.82100700000007,
-   "soundingEnd": 268.82100700000007
+   "glideEnd": 268.84149300000007,
+   "soundingEnd": 268.84149300000007
   },
   "n1678": {
    "start": 268.642187,
-   "glideEnd": 268.882465,
-   "soundingEnd": 268.882465
+   "glideEnd": 268.90295100000003,
+   "soundingEnd": 268.90295100000003
   },
   "n1679": {
    "start": 268.707812,
-   "glideEnd": 268.94809000000004,
-   "soundingEnd": 268.94809000000004
+   "glideEnd": 268.96857600000004,
+   "soundingEnd": 268.96857600000004
   },
   "n1680": {
    "start": 268.936979,
-   "glideEnd": 269.17725700000005,
-   "soundingEnd": 269.17725700000005
+   "glideEnd": 269.197743,
+   "soundingEnd": 269.197743
   },
   "n1681": {
    "start": 269.148437,
-   "glideEnd": 269.38871500000005,
-   "soundingEnd": 269.38871500000005
+   "glideEnd": 269.40920100000005,
+   "soundingEnd": 269.40920100000005
   },
   "n1682": {
    "start": 269.363021,
@@ -4892,17 +4892,17 @@
   },
   "n0134": {
    "start": 29.642187,
-   "glideEnd": 30.696094000000002,
+   "glideEnd": 30.667448,
    "soundingEnd": 30.73125
   },
   "n0133": {
    "start": 29.640104,
-   "glideEnd": 30.694011000000003,
-   "soundingEnd": 30.694011000000003
+   "glideEnd": 30.665365,
+   "soundingEnd": 30.665365
   },
   "n0139": {
    "start": 30.691146,
-   "glideEnd": 31.199219,
+   "glideEnd": 31.227865,
    "soundingEnd": 31.357813
   },
   "n0143": {
@@ -5152,18 +5152,18 @@
   },
   "n0248": {
    "start": 47.073958,
-   "glideEnd": 47.6893225,
-   "soundingEnd": 47.6893225
+   "glideEnd": 47.649218,
+   "soundingEnd": 47.649218
   },
   "n0246": {
    "start": 47.055208,
-   "glideEnd": 47.670572500000006,
-   "soundingEnd": 47.670572500000006
+   "glideEnd": 47.630468,
+   "soundingEnd": 47.630468
   },
   "n0252": {
    "start": 47.689062,
-   "glideEnd": 48.243489499999995,
-   "soundingEnd": 48.243489499999995
+   "glideEnd": 48.283594,
+   "soundingEnd": 48.283594
   },
   "n0254": {
    "start": 48.239062,
@@ -5782,17 +5782,17 @@
   },
   "n0488": {
    "start": 83.865625,
-   "glideEnd": 84.9036455,
+   "glideEnd": 84.8742185,
    "soundingEnd": 84.95
   },
   "n0489": {
    "start": 83.879167,
-   "glideEnd": 84.9171875,
-   "soundingEnd": 84.9171875
+   "glideEnd": 84.8877605,
+   "soundingEnd": 84.8877605
   },
   "n0494": {
    "start": 84.910417,
-   "glideEnd": 85.41380249999999,
+   "glideEnd": 85.44322949999999,
    "soundingEnd": 85.669271
   },
   "n0499": {
@@ -6247,18 +6247,18 @@
   },
   "n0694": {
    "start": 111.188021,
-   "glideEnd": 111.78724,
-   "soundingEnd": 111.78724
+   "glideEnd": 111.7,
+   "soundingEnd": 111.7
   },
   "n0693": {
    "start": 111.185417,
-   "glideEnd": 111.78463599999999,
-   "soundingEnd": 111.78463599999999
+   "glideEnd": 111.697396,
+   "soundingEnd": 111.697396
   },
   "n0696": {
    "start": 111.677083,
-   "glideEnd": 112.36093699999999,
-   "soundingEnd": 112.395312
+   "glideEnd": 112.44817699999999,
+   "soundingEnd": 112.44817699999999
   },
   "n0704": {
    "start": 112.473437,
@@ -7902,17 +7902,17 @@
   },
   "n1354": {
    "start": 218.235937,
-   "glideEnd": 219.28802000000002,
+   "glideEnd": 219.26015550000002,
    "soundingEnd": 219.393229
   },
   "n1355": {
    "start": 218.250521,
-   "glideEnd": 219.302604,
-   "soundingEnd": 219.302604
+   "glideEnd": 219.2747395,
+   "soundingEnd": 219.2747395
   },
   "n1360": {
    "start": 219.298958,
-   "glideEnd": 219.8028645,
+   "glideEnd": 219.830729,
    "soundingEnd": 220.020312
   },
   "n1365": {
@@ -8512,18 +8512,18 @@
   },
   "n1623": {
    "start": 258.283333,
-   "glideEnd": 259.58515650000004,
-   "soundingEnd": 259.58515650000004
+   "glideEnd": 259.44505250000003,
+   "soundingEnd": 259.44505250000003
   },
   "n1624": {
    "start": 258.301562,
-   "glideEnd": 259.6033855,
-   "soundingEnd": 259.6033855
+   "glideEnd": 259.4632815,
+   "soundingEnd": 259.4632815
   },
   "n1676": {
    "start": 268.479687,
-   "glideEnd": 268.6364795,
-   "soundingEnd": 268.6364795
+   "glideEnd": 268.6443571666667,
+   "soundingEnd": 268.6443571666667
   },
   "n1685": {
    "start": 270.077083,
@@ -8845,7 +8845,7 @@
   },
   {
    "position": 13.5,
-   "time": 30.696094000000002
+   "time": 30.667448
   },
   {
    "position": 13.75,
@@ -8977,7 +8977,7 @@
   },
   {
    "position": 21.75,
-   "time": 47.687239500000004
+   "time": 47.647135
   },
   {
    "position": 22,
@@ -9265,7 +9265,7 @@
   },
   {
    "position": 39.75,
-   "time": 84.9171875
+   "time": 84.8877605
   },
   {
    "position": 40,
@@ -9477,7 +9477,7 @@
   },
   {
    "position": 53,
-   "time": 111.785938
+   "time": 111.69869800000001
   },
   {
    "position": 53.25,
@@ -10309,7 +10309,7 @@
   },
   {
    "position": 105,
-   "time": 219.302604
+   "time": 219.2747395
   },
   {
    "position": 105.25,
@@ -10621,7 +10621,7 @@
   },
   {
    "position": 124.5,
-   "time": 259.594271
+   "time": 259.454167
   },
   {
    "position": 124.75,
@@ -10633,7 +10633,7 @@
   },
   {
    "position": 125.25,
-   "time": 261.333073
+   "time": 261.220833
   },
   {
    "position": 125.5,
@@ -10645,7 +10645,7 @@
   },
   {
    "position": 126,
-   "time": 263.0453125
+   "time": 262.915104
   },
   {
    "position": 126.25,
@@ -10657,7 +10657,7 @@
   },
   {
    "position": 126.75,
-   "time": 264.750521
+   "time": 264.654687
   },
   {
    "position": 127,
@@ -10669,19 +10669,19 @@
   },
   {
    "position": 127.5,
-   "time": 266.760677
+   "time": 266.604687
   },
   {
    "position": 127.75,
-   "time": 267.38784699999997
+   "time": 267.2633676666667
   },
   {
    "position": 128,
-   "time": 268.015017
+   "time": 267.92204833333335
   },
   {
    "position": 128.25,
-   "time": 268.642187
+   "time": 268.580729
   },
   {
    "position": 128.5,

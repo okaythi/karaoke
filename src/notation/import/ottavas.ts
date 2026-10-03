@@ -59,7 +59,7 @@ export function inferOttavas(score: Score, rules: Partial<Record<ClefKind, Ottav
       if (last && span.first <= last.last + 1) last.last = Math.max(last.last, span.last); else merged.push({ ...span });
     }
     for (const span of merged) {
-      const ends = chordEnds(index, staff.id, span.first, span.last);
+      const ends = chordEnds(index, staff.id, span.first, span.last, staff.clef, rule);
       if (!ends) continue;
       spanners.push({
         id: `ottava@${staff.id}.${span.first + 1}`, kind: 'ottava.8va', start: { event: ends.first }, end: { event: ends.last },
@@ -70,10 +70,18 @@ export function inferOttavas(score: Score, rules: Partial<Record<ClefKind, Ottav
   return spanners;
 }
 
-function chordEnds(index: ScoreIndex, staff: StaffId, first: number, last: number): { first: string; last: string } | undefined {
+/**
+ * The first and last chords of a line. Chords at either end whose highest
+ * note does not itself need the line (fewer than `supportLedgers` ledger
+ * lines) are left out, so the line starts and stops where the music is high.
+ */
+function chordEnds(index: ScoreIndex, staff: StaffId, first: number, last: number, clef: ClefKind, rule: OttavaRule): { first: string; last: string } | undefined {
   const chords: ChordEvent[] = [];
   for (let measure = first; measure <= last; measure++)
     chords.push(...index.eventsIn(measure, staff).filter((event): event is ChordEvent => event.kind === 'chord'));
-  if (!chords.length) return undefined;
-  return { first: chords[0].id, last: chords.at(-1)!.id };
+  const high = (chord: ChordEvent) => Math.max(...chord.notes.filter(note => !note.staff || note.staff === staff)
+    .map(note => ledgersAbove(stepOf(note.pitch, clef)))) >= Math.max(1, rule.supportLedgers);
+  const from = chords.findIndex(high), to = chords.findLastIndex(high);
+  if (from < 0) return undefined;
+  return { first: chords[from].id, last: chords[to].id };
 }

@@ -306,8 +306,10 @@ export function importAligned(source: AlignedSource, settings: AlignedImportSett
     for (const start of beatStarts) beatPositions.push((measure * measureTicks + start) / wholeTicks);
   beatPositions.push(scoreEnd / wholeTicks);
   const onBeat = (tick: number) => beatStarts.includes(tick % measureTicks);
+  // A rolled chord marks its beat where the roll begins, not at the middle of the roll.
   const clock = buildBeatClock(beatPositions, chords.filter(cluster => onBeat(cluster.tick))
-    .flatMap(cluster => cluster.notes.map(note => ({ position: cluster.tick / wholeTicks, time: note.audioStart }))));
+    .flatMap(cluster => (cluster.roll ? [cluster.time] : cluster.notes.map(note => note.audioStart))
+      .map(time => ({ position: cluster.tick / wholeTicks, time }))));
   const tickAt = (time: number) => clock.positionAt(time) * wholeTicks;
 
   const tickToMeasure = (tick: number) => Math.floor(tick / measureTicks);

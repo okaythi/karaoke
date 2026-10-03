@@ -35,11 +35,28 @@ export function drawCurve(context: SystemContext, p0: Point, p1: Point, height: 
   const endOffset = side * thickness.end / 2;
   const d = `M${round(p0.x)} ${round(p0.y)} C${round(c1.x)} ${round(c1.y)} ${round(c2.x)} ${round(c2.y)} ${round(p1.x)} ${round(p1.y)}` +
     ` L${round(p1.x)} ${round(p1.y + endOffset)} C${round(o2.x)} ${round(o2.y + endOffset)} ${round(o1.x)} ${round(o1.y + endOffset)} ${round(p0.x)} ${round(p0.y + endOffset)} Z`;
-  const extreme = bulgeAt(0.5, outer);
-  const midY = (p0.y + p1.y) / 2 + extreme;
-  const box = { x0: p0.x, x1: p1.x, y0: Math.min(p0.y, p1.y, midY), y1: Math.max(p0.y, p1.y, midY) };
+  // Sloped curves reach their extreme away from t=0.5. Include both edges
+  // and their endpoints so framing and collision checks see the actual ink.
+  const ys = [...cubicExtrema(p0.y, c1.y, c2.y, p1.y),
+    ...cubicExtrema(p0.y + endOffset, o1.y + endOffset, o2.y + endOffset, p1.y + endOffset)];
+  const box = { x0: p0.x, x1: p1.x, y0: Math.min(...ys), y1: Math.max(...ys) };
   context.builder.path(d, box, label);
   return box;
+}
+
+function cubicExtrema(p0: number, p1: number, p2: number, p3: number): number[] {
+  const a = -p0 + 3 * p1 - 3 * p2 + p3;
+  const b = 2 * (p0 - 2 * p1 + p2);
+  const c = p1 - p0;
+  const roots: number[] = [];
+  if (Math.abs(a) < 1e-9) {
+    if (Math.abs(b) > 1e-9) roots.push(-c / b);
+  } else {
+    const discriminant = b * b - 4 * a * c;
+    if (discriminant >= 0) roots.push((-b + Math.sqrt(discriminant)) / (2 * a), (-b - Math.sqrt(discriminant)) / (2 * a));
+  }
+  return [p0, p3, ...roots.filter(t => t > 0 && t < 1).map(t =>
+    (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t * t * p2 + t ** 3 * p3)];
 }
 
 /**
@@ -51,6 +68,7 @@ export function clearingHeight(p0: Point, p1: Point, obstacles: readonly Box[], 
   minimum: number, maximum: number, padding: number): { height: number; lift: number } {
   const sign = side === 'above' ? -1 : 1;
   let needed = minimum;
+  let lift = 0;
   const dx = p1.x - p0.x || 1;
   for (const box of obstacles) {
     for (const x of [box.x0, (box.x0 + box.x1) / 2, box.x1]) {
@@ -61,10 +79,14 @@ export function clearingHeight(p0: Point, p1: Point, obstacles: readonly Box[], 
       const required = (edge - chordY) / (3 * t * (1 - t));
       // Above, the curve must be at or above the edge: a more negative height.
       if (sign * required > needed) needed = sign * required;
+      // Once curvature reaches its limit, move the ends by the actual
+      // remaining vertical clearance. Multiplying the excess control height
+      // by 0.75 exaggerates obstacles near an endpoint (where bulge is tiny).
+      lift = Math.max(lift, sign * (edge - chordY) - bulgeAt(t, maximum));
     }
   }
   if (needed <= maximum) return { height: sign * needed, lift: 0 };
-  return { height: sign * maximum, lift: (needed - maximum) * 0.75 };
+  return { height: sign * maximum, lift };
 }
 
 type TieSide = 'above' | 'below';

@@ -46,7 +46,9 @@ export function engraveSystem(prepared: PreparedScore, spacings: readonly Measur
   for (let attempt = 0; attempt < 3 && result.shortfall.size; attempt++) {
     for (const [staff, needed] of result.shortfall) {
       const current = gaps.get(staff) ?? prepared.settings.staffGap;
-      gaps.set(staff, Math.min(prepared.settings.maxStaffGap, current + needed + 0.5));
+      // Collision clearance takes priority over the preferred maximum gap.
+      // Capping this leaves expressions inside the neighbouring staff.
+      gaps.set(staff, current + needed + 0.5);
     }
     result = build(prepared, spacings, plan, number, gaps);
   }
