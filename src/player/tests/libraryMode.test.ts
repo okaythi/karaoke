@@ -22,8 +22,8 @@ const played = song('played', false);
 const scored = new Set([both, played]);
 const grouped = groupSongsByMode([sung, both, played], s => scored.has(s));
 
-test('a song with lyrics and a score is listed in both modes, in catalog order', () => {
-  assert.deepEqual(grouped.lyrics, [sung, both]);
+test('score tracks belong exclusively to Piano, even when they also have lyrics', () => {
+  assert.deepEqual(grouped.lyrics, [sung]);
   assert.deepEqual(grouped.piano, [both, played]);
 });
 
@@ -37,9 +37,14 @@ test('a shared link opens the mode that lists its song', () => {
   assert.equal(resolveInitialMode(grouped, 'piano', sung), 'lyrics');
 });
 
-test('a shared song in both modes keeps the listener\'s last choice', () => {
+test('a shared score track opens Piano regardless of the stored lyrics choice', () => {
   assert.equal(resolveInitialMode(grouped, 'piano', both), 'piano');
-  assert.equal(resolveInitialMode(grouped, null, both), 'lyrics');
+  assert.equal(resolveInitialMode(grouped, null, both), 'piano');
+});
+
+test('a score-only track cannot leak into Lyrics through a live lyric overlay', () => {
+  const track = { ...played, scoreOnly: true, hasLyrics: true };
+  assert.deepEqual(groupSongsByMode([track], () => true), { lyrics: [], piano: [track] });
 });
 
 test('never opens on an empty mode while the other has songs', () => {

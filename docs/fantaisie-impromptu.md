@@ -2,10 +2,13 @@
 
 Song ID: `chopin-fantaisie-impromptu`.
 
-The local implementation contains all 138 bars, 3,049 written notes, key
+The reference contains all 138 bars, 3,049 written notes, key
 changes at bars 41 and 83, simultaneous sixteenths/triplets, 7:4 tuplets, grace
 notes, ties, cross-staff voices, slurs, dynamics, pedals and octave lines. The
 runtime loads this piece through the existing song-agnostic notation engine.
+The full recording also includes a closing passage after the reference's
+held chord. The runtime score has 150 bars and 3,135 noteheads, including a
+pause bar, 82 recorded closing attacks and four tied continuations.
 
 ## Sources
 
@@ -58,22 +61,32 @@ The alignment uses a pitch-sequence match, followed by nearby same-pitch
 recovery within 85 ms. A monotonic clock interpolates unmatched attacks.
 Coincident unisons in separate voices share a physical performed attack;
 grace notes remain independent attacks. Tied continuations use the original
-note's recorded release. The sequence matcher does not force the final chord
-to match unrelated notes later in the audio.
+note's recorded release. The sequence matcher stops at the engraved
+reference's final chord. This is not the end of the full recording:
+`source/closing-passage.json` retains all 82 subsequent attacks from the
+performance MIDI. The importer appends that passage after a pause bar and
+ends at the MP4's 363.279583-second endpoint. Closing pitches and onset/release
+times come from the existing transcription; rhythm uses an inferred
+eighth-note grid and hand assignment uses register. These elements carry
+`recorded-closing-passage` inferred provenance and are not attributed to the
+Mutopia edition. No new audio inference is required.
 
 ## Current verification and review
 
-- All 138 bars validate with zero warnings/errors.
-- All 3,049 written notes have finite, ordered timing intervals.
+- All 150 runtime bars validate with zero warnings/errors.
+- All 3,135 runtime noteheads have finite, ordered timing intervals.
 - The 3,014 distinct score attacks agree with the reference MIDI's pitch counts.
 - 2,981 of 3,035 written attacks (98.2%) map to detected performed attacks,
   including 21 shared-key unisons. The remaining 54 use interpolated timing.
 - The first recorded attack is at 5.097396 seconds. Leading silence is retained.
-- The final chord attacks at approximately 334.17–334.93 seconds and releases
-  by 340.160417 seconds. The original MP3 lasts 363.252971 seconds and includes
-  82 detected later notes that are excluded from this piece's alignment.
+- The reference's final chord attacks at approximately 334.17–334.93 seconds.
+  Its original reference alignment endpoint is 340.160417 seconds. The full
+  score retains those timings, includes the 82 later attacks starting at
+  345.5 seconds, and follows the recording through 363.279583 seconds.
+  The original MP3 lasts 363.252971 seconds; the MP4 container lasts 363.279583.
 - Regression tests cover the polyrhythm, key changes, grace and cross-staff
-  notation, septuplets, final-chord/outro matching, full timing coverage,
+  notation, septuplets, preserved reference timings, every closing attack,
+  the full recording endpoint, full timing coverage,
   monotonic beats, and finite engraving at narrow/wide widths.
 - Browser state checks confirm MP3 loading, bar seeking, automatic score
   following and the two-panel portrait layout without horizontal overflow.
@@ -97,7 +110,8 @@ The supplied local MP4 is
 `Fantaisie-impromptu op 66/fantaisie-tokyo-ghoul-final-720p.mp4`.
 The user confirms that it contains the exact authoritative MP3 on its original
 timeline. Its streams are H.264 1280×720 and stereo AAC; audio starts at zero
-and lasts 363.252993 seconds. Existing timings and `globalOffset: 0` apply.
+and lasts 363.252993 seconds. The reference timings and `globalOffset: 0`
+apply; the appended closing passage retains its original recorded attacks.
 
 For a preview in the actual public player's layout, run the development server
 and open `/?song=chopin-fantaisie-impromptu&preview=fantaisie`. The development-only

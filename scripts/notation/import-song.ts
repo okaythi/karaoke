@@ -11,6 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as F from '../../src/notation/core/fraction';
 import { importAligned } from '../../src/notation/import/aligned';
+import { appendClosingPassage } from '../../src/notation/import/closingPassage';
 import type { AlignedImportSettings } from '../../src/notation/import/aligned';
 import { inferClefChanges } from '../../src/notation/import/clefs';
 import type { ClefRule } from '../../src/notation/import/clefs';
@@ -28,7 +29,7 @@ import { validateScore } from '../../src/notation/model/validate';
 
 interface SongFile {
   readonly id: string;
-  readonly source: { readonly format: 'karaoke-map' | 'score-json'; readonly file: string; readonly timing?: string };
+  readonly source: { readonly format: 'karaoke-map' | 'score-json'; readonly file: string; readonly timing?: string; readonly closingPassage?: string };
   readonly import?: AlignedImportSettings;
   readonly clefs?: Record<string, ClefRule>;
   readonly ottavas?: Partial<Record<ClefKind, OttavaRule>>;
@@ -51,7 +52,12 @@ if (song.source.format === 'karaoke-map') {
 } else if (song.source.format !== 'score-json') throw new Error(`Unknown source format ${song.source.format}`);
 let score: Score = imported ? imported.score : decodeScore(read(song.source.file));
 if (!imported && !song.source.timing) throw new Error('A score-json source needs a timing file');
-const timing = imported?.timing ?? read(song.source.timing!);
+let timing = imported?.timing ?? read(song.source.timing!);
+if (song.source.closingPassage) {
+  const extended = appendClosingPassage(score, timing, read(song.source.closingPassage));
+  score = extended.score;
+  timing = extended.timing;
+}
 
 // Clefs first: an octave line is judged in the clef its notes are read in.
 if (song.clefs) score = inferClefChanges(score, song.clefs);

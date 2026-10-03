@@ -94,7 +94,7 @@ import '../../notation/render/notation.css';
         if (report || audioPath) {
           document.getElementById('review-tools')!.hidden = false;
           document.getElementById('alignment-facts')!.textContent = report
-            ? `${report.matchedAttacks} of ${report.scoreAttacks} attacks matched · ${unmatched.size} interpolated · score ends at ${report.performanceEnd.toFixed(2)} s. Review against the original audio timeline.`
+            ? `${report.matchedAttacks} of ${report.scoreAttacks} reference attacks matched · ${unmatched.size} interpolated · full score ends at ${song.timing.timeAt(score.measures.length).toFixed(2)} s. Review against the original audio timeline.`
             : 'Playback preview uses the supplied audio timeline.';
         }
         if (audioPath) {

@@ -1,6 +1,6 @@
 import type { SongCatalogItem } from '../types/karaoke';
 
-/** The two ways a track can be performed; a track with both lyrics and a score is in both. */
+/** Score tracks belong to Piano; the remaining sung tracks belong to Lyrics. */
 export type LibraryMode = 'lyrics' | 'piano';
 
 export const LIBRARY_MODES: readonly LibraryMode[] = ['lyrics', 'piano'];
@@ -17,7 +17,7 @@ export const otherMode = (mode: LibraryMode): LibraryMode => (mode === 'lyrics' 
 /** Splits the catalog into one list per mode, keeping the catalog's order. */
 export function groupSongsByMode(songs: SongCatalogItem[], hasScore: (song: SongCatalogItem) => boolean): SongsByMode {
   return {
-    lyrics: songs.filter(song => song.hasLyrics),
+    lyrics: songs.filter(song => song.hasLyrics && !song.scoreOnly && !hasScore(song)),
     piano: songs.filter(hasScore)
   };
 }
