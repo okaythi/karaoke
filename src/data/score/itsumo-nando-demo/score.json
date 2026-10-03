@@ -12,7 +12,7 @@
   },
   {
    "id": "lower",
-   "clef": "bass"
+   "clef": "baritone-f"
   }
  ],
  "groups": [
@@ -30072,7 +30072,7 @@
    },
    "provenance": {
     "origin": "edited",
-    "rule": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in bass clef)."
+    "rule": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
    }
   },
   {
@@ -30086,7 +30086,7 @@
    },
    "provenance": {
     "origin": "edited",
-    "rule": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in bass clef)."
+    "rule": "The left hand climbs high here; an octave line over these bars reads better than ledger lines or a clef change (the lower staff stays in baritone clef)."
    }
   },
   {

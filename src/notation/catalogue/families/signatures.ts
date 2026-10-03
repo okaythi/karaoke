@@ -23,6 +23,7 @@ export const SIGNATURES = [
   clef('clef.treble-8vb', 'Treble clef 8vb', 'gClef8vb', 'Treble clef sounding an octave lower.', 'staves: tenor treble-8vb\ntenor: C4/4 E4 G4 C5 |'),
   clef('clef.treble-8va', 'Treble clef 8va', 'gClef8va', 'Treble clef sounding an octave higher.', 'staves: piccolo treble-8va\npiccolo: C6/4 E6 G6 C7 |'),
   clef('clef.bass-8vb', 'Bass clef 8vb', 'fClef8vb', 'Bass clef sounding an octave lower.', 'staves: contra bass-8vb\ncontra: C2/4 E2 G2 C3 |'),
+  clef('clef.baritone-f', 'Baritone F clef', 'fClef', 'F clef on the third line.', 'staves: lower baritone-f\nlower: B2/4 D3 F3 A3 |'),
   {
     id: 'key.signature', family: 'key', name: 'Key signature',
     summary: 'Sharps or flats at the start of every line, in their fixed order and positions per clef.',

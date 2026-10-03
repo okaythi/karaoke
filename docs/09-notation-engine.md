@@ -206,6 +206,7 @@ Entry IDs are `family.name`. Glyph names are SMuFL names in the Bravura font and
 | `clef.treble-8vb` | Treble clef sounding an octave lower | `gClef8vb` |
 | `clef.treble-8va` | Treble clef sounding an octave higher | `gClef8va` |
 | `clef.bass-8vb` | Bass clef sounding an octave lower | `fClef8vb` |
+| `clef.baritone-f` | Baritone (F on line 3) | `fClef` |
 
 - **Size**: `full` at the start of every line. `change` when the clef changes within a line. `change` again as a **courtesy clef** at the end of a line when the next line starts with a new clef.
 - **Position**: a change at the start of a measure is drawn *before* the barline of that measure (at the end of the previous one). A change in the middle of a measure is drawn immediately before the event it applies to, after any preceding barline, and claims horizontal space.

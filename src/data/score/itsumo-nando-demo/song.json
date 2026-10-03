@@ -16,7 +16,7 @@
       },
       {
         "id": "lower",
-        "clef": "bass"
+        "clef": "baritone-f"
       }
     ],
     "group": "brace",
@@ -95,9 +95,9 @@
       "supportNotes": 2,
       "loneMeasureNotes": 3
     },
-    "bass": {
-      "peakLedgers": 5,
-      "supportLedgers": 4,
+    "baritone-f": {
+      "peakLedgers": 4,
+      "supportLedgers": 3,
       "supportNotes": 0,
       "loneMeasureNotes": 0
     }

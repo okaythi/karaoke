@@ -13,7 +13,7 @@ import type { NotationId } from '../catalogue/ids';
 
 export type StaffId = string;
 
-export type ClefKind = 'treble' | 'bass' | 'alto' | 'tenor' | 'treble-8vb' | 'treble-8va' | 'bass-8vb';
+export type ClefKind = 'treble' | 'bass' | 'alto' | 'tenor' | 'treble-8vb' | 'treble-8va' | 'bass-8vb' | 'baritone-f';
 
 export type DurationBase = 'breve' | 'whole' | 'half' | 'quarter' | 'eighth' | '16th' | '32nd' | '64th' | '128th';
 

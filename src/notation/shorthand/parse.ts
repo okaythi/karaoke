@@ -45,7 +45,7 @@ type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 const VALUES: Record<string, DurationBase> = {
   '0': 'breve', '1': 'whole', '2': 'half', '4': 'quarter', '8': 'eighth', '16': '16th', '32': '32nd', '64': '64th', '128': '128th'
 };
-const CLEFS: readonly ClefKind[] = ['treble', 'bass', 'alto', 'tenor', 'treble-8vb', 'treble-8va', 'bass-8vb'];
+const CLEFS: readonly ClefKind[] = ['treble', 'bass', 'alto', 'tenor', 'treble-8vb', 'treble-8va', 'bass-8vb', 'baritone-f'];
 const BARLINES: Record<string, { end: EndBarline; repeatStart?: boolean }> = {
   '|': { end: 'barline.single' }, '|double': { end: 'barline.double' }, '|final': { end: 'barline.final' },
   '|dashed': { end: 'barline.dashed' }, ':|': { end: 'nav.repeat-end' },
