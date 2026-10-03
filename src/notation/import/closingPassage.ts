@@ -7,9 +7,15 @@ import { decodeScore, encodeScore } from '../model/codec';
 import type { Score, ScoreEvent } from '../model/types';
 import { importAligned } from './aligned';
 import type { AlignedSource, ImportedTiming } from './aligned';
+import type { KeySignature } from '../core/pitch';
+import { ScoreIndex } from '../model/query';
+import { valueFor } from '../model/time';
 
 export interface ClosingPassageSource extends AlignedSource {
   readonly mediaEnd: number;
+  readonly key?: KeySignature;
+  /** Empty quarter beats preceding the pickup in the imported full first bar. */
+  readonly pickupQuarters?: number;
 }
 
 export function appendClosingPassage(score: Score, timing: ImportedTiming, source: ClosingPassageSource): {
@@ -23,18 +29,40 @@ export function appendClosingPassage(score: Score, timing: ImportedTiming, sourc
   const imported = importAligned(source, {
     title: score.meta.title, staves: score.staves, group: 'brace',
     time: { beats: 4, beatType: 4, symbol: 'numeric' },
-    // No speculative tonal attribution: use explicit accidentals.
-    key: { fifths: 0, mode: 'major' },
+    key: source.key ?? { fifths: 0, mode: 'major' },
     chord: { ticks: 120, seconds: 0.04, alignSeconds: 0.04 },
     roll: { minNotes: 3, minSeconds: 0.05, maxSeconds: 0.35, maxBeatFraction: 0.34 },
     tripletOnsets: 2, tieSeconds: 0.75, syncopation: true
   });
+  const pickup = F.frac(source.pickupQuarters ?? 0, 4);
+  const pickupPosition = F.toNumber(pickup);
+  if (pickupPosition < 0 || pickupPosition >= 1) throw new Error('Invalid closing pickup');
+  let passageScore = imported.score;
+  if (pickupPosition) {
+    const index = new ScoreIndex(imported.score);
+    const events = imported.score.events.flatMap((event): ScoreEvent[] => {
+      if (event.measure !== 0) return [event];
+      if (F.compare(event.offset, pickup) >= 0) return [{ ...event, offset: F.sub(event.offset, pickup) }];
+      const end = F.add(event.offset, index.length(event));
+      if (!F.gt(end, pickup)) return [];
+      const length = F.sub(end, pickup);
+      if (event.kind === 'space') return [{ ...event, offset: F.ZERO, length }];
+      if (event.kind !== 'rest') throw new Error('Pickup would cut a recorded note');
+      const value = valueFor(length);
+      if (!value) throw new Error('Unsupported pickup rest');
+      return [{ ...event, offset: F.ZERO, value }];
+    });
+    passageScore = { ...imported.score,
+      measures: imported.score.measures.map((measure, i) => i === 0 ? { ...measure, length: F.sub(F.ONE, pickup) } : measure),
+      events
+    };
+  }
   // A bar of rests represents the gap after the reference's held chord.
   const gapMeasure = score.measures.length;
   const shift = gapMeasure + 1;
   const prefix = 'closing.';
   const arrays = ['events', 'tuplets', 'clefs', 'attachments', 'spanners'] as const;
-  const json = encodeScore(imported.score) as Record<string, unknown>;
+  const json = encodeScore(passageScore) as Record<string, unknown>;
   const ids = new Set<string>();
   function collect(value: unknown): void {
     if (Array.isArray(value)) value.forEach(collect);
@@ -68,7 +96,7 @@ export function appendClosingPassage(score: Score, timing: ImportedTiming, sourc
     measures: [
       ...score.measures.map((measure, index) => index === gapMeasure - 1 ? { ...measure, end: 'barline.double' as const } : measure),
       { number: gapMeasure + 1 },
-      ...imported.score.measures.map((measure, index) => ({ ...measure, number: shift + index + 1,
+      ...passageScore.measures.map((measure, index) => ({ ...measure, number: shift + index + 1,
         ...(index === 0 ? { section: 'Recorded closing passage' } : {}) }))
     ],
     events: [...score.events, ...gapEvents, ...relocated.events],
@@ -87,7 +115,8 @@ export function appendClosingPassage(score: Score, timing: ImportedTiming, sourc
   };
   // Anchor the last bar to the recording end, rather than extrapolating tempo
   // beyond the media. Adjust only beat endpoints after the last actual attack.
-  const tailBeats = imported.timing.beats.map(beat => ({ ...beat }));
+  const tailBeats = imported.timing.beats.filter(beat => beat.position >= pickupPosition)
+    .map(beat => ({ ...beat, position: beat.position - pickupPosition }));
   const boundary = tailBeats.findLastIndex(beat => beat.time <= lastAttack);
   const anchor = tailBeats[boundary];
   if (!anchor || boundary === tailBeats.length - 1) throw new Error('Closing clock has no trailing endpoint');

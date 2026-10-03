@@ -6,8 +6,9 @@
  * phones in portrait two full-width lines are stacked, as large as the room
  * between the video and the controls allows; when playback moves into one,
  * the one it left is replaced by the line after, so there is always music to
- * read ahead without a full page flip. Every line of a piece shares one
- * vertical frame, so the music keeps one size.
+ * read ahead without a full page flip. Portrait lines share one vertical frame.
+ * Desktop lines fit their own ink bounds so distant ornaments cannot shrink
+ * the current music.
  *
  * Media time is the only clock: every frame reads `video.currentTime`, so
  * seeking and pausing never drift. The next frame is scheduled before
@@ -29,8 +30,10 @@ export interface ScoreViewController {
 
 const COMPACT_QUERY = '(max-width: 768px) and (orientation: portrait)';
 const SVG_NS = 'http://www.w3.org/2000/svg';
-/** Staff spaces of height a wide score area is scaled to hold. */
+/** Reference height in staff spaces for sizing paired portrait lines. */
 const WIDE_FRAME = 30;
+/** Desktop lines use their own ink bounds; do not reserve room for distant slurs. */
+const DESKTOP_FRAME = 20;
 /** Tighten desktop horizontal layout by 4.32%, keeping the glyph size unchanged. */
 const WIDE_SPACING_SCALE = 0.9568;
 /** On a phone a line is at least this many staff spaces wide (two bars) and at most this many. */
@@ -103,7 +106,7 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
     const byHeight = (room - COMPACT_GAP) / (2 * WIDE_FRAME);
     const spacePx = compact
       ? Math.max(slotWidth / COMPACT_MAX_SPACES, Math.min(slotWidth / COMPACT_MIN_SPACES, byHeight))
-      : Math.max(4, rect.height / WIDE_FRAME);
+      : Math.max(4, rect.height / DESKTOP_FRAME);
     width = Math.max(24, (slotWidth / spacePx - LEFT_ROOM - MARGIN) * (compact ? 1 : WIDE_SPACING_SCALE));
     engraving = engrave(song.score, { width, settings: song.layout });
     // Include all ink: clipping tall slurs hides a layout error and cuts off music.
@@ -134,7 +137,8 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
     const engraved = engraving?.systems[system];
     if (!engraved) return;
     const view = renderSystemView(engraved, {
-      style, glides: true, margin: MARGIN, frame,
+      style, glides: true, margin: MARGIN,
+      frame: compact ? frame : { top: engraved.box.y0, bottom: engraved.box.y1 },
       // Centre the actual line, including its brace, rather than a wider
       // requested extent that may leave unused space on the right.
       extent: compact ? { left: -LEFT_ROOM, right: width } : {

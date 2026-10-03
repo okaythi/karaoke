@@ -219,7 +219,7 @@ def main():
     for name, value in [('source/score.json', score), ('source/timing.json', timing), ('alignment-report.json', report)]:
         (folder / name).write_text(json.dumps(value, ensure_ascii=False, indent=1) + '\n')
     if settings['source'].get('closingPassage'):
-        passage = prepare_closing_passage(performance, prep['performanceEnd'], settings['media']['scoreEnd'])
+        passage = prepare_closing_passage(performance, prep['performanceEnd'], settings['media']['scoreEnd'], prep.get('closingPassage'))
         (folder / settings['source']['closingPassage']).write_text(json.dumps(passage, ensure_ascii=False, indent=1) + '\n')
     print(f"{sys.argv[1]}: {len(score['measures'])} bars, {len(notes)} notes, {report['matchRate']:.1%} matched attacks; {len(report['interpolatedAttacks'])} interpolated")
 

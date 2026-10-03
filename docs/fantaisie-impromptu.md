@@ -7,8 +7,8 @@ changes at bars 41 and 83, simultaneous sixteenths/triplets, 7:4 tuplets, grace
 notes, ties, cross-staff voices, slurs, dynamics, pedals and octave lines. The
 runtime loads this piece through the existing song-agnostic notation engine.
 The full recording also includes a closing passage after the reference's
-held chord. The runtime score has 150 bars and 3,135 noteheads, including a
-pause bar, 82 recorded closing attacks and four tied continuations.
+held chord. The runtime score has 148 bars and 3,132 noteheads, including a
+pause bar, 82 recorded closing attacks and one tied continuation.
 
 ## Sources
 
@@ -66,15 +66,19 @@ reference's final chord. This is not the end of the full recording:
 `source/closing-passage.json` retains all 82 subsequent attacks from the
 performance MIDI. The importer appends that passage after a pause bar and
 ends at the MP4's 363.279583-second endpoint. Closing pitches and onset/release
-times come from the existing transcription; rhythm uses an inferred
-eighth-note grid and hand assignment uses register. These elements carry
+times come from the existing transcription; rhythm follows the phrase beat
+groups in `preparation.closingPassage`,
+including a half-bar pickup and a two-flat signature with explicit F-sharp
+and C-sharp spelling. Timing still follows the actual rubato; slowing down
+does not create extra written beats. Hand assignment uses register. These
+elements carry
 `recorded-closing-passage` inferred provenance and are not attributed to the
 Mutopia edition. No new audio inference is required.
 
 ## Current verification and review
 
-- All 150 runtime bars validate with zero warnings/errors.
-- All 3,135 runtime noteheads have finite, ordered timing intervals.
+- All 148 runtime bars validate with zero warnings/errors.
+- All 3,132 runtime noteheads have finite, ordered timing intervals.
 - The 3,014 distinct score attacks agree with the reference MIDI's pitch counts.
 - 2,981 of 3,035 written attacks (98.2%) map to detected performed attacks,
   including 21 shared-key unisons. The remaining 54 use interpolated timing.
