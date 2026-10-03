@@ -486,7 +486,7 @@ export function placeMarks(context: SystemContext): MarkResult {
     const startBar = barlineX(spanner.start), endBar = barlineX(spanner.end);
     const startsHere = start ? inSystem(context, startMeasure) : startBar !== undefined;
     const endsHere = end ? inSystem(context, endMeasure) : endBar !== undefined;
-    const { staff, side } = sideFor(known.side, start?.staff ?? end?.staff ?? staves[0], start, spanner.side);
+    const { staff, side } = sideFor(known.side, spanner.staff ?? start?.staff ?? end?.staff ?? staves[0], start, spanner.side);
     const semantic: Semantic = start ? semanticOf(start, staff) : { staff };
     const refs = [spanner.id];
     const element = known.id;
@@ -568,12 +568,15 @@ export function placeMarks(context: SystemContext): MarkResult {
       const ty = side === 'above' ? lineY + 0.4 + metrics.ascent : lineY - 0.4;
       items.push(builder.text(spanner.text, x0 + 0.5, ty, look.face, look.size, make(), { italic: look.italic }));
     }
+    // Over a single note the line still runs two dashes past its opening mark, so the hook stands clear of it.
+    if (endsHere && drawing.end?.kind === 'hook' && lineStart > x0)
+      lineEnd = x1 = Math.max(x1, lineStart + 2 * ENGRAVING.lineDashLength + ENGRAVING.lineDashGap);
     if (endsHere && spanner.params?.open !== true) decorate(drawing.end, x1, true);
     const thickness = known.family === 'pedal' ? ENGRAVING.pedalLineThickness : known.family === 'dyn' ? ENGRAVING.hairpinThickness : ENGRAVING.octaveLineThickness;
     if (lineEnd > lineStart + 0.2) {
       switch (drawing.line) {
         case 'solid': items.push(builder.line(lineStart, lineY, lineEnd, lineY, thickness, make())); break;
-        case 'dashed': items.push(builder.line(lineStart, lineY, lineEnd, lineY, thickness, make(), { dash: [0.6, 0.5] })); break;
+        case 'dashed': items.push(builder.line(lineStart, lineY, lineEnd, lineY, thickness, make(), { dash: [ENGRAVING.lineDashLength, ENGRAVING.lineDashGap] })); break;
         case 'wiggle': {
           const wiggle = glyph('wiggleTrill');
           for (let at = lineStart; at + wiggle.advance <= lineEnd + 0.01; at += wiggle.advance)

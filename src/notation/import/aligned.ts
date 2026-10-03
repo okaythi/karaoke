@@ -10,8 +10,10 @@
  * 3. Chords: near-simultaneous attacks close in written position merge.
  * 4. Grid: each beat of each staff is read in sixteenths, or in triplets
  *    when several onsets sit where only triplets can.
- * 5. Voices: a lone note the source marks as an inner voice is voice 2.
- * 6. Written values: a note lasts until the next onset in its voice; it is
+ * 5. Hands: a note out of one hand's reach joins the chord the other hand
+ *    strikes at the same moment, on that hand's staff.
+ * 6. Voices: a lone note the source marks as an inner voice is voice 2.
+ * 7. Written values: a note lasts until the next onset in its voice; it is
  *    tied over a barline only while it still sounds, and silence becomes
  *    rests. Values follow the meter's beats.
  *
@@ -79,6 +81,11 @@ export interface AlignedImportSettings {
   readonly chord: { readonly ticks: number; readonly seconds: number; readonly alignSeconds: number };
   /** Rising attacks within these limits are one rolled chord. */
   readonly roll: { readonly minNotes: number; readonly minSeconds: number; readonly maxSeconds: number; readonly maxBeatFraction: number };
+  /**
+   * The widest interval one hand strikes at once, in semitones (16: a major tenth). A note beyond it
+   * joins the chord the neighbouring staff's hand strikes at the same moment. Absent: notes keep their staff.
+   */
+  readonly reach?: number;
   /** A beat is read in triplets when at least this many onsets sit on triplet-only positions. */
   readonly tripletOnsets: number;
   /** A note is tied over a barline only if it sounds at least this long. */
@@ -104,6 +111,8 @@ export interface ImportReport {
   readonly tripletBeats: number;
   readonly ties: number;
   readonly corrections: number;
+  /** Notes moved to the other hand's staff because they were out of reach. */
+  readonly handMoves: number;
 }
 
 export interface ImportResult {
@@ -285,7 +294,36 @@ export function importAligned(source: AlignedSource, settings: AlignedImportSett
   }
   const chords = [...positioned.values()].sort((a, b) => a.tick - b.tick || a.staff.localeCompare(b.staff));
 
-  // 5. Voices. An inner voice needs a main voice beside it: a staff's bar without one uses voice 1.
+  // 5. Hands (docs §7.4). The upper hand keeps what its highest note can reach and the lower hand what
+  // its lowest can; a note beyond that moves to the other hand's chord when it fits there. A rolled
+  // chord is left alone: rolling is how one hand covers more than its reach.
+  const moved = new Set<string>();
+  const { reach } = settings;
+  if (reach !== undefined) {
+    const span = (members: readonly WorkNote[]) => Math.max(...members.map(note => note.midi)) - Math.min(...members.map(note => note.midi));
+    const free = (note: WorkNote) => !note.fixedVoice && !settings.corrections?.[note.id]?.staff;
+    const open = (cluster: Cluster) => !cluster.roll && !cluster.notes.some(note => note.fixedVoice);
+    const give = (from: Cluster, to: Cluster, outOfReach: (note: WorkNote) => boolean) => {
+      const leaving = from.notes.filter(note => outOfReach(note) && free(note));
+      if (!leaving.length || span([...to.notes, ...leaving]) > reach) return;
+      from.notes = from.notes.filter(note => !leaving.includes(note));
+      to.notes.push(...leaving);
+      for (const note of leaving) moved.add(note.id);
+    };
+    settings.staves.slice(0, -1).forEach((staff, position) => {
+      const below = settings.staves[position + 1].id;
+      for (const upper of chords.filter(cluster => cluster.staff === staff.id && open(cluster))) {
+        const lower = chords.find(cluster => cluster.staff === below && cluster.tick === upper.tick && open(cluster));
+        if (!lower) continue;
+        const top = Math.max(...upper.notes.map(note => note.midi));
+        give(upper, lower, note => top - note.midi > reach);
+        const bottom = Math.min(...lower.notes.map(note => note.midi));
+        give(lower, upper, note => note.midi - bottom > reach);
+      }
+    });
+  }
+
+  // 6. Voices. An inner voice needs a main voice beside it: a staff's bar without one uses voice 1.
   for (const cluster of chords) {
     const forced = cluster.notes.map(note => note.fixedVoice).filter((voice): voice is number => voice !== undefined);
     if (forced.length === cluster.notes.length) cluster.voice = forced[0];
@@ -357,7 +395,7 @@ export function importAligned(source: AlignedSource, settings: AlignedImportSett
     return result;
   };
 
-  // 6. Written ends: to the next onset in the voice, tied over barlines only while sounding.
+  // 7. Written ends: to the next onset in the voice, tied over barlines only while sounding.
   let ties = 0;
   const voiceKey = (cluster: Cluster) => `${cluster.staff}:${cluster.voice}`;
   const byVoice = new Map<string, Cluster[]>();
@@ -467,7 +505,7 @@ export function importAligned(source: AlignedSource, settings: AlignedImportSett
           const eventId = `${staff}.${measure + 1}.${voice}.${offsetId(offset)}`;
           const notesHere: Note[] = sorted.map(note => ({
             id: index === 0 ? note.id : `${note.id}~${index + 1}`, pitch: spell(note),
-            provenance: { origin: 'imported' as const }
+            provenance: moved.has(note.id) ? { origin: 'inferred' as const, rule: 'hand-reach' } : { origin: 'imported' as const }
           }));
           const event: ChordEvent = {
             id: eventId, kind: 'chord', measure, staff, voice, offset: toFraction(offset),
@@ -521,6 +559,6 @@ export function importAligned(source: AlignedSource, settings: AlignedImportSett
     score,
     timing: { notes: timing, beats: clock.beats },
     clock,
-    report: { rolledChords, tripletBeats: tripletBeats.size, ties, corrections }
+    report: { rolledChords, tripletBeats: tripletBeats.size, ties, corrections, handMoves: moved.size }
   };
 }

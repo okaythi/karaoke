@@ -1193,7 +1193,7 @@
     font-size: 14px;
   }
 
-  /* Two halves of the four-bar view; height follows the cropped half (set by the score renderer). */
+  /* Two stacked lines of music; each line's height follows its frame (set by the score view). */
   .piano-score-container {
     width: 100%;
     height: auto;
@@ -1204,12 +1204,13 @@
 
   .piano-score-container.score-halves {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .score-half {
-    flex: 1 1 0;
-    min-width: 0;
+    flex: none;
+    width: 100%;
     aspect-ratio: var(--score-half-aspect, 444 / 296);
   }
 

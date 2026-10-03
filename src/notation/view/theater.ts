@@ -3,10 +3,11 @@
  *
  * Lines of music are engraved to fit the score area: on wide screens one
  * line fills it, and the page turns when playback reaches the next line. On
- * phones in portrait two narrower lines sit side by side; when playback
- * moves into one, the one it left is replaced by the line after, so there is
- * always music to read ahead without a full page flip. Every line of a piece
- * shares one vertical frame, so the music keeps one size.
+ * phones in portrait two full-width lines are stacked, as large as the room
+ * between the video and the controls allows; when playback moves into one,
+ * the one it left is replaced by the line after, so there is always music to
+ * read ahead without a full page flip. Every line of a piece shares one
+ * vertical frame, so the music keeps one size.
  *
  * Media time is the only clock: every frame reads `video.currentTime`, so
  * seeking and pausing never drift. The next frame is scheduled before
@@ -30,8 +31,11 @@ const COMPACT_QUERY = '(max-width: 768px) and (orientation: portrait)';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** Staff spaces of height a wide score area is scaled to hold. */
 const WIDE_FRAME = 30;
-/** Staff spaces of width each half holds on a phone: two bars, or one dense bar. */
-const COMPACT_SPACES = 52;
+/** On a phone a line is at least this many staff spaces wide (two bars) and at most this many. */
+const COMPACT_MIN_SPACES = 46;
+const COMPACT_MAX_SPACES = 80;
+/** Gap between the two lines on a phone, in pixels. */
+const COMPACT_GAP = 10;
 /** Space kept around the music inside its frame, and room for the brace on the left. */
 const MARGIN = 1.2;
 const LEFT_ROOM = 3;
@@ -86,13 +90,18 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
   function layout(): void {
     const rect = container.getBoundingClientRect();
     compact = !!compactQuery?.matches;
-    const key = `${Math.round(rect.width)}x${Math.round(rect.height)}:${compact}`;
+    // On phones the area's own height follows the music, so the room comes from its parent.
+    const room = compact ? container.parentElement?.clientHeight ?? 0 : rect.height;
+    const key = `${Math.round(rect.width)}x${Math.round(room)}:${compact}`;
     if (!rect.width || key === laidOutFor) return;
     laidOutFor = key;
     const slotCount = compact ? 2 : 1;
-    const gap = compact ? 8 : 0;
-    const slotWidth = (rect.width - gap * (slotCount - 1)) / slotCount;
-    const spacePx = compact ? slotWidth / COMPACT_SPACES : Math.max(4, rect.height / WIDE_FRAME);
+    const slotWidth = rect.width;
+    // Phones: two stacked lines as tall as the room allows, never wider than two bars need.
+    const byHeight = (room - COMPACT_GAP) / (2 * WIDE_FRAME);
+    const spacePx = compact
+      ? Math.max(slotWidth / COMPACT_MAX_SPACES, Math.min(slotWidth / COMPACT_MIN_SPACES, byHeight))
+      : Math.max(4, rect.height / WIDE_FRAME);
     width = Math.max(24, slotWidth / spacePx - LEFT_ROOM - MARGIN);
     engraving = engrave(song.score, { width, settings: song.layout });
     // Include all ink: clipping tall slurs hides a layout error and cuts off music.

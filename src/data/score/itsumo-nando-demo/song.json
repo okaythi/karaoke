@@ -40,6 +40,7 @@
       "maxSeconds": 0.35,
       "maxBeatFraction": 0.34
     },
+    "reach": 16,
     "tripletOnsets": 2,
     "tieSeconds": 0.75,
     "syncopation": true,
@@ -93,13 +94,17 @@
       "peakLedgers": 3,
       "supportLedgers": 1,
       "supportNotes": 2,
-      "loneMeasureNotes": 3
+      "loneMeasureNotes": 3,
+      "bridgeMeasures": 1,
+      "figureLeap": 6
     },
     "baritone-f": {
       "peakLedgers": 4,
       "supportLedgers": 3,
       "supportNotes": 0,
-      "loneMeasureNotes": 0
+      "loneMeasureNotes": 0,
+      "bridgeMeasures": 1,
+      "figureLeap": 6
     }
   },
   "tempo": {

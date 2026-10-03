@@ -3920,13 +3920,6 @@
    },
    "notes": [
     {
-     "id": "n0192",
-     "pitch": "G#4",
-     "provenance": {
-      "origin": "imported"
-     }
-    },
-    {
      "id": "n0193",
      "pitch": "E5",
      "provenance": {
@@ -3966,6 +3959,14 @@
      "pitch": "C#4",
      "provenance": {
       "origin": "imported"
+     }
+    },
+    {
+     "id": "n0192",
+     "pitch": "G#4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "hand-reach"
      }
     }
    ]
@@ -15502,13 +15503,6 @@
    },
    "notes": [
     {
-     "id": "n0890",
-     "pitch": "E4",
-     "provenance": {
-      "origin": "imported"
-     }
-    },
-    {
      "id": "n0893",
      "pitch": "G#5",
      "provenance": {
@@ -15541,6 +15535,14 @@
      "pitch": "B3",
      "provenance": {
       "origin": "imported"
+     }
+    },
+    {
+     "id": "n0890",
+     "pitch": "E4",
+     "provenance": {
+      "origin": "inferred",
+      "rule": "hand-reach"
      }
     }
    ]
@@ -29688,7 +29690,7 @@
     "event": "upper.22.1.0"
    },
    "end": {
-    "event": "upper.25.1.3/8"
+    "event": "upper.25.1.0"
    },
    "provenance": {
     "origin": "inferred",
@@ -29702,7 +29704,7 @@
     "event": "upper.30.1.0"
    },
    "end": {
-    "event": "upper.33.1.1/8"
+    "event": "upper.33.1.0"
    },
    "provenance": {
     "origin": "inferred",
@@ -29744,7 +29746,7 @@
     "event": "upper.57.1.0"
    },
    "end": {
-    "event": "upper.60.1.3/8"
+    "event": "upper.60.1.0"
    },
    "provenance": {
     "origin": "inferred",
@@ -29758,7 +29760,7 @@
     "event": "upper.65.1.0"
    },
    "end": {
-    "event": "upper.68.1.1/8"
+    "event": "upper.68.1.0"
    },
    "provenance": {
     "origin": "inferred",
@@ -29797,7 +29799,7 @@
    "id": "ottava@upper.85",
    "kind": "ottava.8va",
    "start": {
-    "event": "upper.85.1.1/3"
+    "event": "upper.85.1.0"
    },
    "end": {
     "event": "upper.85.1.2/3"
@@ -29814,7 +29816,7 @@
     "event": "upper.90.1.1/4"
    },
    "end": {
-    "event": "upper.93.1.5/8"
+    "event": "upper.92.1.0"
    },
    "provenance": {
     "origin": "inferred",
@@ -29822,13 +29824,13 @@
    }
   },
   {
-   "id": "ottava@upper.95",
+   "id": "ottava@upper.93",
    "kind": "ottava.8va",
    "start": {
-    "event": "upper.95.1.0"
+    "event": "upper.93.1.1/8"
    },
    "end": {
-    "event": "upper.95.1.1/2"
+    "event": "upper.95.1.5/8"
    },
    "provenance": {
     "origin": "inferred",
@@ -29898,7 +29900,7 @@
     "event": "upper.144.1.0"
    },
    "end": {
-    "event": "upper.147.1.3/8"
+    "event": "upper.147.1.0"
    },
    "provenance": {
     "origin": "inferred",
@@ -29912,7 +29914,7 @@
     "event": "upper.152.1.0"
    },
    "end": {
-    "event": "upper.155.1.1/8"
+    "event": "upper.155.1.0"
    },
    "provenance": {
     "origin": "inferred",
@@ -29951,7 +29953,7 @@
    "id": "ottava@lower.30",
    "kind": "ottava.8va",
    "start": {
-    "event": "lower.30.1.1/2"
+    "event": "lower.30.1.1/4"
    },
    "end": {
     "event": "lower.30.1.1/2"
@@ -30103,6 +30105,21 @@
    "provenance": {
     "origin": "edited",
     "rule": "Only the closing flourish goes up the octave; the held B stays at pitch."
+   }
+  },
+  {
+   "id": "ottava@lower.170-roll",
+   "kind": "ottava.8va",
+   "staff": "lower",
+   "start": {
+    "event": "upper.170.1.0"
+   },
+   "end": {
+    "event": "upper.170.1.0"
+   },
+   "provenance": {
+    "origin": "edited",
+    "rule": "The left hand's three notes of the rolled chord are drawn on the lower staff. The upper staff's octave line does not govern them, so they take one of their own instead of five ledger lines."
    }
   }
  ]

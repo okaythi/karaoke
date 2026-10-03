@@ -91,6 +91,7 @@ export function validateScore(score: Score): Issue[] {
     const known = entry(spanner.kind);
     if (known.model !== 'spanner') error(`${spanner.kind} is a ${known.model}, not a spanner`, spanner.id);
     if (!resolves(spanner.start) || !resolves(spanner.end)) { error('Anchor does not resolve', spanner.id); continue; }
+    if (spanner.staff && !score.staves.some(staff => staff.id === spanner.staff)) error(`Unknown staff ${spanner.staff}`, spanner.id);
     if (spanner.kind === 'tie' && 'note' in spanner.start && 'note' in spanner.end) {
       const from = index.note(spanner.start.note), to = index.note(spanner.end.note);
       if (midi(from.note.pitch) !== midi(to.note.pitch)) error('A tie must join equal pitches', spanner.id);

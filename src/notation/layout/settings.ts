@@ -30,6 +30,9 @@ export const ENGRAVING = {
   tieMidpointThickness: 0.22,
   hairpinThickness: 0.16,
   octaveLineThickness: 0.16,
+  /** Dash and gap of a dashed line. */
+  lineDashLength: 0.6,
+  lineDashGap: 0.5,
   pedalLineThickness: 0.16,
   repeatEndingLineThickness: 0.16,
   tupletBracketThickness: 0.16,

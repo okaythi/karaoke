@@ -5,6 +5,7 @@
  * steps; the system stage turns them into absolute coordinates.
  */
 import * as F from '../core/fraction';
+import type { Fraction } from '../core/fraction';
 import { pitch as makePitch } from '../core/pitch';
 import type { Pitch } from '../core/pitch';
 import { entry } from '../catalogue/registry';
@@ -99,8 +100,8 @@ export interface PreparedScore {
   readonly shapes: ReadonlyMap<string, EventShape>;
   readonly beams: readonly BeamPlan[];
   readonly beamOf: ReadonlyMap<string, BeamPlan>;
-  /** Octaves the written note sits from the sounding one, per event. */
-  writtenShift(eventId: string): number;
+  /** Octaves the written note sits from the sounding one. */
+  writtenShift(noteId: string): number;
   writtenPitch(noteId: string): Pitch;
   drawnStaff(event: ChordEvent, noteId: string): StaffId;
   /** Staff step of a note as drawn. */
@@ -120,15 +121,27 @@ export function eventScale(event: ScoreEvent): number {
 }
 
 export function prepare(index: ScoreIndex, settings: LayoutSettings): PreparedScore {
-  const shifts = ottavaShifts(index);
-  const writtenShift = (eventId: string) => shifts.get(eventId) ?? 0;
-  const writtenPitch = (noteId: string): Pitch => {
-    const { note, event } = index.note(noteId);
-    const shift = writtenShift(event.id);
-    return shift ? makePitch(note.pitch.step, note.pitch.alter, note.pitch.octave + shift) : note.pitch;
-  };
   const drawnStaff = (event: ChordEvent, noteId: string): StaffId =>
     event.notes.find(note => note.id === noteId)?.staff ?? event.staff;
+  // An octave line governs the notes drawn on its own staff, whichever staff their chord belongs to.
+  const lines = ottavaLines(index);
+  const shifts = new Map<string, number>();
+  const writtenShift = (noteId: string): number => {
+    let shift = shifts.get(noteId);
+    if (shift === undefined) {
+      const { event } = index.note(noteId);
+      const staff = drawnStaff(event, noteId);
+      const at = index.absolute(event.measure, event.offset);
+      shift = lines.find(line => line.staff === staff && F.ge(at, line.from) && F.le(at, line.to))?.octaves ?? 0;
+      shifts.set(noteId, shift);
+    }
+    return shift;
+  };
+  const writtenPitch = (noteId: string): Pitch => {
+    const { note } = index.note(noteId);
+    const shift = writtenShift(noteId);
+    return shift ? makePitch(note.pitch.step, note.pitch.alter, note.pitch.octave + shift) : note.pitch;
+  };
   const noteStep = (noteId: string): number => {
     const { event } = index.note(noteId);
     const staff = drawnStaff(event, noteId);
@@ -184,21 +197,19 @@ export function prepare(index: ScoreIndex, settings: LayoutSettings): PreparedSc
   return { index, settings, accidentals, shapes, beams, beamOf, writtenShift, writtenPitch, drawnStaff, noteStep };
 }
 
-/** Octave shifts from ottava spanners, by event. */
-function ottavaShifts(index: ScoreIndex): Map<string, number> {
-  const shifts = new Map<string, number>();
+interface OttavaLine { readonly staff: StaffId; readonly from: Fraction; readonly to: Fraction; readonly octaves: number }
+
+/** Where each octave line applies: its staff, its first and last positions, and the octaves it moves written notes. */
+function ottavaLines(index: ScoreIndex): OttavaLine[] {
+  const lines: OttavaLine[] = [];
   for (const spanner of index.score.spanners) {
     const known = entry(spanner.kind) as SpannerEntry;
     if (!known.writtenOctaves || !('event' in spanner.start) || !('event' in spanner.end)) continue;
     const start = index.event(spanner.start.event), end = index.event(spanner.end.event);
-    const from = index.absolute(start.measure, start.offset), to = index.absolute(end.measure, end.offset);
-    for (const event of index.score.events) {
-      if (event.staff !== start.staff) continue;
-      const at = index.absolute(event.measure, event.offset);
-      if (F.ge(at, from) && F.le(at, to)) shifts.set(event.id, known.writtenOctaves);
-    }
+    lines.push({ staff: spanner.staff ?? start.staff, from: index.absolute(start.measure, start.offset), to: index.absolute(end.measure, end.offset),
+      octaves: known.writtenOctaves });
   }
-  return shifts;
+  return lines;
 }
 
 function chordShape(
