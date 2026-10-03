@@ -105,11 +105,16 @@ export function planLines(prepared: PreparedScore, spacings: readonly MeasureSpa
     best[end] = { cost: Infinity, from: end - 1 };
     for (let start = end - 1; start >= 0; start--) {
       const natural = lineWidth(prepared, spacings, start, end - 1, 1, indentFor(start));
-      if (natural > width && end - start > 1) break;
+      // A line may tighten to take another measure, down to the compression limit.
+      const tightest = natural > width ? lineWidth(prepared, spacings, start, end - 1, prepared.settings.spacing.compression, indentFor(start)) : natural;
+      if (tightest > width && end - start > 1) break;
       const shortfall = Math.max(0, width - natural) / width;
-      const overflow = Math.max(0, natural - width) / width;
+      // Tightening costs more than loosening by the same amount; a lone measure too wide even when tight overflows.
+      const squeeze = Math.max(0, natural - width) / width;
+      const overflow = Math.max(0, tightest - width) / width;
       const isLast = end === count;
-      const cost = best[start].cost + (isLast && shortfall < 1 - 1e-9 ? shortfall * shortfall * 0.1 : shortfall * shortfall) * 100 + overflow * 1000 + 1;
+      const cost = best[start].cost + (isLast && shortfall < 1 - 1e-9 ? shortfall * shortfall * 0.1 : shortfall * shortfall) * 100 +
+        squeeze * squeeze * 250 + overflow * 1000 + 1;
       if (cost < best[end].cost) best[end] = { cost, from: start };
     }
   }

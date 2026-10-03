@@ -794,4 +794,3 @@ Not built yet:
 
 - Collapsing silent bars into one multi-bar rest (`rest.multi-bar`), and hiding repeated pedal patterns after *simile* (`pedal.simile`). The gallery marks both as partial.
 - Import from engraved MIDI (LilyPond) and score-to-recording alignment, needed for Fantaisie-Impromptu.
-- Inferred octave lines start at the first note of their bar, so a low chord opening that bar is written an octave down (いつも何度でも bar 90); the line should start at the first note that needs it.

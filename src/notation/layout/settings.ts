@@ -69,6 +69,8 @@ export interface SpacingSettings {
   readonly beforeBarline: number;
   /** Space after a clef, key or time signature. */
   readonly afterSignature: number;
+  /** How far a line may tighten below ideal spacing to fit another measure (1: never). */
+  readonly compression: number;
 }
 
 export interface LayoutSettings {
@@ -98,7 +100,8 @@ export const DEFAULT_SETTINGS: LayoutSettings = {
     graceGap: 0.35,
     afterBarline: 1.2,
     beforeBarline: 1.0,
-    afterSignature: 1.4
+    afterSignature: 1.4,
+    compression: 0.7
   },
   staffGap: 7,
   maxStaffGap: 14,

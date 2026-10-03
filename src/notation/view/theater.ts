@@ -30,13 +30,11 @@ const COMPACT_QUERY = '(max-width: 768px) and (orientation: portrait)';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** Staff spaces of height a wide score area is scaled to hold. */
 const WIDE_FRAME = 30;
-/** Staff spaces of width each half holds on a phone (about two bars). */
-const COMPACT_SPACES = 36;
+/** Staff spaces of width each half holds on a phone: two bars, or one dense bar. */
+const COMPACT_SPACES = 52;
 /** Space kept around the music inside its frame, and room for the brace on the left. */
 const MARGIN = 1.2;
 const LEFT_ROOM = 3;
-/** How far above and below the staves the shared frame may reach. */
-const FRAME_LIMIT = 9;
 
 interface Anchor { readonly time: number; readonly x: number }
 
@@ -54,7 +52,7 @@ interface Slot {
   shown?: Shown;
 }
 
-export function createScoreView(video: HTMLVideoElement, container: HTMLElement, song: SongScore): ScoreViewController {
+export function createScoreView(video: HTMLMediaElement, container: HTMLElement, song: SongScore): ScoreViewController {
   const style = new StyleResolver(song.style ? [DEFAULT_SHEET, song.style] : [DEFAULT_SHEET], {
     measureNumber: measure => song.score.measures[measure].number,
     sectionOf: measure => {
@@ -97,12 +95,10 @@ export function createScoreView(video: HTMLVideoElement, container: HTMLElement,
     const spacePx = compact ? slotWidth / COMPACT_SPACES : Math.max(4, rect.height / WIDE_FRAME);
     width = Math.max(24, slotWidth / spacePx - LEFT_ROOM - MARGIN);
     engraving = engrave(song.score, { width, settings: song.layout });
-    // One frame for every line: the extremes of the music, within limits.
-    const staffTop = Math.min(...engraving.systems.map(system => Math.min(...system.staffTops.values())));
-    const staffBottom = Math.max(...engraving.systems.map(system => Math.max(...system.staffTops.values()) + 4));
+    // Include all ink: clipping tall slurs hides a layout error and cuts off music.
     frame = {
-      top: Math.max(staffTop - FRAME_LIMIT, Math.min(...engraving.systems.map(system => system.box.y0))),
-      bottom: Math.min(staffBottom + FRAME_LIMIT, Math.max(...engraving.systems.map(system => system.box.y1)))
+      top: Math.min(...engraving.systems.map(system => system.box.y0)),
+      bottom: Math.max(...engraving.systems.map(system => system.box.y1))
     };
     starts = engraving.systems.map(systemStart);
     for (let position = starts.length - 2; position >= 0; position--) if (!Number.isFinite(starts[position])) starts[position] = starts[position + 1];

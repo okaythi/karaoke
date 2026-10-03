@@ -82,6 +82,8 @@ export function placeMarks(context: SystemContext): MarkResult {
     if (staff && item.element !== 'staff.lines') obstacles.get(staff)?.push(item.box);
   }
   const gapShortfall = new Map<StaffId, number>();
+  // Keep the original staff ink separate from marks later shared with neighbours.
+  const staffInk = new Map(staves.map(staff => [staff, [...obstacles.get(staff)!]]));
 
   const group = (staff: StaffId) => index.groupOf(staff)?.staves ?? [staff];
   const nextStaff = (staff: StaffId) => group(staff)[group(staff).indexOf(staff) + 1];
@@ -89,9 +91,8 @@ export function placeMarks(context: SystemContext): MarkResult {
 
   const remember = (placed: Placed) => {
     obstacles.get(placed.staff)?.push(placed.box);
-    // Marks under a staff reach into the gap above the next one, and the reverse.
-    const neighbour = placed.side === 'below' ? nextStaff(placed.staff) : previousStaff(placed.staff);
-    if (neighbour) obstacles.get(neighbour)?.push(placed.box);
+    // Neighbouring ink is handled by growing the gap, not by pushing a mark
+    // through the neighbour. Otherwise every rebuild chases that staff outward.
   };
 
   /**
@@ -435,10 +436,18 @@ export function placeMarks(context: SystemContext): MarkResult {
     return settle(items, staff, side, clearShift(box, staff, side), baseline);
   };
 
-  for (const tuplet of index.score.tuplets) {
-    const members = index.score.events.filter(event => event.kind !== 'space' &&
-      index.tupletChain(event).some(item => item.id === tuplet.id) && context.drawn.has(event.id));
-    if (members.length) jobs.push({ layer: 6, order: order++, run: () => placeTuplet(tuplet, members) });
+  const tupletMembers = new Map<string, ScoreEvent[]>();
+  for (const eventId of context.drawn.keys()) {
+    const event = index.event(eventId);
+    for (const tuplet of index.tupletChain(event)) {
+      const members = tupletMembers.get(tuplet.id) ?? [];
+      members.push(event);
+      tupletMembers.set(tuplet.id, members);
+    }
+  }
+  for (const [id, members] of tupletMembers) {
+    const tuplet = index.tuplet(id);
+    jobs.push({ layer: 6, order: order++, run: () => placeTuplet(tuplet, members) });
   }
 
   // ── Spanners ────────────────────────────────────────────────────────────
@@ -622,12 +631,14 @@ export function placeMarks(context: SystemContext): MarkResult {
 
   // ── Run, layer by layer ─────────────────────────────────────────────────
   jobs.sort((a, b) => a.layer - b.layer || a.order - b.order);
+  const allPlaced: Placed[] = [];
   for (const layer of [...new Set(jobs.map(job => job.layer))]) {
     const placed: Placed[] = [];
     for (const job of jobs.filter(item => item.layer === layer)) {
       const result = job.run();
       if (!result) continue;
       placed.push(result);
+      allPlaced.push(result);
       remember(result);
     }
     const baselineGroups = new Map<string, Placed[]>();
@@ -659,13 +670,18 @@ export function placeMarks(context: SystemContext): MarkResult {
         aligned.push(member.box);
       }
     }
-    // Marks between two staves must leave the lower staff clear.
-    for (const item of placed) {
-      const next = item.side === 'below' ? nextStaff(item.staff) : undefined;
-      if (!next) continue;
-      const room = staffTop(context, next) - ENGRAVING.staffClearance - item.box.y1;
-      if (room < 0) gapShortfall.set(item.staff, Math.max(gapShortfall.get(item.staff) ?? 0, -room));
-    }
+  }
+  // Check the completed layout, including marks above the lower staff.
+  for (const item of allPlaced) {
+    const next = item.side === 'below' ? nextStaff(item.staff) : undefined;
+    if (!next) continue;
+    const lowerInk = [...staffInk.get(next)!, ...allPlaced
+      .filter(mark => mark.staff === next && mark.side === 'above').map(mark => mark.box)];
+    const inkTop = Math.min(staffTop(context, next), ...lowerInk
+      .filter(box => box.x0 < item.box.x1 && box.x1 > item.box.x0)
+      .map(box => box.y0));
+    const room = inkTop - ENGRAVING.staffClearance - item.box.y1;
+    if (room < 0) gapShortfall.set(item.staff, Math.max(gapShortfall.get(item.staff) ?? 0, -room));
   }
   return { gapShortfall };
 }

@@ -60,7 +60,6 @@ export function inferTempoMarks(score: Score, clock: BeatClock, notes: ReadonlyM
   const beatTempo = (position: number) => 60 / (clock.timeAt(position + beatLength) - clock.timeAt(position));
   const onsets = [...notes.values()].map(note => note.start).sort((a, b) => a - b);
   const beatList = [...attackedBeats].sort((a, b) => a - b);
-  const top = score.staves[0].id;
 
   // Silent stretches between attacked beats at least a bar long.
   const holds: { from: number; to: number; seconds: number }[] = [];
@@ -157,8 +156,11 @@ export function inferTempoMarks(score: Score, clock: BeatClock, notes: ReadonlyM
     .filter((event): event is ChordEvent => event.kind === 'chord' && !event.grace &&
       F.toNumber(index.absolute(event.measure, event.offset)) >= position - 1e-9)
     .sort((a, b) => F.compare(index.absolute(a.measure, a.offset), index.absolute(b.measure, b.offset)) || staffOrder(a.staff) - staffOrder(b.staff))[0];
-  const lastChordIn = (measure: number): ChordEvent | undefined => index.eventsIn(measure, top)
-    .filter((event): event is ChordEvent => event.kind === 'chord').at(-1);
+  /** The last chord, in any staff, that starts before a position. */
+  const lastChordBefore = (position: number): ChordEvent | undefined => score.events
+    .filter((event): event is ChordEvent => event.kind === 'chord' && !event.grace &&
+      F.toNumber(index.absolute(event.measure, event.offset)) < position - 1e-9)
+    .sort((a, b) => F.compare(index.absolute(b.measure, b.offset), index.absolute(a.measure, a.offset)) || staffOrder(a.staff) - staffOrder(b.staff))[0];
 
   for (const run of runs) {
     const toEnd = run.last >= measures - 2;
@@ -168,18 +170,19 @@ export function inferTempoMarks(score: Score, clock: BeatClock, notes: ReadonlyM
     const beat = Array.from({ length: barBeats }, (_, offset) => offset)
       .find(offset => beatTempo(barStart(at) + offset * beatLength) / reference[at] < settings.dip) ?? 0;
     const start = firstChordFrom(barStart(at) + beat * beatLength);
-    const end = lastChordIn(sustained ? run.last : run.deepestBar);
+    const lastBar = sustained ? run.last : run.deepestBar;
     const reason = `bars ${run.first + 1}–${run.last + 1} down to ${Math.round(run.deepest * 100)}% of ♩=${Math.round(reference[at])}`;
-    if (start && end && F.le(index.absolute(start.measure, start.offset), index.absolute(end.measure, end.offset)))
-      spanners.push({ id: `tempo@${start.id}`, kind: 'tempo.change', start: { event: start.id }, end: { event: end.id },
-        text: sustained ? 'rit.' : 'poco rit.', provenance: inferred(reason) });
-    const molto = Array.from({ length: Math.max(0, run.last - run.first - 1) }, (_, offset) => run.first + 2 + offset)
-      .find(measure => ratio[measure] < settings.molto);
-    if (sustained && molto !== undefined) {
-      const chord = firstChordFrom(barStart(molto));
-      if (chord) attachments.push({ id: `molto@${chord.id}`, kind: 'expr.text', anchor: { event: chord.id }, side: 'above', text: 'molto rit.',
-        provenance: inferred(`bar ${molto + 1} at ${Math.round(ratio[molto] * 100)}%`) });
-    }
+    // Where the slowing later becomes markedly deeper, "molto rit." takes over with its own line.
+    const molto = sustained ? Array.from({ length: Math.max(0, run.last - run.first - 1) }, (_, offset) => run.first + 2 + offset)
+      .find(measure => ratio[measure] < settings.molto) : undefined;
+    const change = (from: ChordEvent | undefined, to: ChordEvent | undefined, text: string, why: string) => {
+      if (from && to && F.le(index.absolute(from.measure, from.offset), index.absolute(to.measure, to.offset)))
+        spanners.push({ id: `tempo@${from.id}`, kind: 'tempo.change', start: { event: from.id }, end: { event: to.id }, text, provenance: inferred(why) });
+    };
+    if (molto !== undefined) {
+      change(start, lastChordBefore(barStart(molto)), 'rit.', reason);
+      change(firstChordFrom(barStart(molto)), lastChordBefore(barStart(lastBar + 1)), 'molto rit.', `bar ${molto + 1} at ${Math.round(ratio[molto] * 100)}%`);
+    } else change(start, lastChordBefore(barStart(lastBar + 1)), sustained ? 'rit.' : 'poco rit.', reason);
     if (toEnd) continue;
     let resume = (sustained ? run.last : run.deepestBar) + 1;
     while (resume < measures && inHold(resume)) resume++;
