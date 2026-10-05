@@ -1421,3 +1421,21 @@
 
 .playback-status { position: absolute; bottom: 12px; left: 16px; right: 16px; margin: 0; color: var(--theater-text-muted); font-size: 13px; text-align: center; z-index: 6; }
 .playback-status[hidden] { display: none; }
+
+.playback-status.is-loading {
+  top: 50%; left: 50%; right: auto; bottom: auto;
+  width: 2.443cm; height: 2.443cm;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.playback-status.is-loading::before {
+  content: ''; display: block; box-sizing: border-box;
+  width: 100%; height: 100%; border-radius: 50%;
+  border: 3px solid var(--theater-border);
+  border-top-color: var(--accent-brass);
+  animation: playback-spinner-rotate 0.85s linear infinite;
+}
+@keyframes playback-spinner-rotate { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .playback-status.is-loading::before { animation: none; }
+}

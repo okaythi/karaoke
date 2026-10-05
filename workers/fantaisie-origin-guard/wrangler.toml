@@ -1,0 +1,5 @@
+name = "karaoke-fantaisie-origin-guard"
+main = "index.js"
+compatibility_date = "2024-11-01"
+workers_dev = false
+routes = [{ pattern = "cdn.sudothy.me/Fr*", zone_name = "sudothy.me" }]

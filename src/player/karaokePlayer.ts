@@ -368,10 +368,21 @@ export function initKaraokeTheater(els: PlayerElements) {
     updateVoiceButtonState();
 
     const playbackStatus = document.getElementById('playback-status');
-    const showPlaybackStatus = (message: string) => {
-      if (playbackStatus) { playbackStatus.textContent = message; playbackStatus.hidden = !message; }
+    const showPlaybackStatus = (message: string, loading = false) => {
+      if (playbackStatus) {
+        playbackStatus.replaceChildren();
+        playbackStatus.classList.toggle('is-loading', loading);
+        if (loading) {
+          const label = document.createElement('span');
+          label.className = 'visually-hidden';
+          label.textContent = message;
+          playbackStatus.appendChild(label);
+          els.centerPlayBtn.classList.add('hidden');
+        } else { playbackStatus.textContent = message; }
+        playbackStatus.hidden = !message;
+      }
     };
-    showPlaybackStatus(isProtectedSong(song.id) ? 'Preparing playback…' : '');
+    showPlaybackStatus(isProtectedSong(song.id) ? 'Preparing playback' : '', isProtectedSong(song.id));
     // Verify before assigning a media URL: no bytes or autoplay before approval.
     els.video.pause();
     els.video.removeAttribute('src');

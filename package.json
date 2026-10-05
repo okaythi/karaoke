@@ -16,7 +16,8 @@
     "fonts:notation": "python3 scripts/notation/build-fonts.py",
     "import:score": "tsx scripts/notation/import-song.ts",
     "test:security": "node --import tsx --test src/server/tests/*.test.js",
-    "verify:protected-build": "node scripts/verify-protected-build.mjs"
+    "verify:protected-build": "node scripts/verify-protected-build.mjs",
+    "deploy:origin-guard": "wrangler deploy --config workers/fantaisie-origin-guard/wrangler.toml"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

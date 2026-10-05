@@ -211,3 +211,38 @@ Before considering migration complete:
 Cloudflare documents [Invisible widgets](https://developers.cloudflare.com/turnstile/concepts/widget/),
 [mandatory server validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
 and [R2 public access](https://developers.cloudflare.com/r2/buckets/public-buckets/).
+
+### Migration verification
+
+The private MP4 was verified as 113,817,657 bytes with ETag/MD5
+`9403cf165542eefde5bd53a3ba290ffe`, matching the original. The user confirmed
+protected video playback and the moving score after the explicit Turnstile
+loader correction. Loading now uses a brass CSS spinner of diameter `2.443cm`
+with a screen-reader label; CSS physical units do not calibrate real monitors.
+The unsolicited header Privacy link was removed; `/privacy` retains the
+Turnstile disclosure and is referenced through `rel=privacy-policy` metadata.
+
+The public video object was deleted. A dedicated Worker now returns 410 for
+its retired CDN path before any origin/cache fetch, including encoded and
+normalized variants. The route is `cdn.sudothy.me/Fr*`; other files matching
+that prefix pass through. Deploy it with `npm run deploy:origin-guard`.
+The cache-purge API denied the OAuth token, so this guard is the actual
+verified protection for the former CDN URL; no cache purge is claimed.
+
+Both public Git branches were rewritten with only the protected source and
+original-media directories removed from their historical trees. Other
+historical content was preserved. The current public branch no longer serves
+the score source. Original local history remains under private backup refs;
+never push those refs or mirror this local repository publicly.
+
+The three exposed historical Pages deployments were deleted through the API.
+Cloudflare still served their cached assets afterward, so their hostname
+aliases were retired with tiny Pages Workers that return 410 on every path:
+`ba23e68d`, `b29a1202` and `5cdc45e9` under `karaoke-7n0.pages.dev`.
+Keep those retirement deployments; ordinary production playback is separate.
+
+GitHub still served a known old commit's score after the history rewrite.
+This remaining provider-side retention requires GitHub support cleanup.
+Rewriting branch history does not promise erasure of cached/unreachable
+commits or copies already obtained. A local support-request draft was prepared;
+no support message was sent.
