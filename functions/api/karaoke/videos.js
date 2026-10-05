@@ -1,3 +1,4 @@
+import { PROTECTED_VIDEO_KEY, isProtectedVideo } from '../../../src/security/protectedSong.js';
 // Lists all video files and live lyrics overlays hosted in Cloudflare R2 MEDIA_BUCKET
 
 const HEADERS = {
@@ -32,6 +33,7 @@ export async function onRequestGet({ env }) {
       .map(o => o.key.slice('_lyrics_live/'.length, -'.json'.length));
 
     const videos = objects
+      .filter(o => !isProtectedVideo(o.key))
       .filter(o => !o.key.startsWith('karaoke-source/') && /\.(mp4|webm|mkv)$/i.test(o.key))
       .map(o => ({
         key: o.key,
@@ -39,6 +41,9 @@ export async function onRequestGet({ env }) {
         uploaded: o.uploaded
       }));
 
+    if (env.PROTECTED_MEDIA_BUCKET && await env.PROTECTED_MEDIA_BUCKET.head(PROTECTED_VIDEO_KEY)) {
+      videos.push({ key: PROTECTED_VIDEO_KEY });
+    }
     return new Response(JSON.stringify({ videos, liveLyrics }), { headers: HEADERS });
   } catch (err) {
     console.error('[videos] listing failed:', err);

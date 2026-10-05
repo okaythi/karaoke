@@ -1,3 +1,4 @@
+import { isProtectedVideo, PROTECTED_MEDIA_PATH } from '../../../../src/security/protectedSong.js';
 // Upload video endpoint for Karaoke in Cloudflare Pages
 export async function onRequestPost({ request, env }) {
   if (!env.MEDIA_BUCKET) {
@@ -61,7 +62,10 @@ export async function onRequestPost({ request, env }) {
     const ext = cleanKey.split('.').pop()?.toLowerCase();
     const mimeType = ext === 'webm' ? 'video/webm' : ext === 'mkv' ? 'video/x-matroska' : 'video/mp4';
 
-    await env.MEDIA_BUCKET.put(cleanKey, fileBody, {
+    const protectedVideo = isProtectedVideo(cleanKey);
+    const bucket = protectedVideo ? env.PROTECTED_MEDIA_BUCKET : env.MEDIA_BUCKET;
+    if (!bucket) return Response.json({ error: 'Private media storage is not configured' }, { status: 503 });
+    await bucket.put(cleanKey, fileBody, {
       httpMetadata: {
         contentType: mimeType
       }
@@ -102,7 +106,7 @@ export async function onRequestPost({ request, env }) {
       success: true,
       key: cleanKey,
       shareCode,
-      videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(cleanKey)}`
+      videoUrl: protectedVideo ? PROTECTED_MEDIA_PATH : `https://cdn.sudothy.me/${encodeURIComponent(cleanKey)}`
     }), {
       status: 200,
       headers: {

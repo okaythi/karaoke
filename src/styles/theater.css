@@ -1418,3 +1418,6 @@
    ========================================================================== */
 
 /* Account menu typography and palette are owned by Accounts. */
+
+.playback-status { position: absolute; bottom: 12px; left: 16px; right: 16px; margin: 0; color: var(--theater-text-muted); font-size: 13px; text-align: center; z-index: 6; }
+.playback-status[hidden] { display: none; }

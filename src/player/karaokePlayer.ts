@@ -1,3 +1,5 @@
+import { prepareProtectedPlayback } from '../security/playback';
+import { isProtectedSong } from '../security/protectedSong.js';
 import type { SongCatalogItem, Verse } from '../types/karaoke';
 import { loadCatalog, loadLyrics } from '../catalog/catalog';
 import { fetchAlbumArt } from '../catalog/itunes';
@@ -132,8 +134,17 @@ export function initKaraokeTheater(els: PlayerElements) {
     }
   };
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (els.video.paused) {
+      if (activeSong && !els.video.getAttribute('src')) {
+        await selectSong(activeSong);
+        return;
+      }
+      const selection = selectionSerial;
+      if (activeSong && isProtectedSong(activeSong.id)) {
+        try { await prepareProtectedPlayback(activeSong.id); } catch { updatePlayStateIcons(false); return; }
+        if (selection !== selectionSerial) return;
+      }
       els.video.play().then(() => {
         updatePlayStateIcons(true);
       }).catch(err => {
@@ -337,7 +348,8 @@ export function initKaraokeTheater(els: PlayerElements) {
       scoreController = null;
     }
     const scoreContainer = document.getElementById('piano-score-container');
-    if (scoreContainer) scoreContainer.hidden = !hasSongScore(song.id);
+    if (scoreContainer) scoreContainer.hidden = true;
+    els.lyricsContainer.hidden = true;
 
     // Reset instrumental stem playback
     if (instrumentalAudio) {
@@ -355,7 +367,26 @@ export function initKaraokeTheater(els: PlayerElements) {
     }
     updateVoiceButtonState();
 
-    // Load lyrics and media
+    const playbackStatus = document.getElementById('playback-status');
+    const showPlaybackStatus = (message: string) => {
+      if (playbackStatus) { playbackStatus.textContent = message; playbackStatus.hidden = !message; }
+    };
+    showPlaybackStatus(isProtectedSong(song.id) ? 'Preparing playback…' : '');
+    // Verify before assigning a media URL: no bytes or autoplay before approval.
+    els.video.pause();
+    els.video.removeAttribute('src');
+    els.video.load();
+    if (scoreContainer) scoreContainer.replaceChildren();
+    try {
+      await prepareProtectedPlayback(song.id);
+    } catch (error) {
+      if (selection !== selectionSerial) return;
+      showPlaybackStatus(error instanceof Error ? error.message : 'Protected playback is unavailable.');
+      updatePlayStateIcons(false);
+      return;
+    }
+    if (selection !== selectionSerial) return;
+    showPlaybackStatus('');
     els.video.src = song.videoUrl;
     els.video.load();
     els.video.currentTime = 0;
@@ -388,9 +419,14 @@ export function initKaraokeTheater(els: PlayerElements) {
     });
 
     if (hasSongScore(song.id) && scoreContainer) {
-      const [bundle, { createScoreView }] = await Promise.all([loadSongScore(song.id), import('../notation/view/theater')]);
-      if (selection !== selectionSerial) return;
-      if (bundle) scoreController = createScoreView(els.video, scoreContainer, bundle);
+      try {
+        const [bundle, { createScoreView }] = await Promise.all([loadSongScore(song.id), import('../notation/view/theater')]);
+        if (selection !== selectionSerial) return;
+        if (bundle) { scoreContainer.hidden = false; scoreController = createScoreView(els.video, scoreContainer, bundle); }
+      } catch {
+        if (selection !== selectionSerial) return;
+        showPlaybackStatus('The arrangement could not be loaded. Select the song again to retry.');
+      }
     }
 
     // Initialize Dynamic Backlight
@@ -404,6 +440,15 @@ export function initKaraokeTheater(els: PlayerElements) {
     });
     fetchVoteData(song.videoFile);
   };
+
+  setInterval(() => {
+    if (activeSong && isProtectedSong(activeSong.id) && !els.video.paused && !document.hidden) {
+      void prepareProtectedPlayback(activeSong.id).catch(() => {
+        els.video.pause();
+        updatePlayStateIcons(false);
+      });
+    }
+  }, 60_000);
 
   // ── Fingerprint Identity ───────────────────────────────────────────────────
   // Resolved lazily on first vote/view; cached for the lifetime of the page.

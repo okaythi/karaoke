@@ -1,3 +1,4 @@
+import { isProtectedVideo, PROTECTED_MEDIA_PATH } from '../security/protectedSong.js';
 import { state, setLyrics, setTargetIndices } from './state';
 import { 
   parseSongInfoFromFilename, 
@@ -190,7 +191,7 @@ export function initModals(
         isDialect: false,
         isOnR2: true,
         hasLyrics: false,
-        videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(canonicalKey)}`
+        videoUrl: isProtectedVideo(canonicalKey) ? PROTECTED_MEDIA_PATH : `https://cdn.sudothy.me/${encodeURIComponent(canonicalKey)}`
       };
 
       onNewTrackUploaded(newSong);

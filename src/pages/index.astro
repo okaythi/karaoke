@@ -11,6 +11,7 @@ import '../notation/render/notation.css';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Karaoke · Nixlabs</title>
+  <link rel="privacy-policy" href="/privacy" />
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
   <meta name="googlebot" content="noindex, nofollow, nosnippet" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -155,6 +156,7 @@ import '../notation/render/notation.css';
         <div class="backlight-canvas-container" id="backlight-container" style="display: none;"></div>
         <div class="video-frame-container">
           <video id="theater-video" playsinline preload="auto"></video>
+          <p id="playback-status" class="playback-status" role="status" aria-live="polite" hidden></p>
           <button class="center-play-overlay" id="center-play-btn" title="Play Video" aria-label="Play Video">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 19 12 7 20 7 4"/></svg>
           </button>

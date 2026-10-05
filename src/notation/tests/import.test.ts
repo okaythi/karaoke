@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { test } from 'node:test';
 import { decodeScore } from '../model/codec';
 import { validateScore } from '../model/validate';
@@ -8,6 +8,8 @@ import { ScoreIndex } from '../model/query';
 import * as F from '../core/fraction';
 import { overlaps } from '../layout/display';
 import { midi } from '../core/pitch';
+
+const privateScoreTest = existsSync('src/data/score/chopin-fantaisie-impromptu/score.json') ? test : test.skip;
 
 test('いつも何度でも score validates and engraves', () => {
   const score = decodeScore(JSON.parse(readFileSync('src/data/score/itsumo-nando-demo/score.json', 'utf8')));
@@ -18,7 +20,7 @@ test('いつも何度でも score validates and engraves', () => {
   for (const event of score.events) if (event.kind === 'chord') for (const note of event.notes) assert.ok(timing.notes[note.id], `no timing for ${note.id}`);
 });
 
-test('Fantaisie bass slurs and notes clear the crescendo between staves', () => {
+privateScoreTest('Fantaisie bass slurs and notes clear the crescendo between staves', () => {
   const score = decodeScore(JSON.parse(readFileSync('src/data/score/chopin-fantaisie-impromptu/score.json', 'utf8')));
   for (const width of [48, 80, 160]) {
     const system = engrave(score, { width }).systems.find(system => system.first <= 66 && system.last >= 66)!;
@@ -32,7 +34,7 @@ test('Fantaisie bass slurs and notes clear the crescendo between staves', () => 
   }
 });
 
-test('Fantaisie bar 22 keeps slurs near their staves on narrow screens', () => {
+privateScoreTest('Fantaisie bar 22 keeps slurs near their staves on narrow screens', () => {
   const score = decodeScore(JSON.parse(readFileSync('src/data/score/chopin-fantaisie-impromptu/score.json', 'utf8')));
   for (const width of [24, 36, 48, 80]) {
     const engraving = engrave(score, { width });
@@ -46,7 +48,7 @@ test('Fantaisie bar 22 keeps slurs near their staves on narrow screens', () => {
   }
 });
 
-test('Fantaisie-Impromptu preserves polyrhythm, key changes, ornaments and recording timing', () => {
+privateScoreTest('Fantaisie-Impromptu preserves polyrhythm, key changes, ornaments and recording timing', () => {
   const folder = 'src/data/score/chopin-fantaisie-impromptu';
   const score = decodeScore(JSON.parse(readFileSync(`${folder}/score.json`, 'utf8')));
   const index = new ScoreIndex(score);

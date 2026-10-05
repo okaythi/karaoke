@@ -144,3 +144,70 @@ On 2026-10-03 the supplied MP4 was uploaded to `gewoonthy-media` under the
 manifest's exact filename. The CDN returns HTTP 200, `video/mp4`,
 113,817,657 bytes and ETag `9403cf165542eefde5bd53a3ba290ffe`, matching the
 local file's MD5. The score bundle still awaits release review and deployment.
+
+## Protected public playback (2026-10-05)
+
+Fantaisie remains publicly playable. Production first runs the dedicated
+**Invisible** Turnstile widget automatically, then POSTs its single-use token
+to `/api/karaoke/protected/session`. The server validates with Cloudflare
+Siteverify, checking success, the allowed deployment hostname and the
+`fantaisie_playback` action. Missing configuration, network failures and
+invalid tokens deny playback. No video URL is assigned before verification.
+Browser autoplay policy still applies after asynchronous verification.
+
+The server grants a 15-minute HMAC credential in a `Secure`, `HttpOnly`,
+`SameSite=Strict`, host-only cookie. It is scoped to this song and bound to the
+browser's user agent. Active playback renews it with a new Turnstile token.
+The video and arrangement APIs check it on every request, reject cross-site
+browser requests and navigations, and return private/no-store headers without
+CORS permission. The MP4 is streamed from private R2, with single-range and
+HEAD support for seeking. There is no fallback to the public bucket.
+
+- Private bucket: `karaoke-protected`, binding `PROTECTED_MEDIA_BUCKET`.
+- MP4: the manifest's unchanged filename, in that private bucket.
+- Rendering inputs: `fantaisie/runtime-score.json`.
+- Original source archive: `fantaisie/private-sources.tar`.
+- Public setting: `TURNSTILE_SITE_KEY`; hostname allowlist `PLAYBACK_HOSTNAMES`.
+- Pages secrets: `TURNSTILE_SECRET_KEY`, `PLAYBACK_SIGNING_SECRET`.
+
+Neither a custom public domain nor managed `r2.dev` access may be enabled on
+this bucket. Keep source copies locally in the now-ignored song folder.
+The public repository does not need them to build. To review this song locally,
+restore the private source archive and use Pages Functions with real configured
+credentials (or Cloudflare's documented test keys in a local-only environment);
+a plain Astro static preview does not provide the protected endpoints.
+The old development MP4 URL override is only a local recording preview; it
+does not bypass protected production playback or provide a score endpoint.
+
+`npm run test:security` checks grant integrity, expiration, origin enforcement,
+private-only reads, range handling and Turnstile validation. The deployment
+script runs `verify:protected-build` to reject accidental source/media leakage
+into static files. Private notation fixtures are tested when present locally
+and skipped in a source-free checkout.
+
+### Security boundary and release checklist
+
+Turnstile and signed cookies are automation/access controls, **not DRM**. A
+viewer who passes verification receives MP4 bytes and score rendering inputs
+and can save them. JavaScript obfuscation, disabled context menus and hiding
+controls do not change that fact. This implementation does not claim to make
+extraction impossible, to prevent recordings, or to revoke copies already
+obtained. True media extraction resistance requires licensed DRM packaging,
+a license server and an EME player; visible notation remains reproducible.
+
+Before considering migration complete:
+
+1. Verify the private object matches the original size and hash.
+2. Deploy and verify denied anonymous direct requests plus real browser playback.
+3. Remove the old public MP4 and purge every configured public CDN alias/cache.
+4. Remove source files from current public Git branches **and their history**;
+   review/approve the history rewrite separately. GitHub forks, cached blobs
+   and existing clones may require additional GitHub support action.
+5. Remove or restrict historical Pages deployments containing the old score
+   chunks. Deleting a current asset does not revoke immutable deployments.
+6. Keep Cloudflare/GitHub administrative access restricted. Apply edge rate
+   limits to session issuance and media requests if abuse warrants them.
+
+Cloudflare documents [Invisible widgets](https://developers.cloudflare.com/turnstile/concepts/widget/),
+[mandatory server validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
+and [R2 public access](https://developers.cloudflare.com/r2/buckets/public-buckets/).

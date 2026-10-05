@@ -1,3 +1,4 @@
+import { prepareProtectedPlayback } from '../security/playback';
 import { loadCatalog, loadLyrics } from '../catalog/catalog';
 import { parseRawLyrics } from '../core/tokenizer';
 import { cleanVersePunctuation } from '../core/punctuation';
@@ -201,7 +202,8 @@ export async function bootstrapStudio(): Promise<void> {
     );
 
     // Video stream
-    els.vid.src = `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`;
+    await prepareProtectedPlayback(song.id);
+    els.vid.src = song.videoUrl;
     els.vid.playbackRate = state.playbackRate;
     els.vid.currentTime = 0;
 

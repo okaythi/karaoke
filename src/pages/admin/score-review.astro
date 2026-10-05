@@ -75,7 +75,7 @@ import '../../notation/render/notation.css';
         performanceEnd: number;
         trailingPerformedNotes: number;
       }
-      const reports = import.meta.glob('../../data/score/*/alignment-report.json', { import: 'default' });
+      const reports = import.meta.glob(['../../data/score/*/alignment-report.json', '!../../data/score/chopin-fantaisie-impromptu/alignment-report.json'], { import: 'default' });
 
       const params = new URLSearchParams(location.search);
       const songId = params.get('song') ?? 'itsumo-nando-demo';

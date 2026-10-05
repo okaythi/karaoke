@@ -8,13 +8,15 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name karaoke --branch main",
+    "deploy": "npm run build && npm run verify:protected-build && wrangler pages deploy dist --project-name karaoke --branch main",
     "sync:server": "tsx scripts/sync-server.ts",
     "sync:links": "tsx scripts/generate-share-links.ts",
     "test:notation": "node --import tsx --test src/notation/tests/*.test.ts",
     "test:player": "node --import tsx --test src/player/tests/*.test.ts",
     "fonts:notation": "python3 scripts/notation/build-fonts.py",
-    "import:score": "tsx scripts/notation/import-song.ts"
+    "import:score": "tsx scripts/notation/import-song.ts",
+    "test:security": "node --import tsx --test src/server/tests/*.test.js",
+    "verify:protected-build": "node scripts/verify-protected-build.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

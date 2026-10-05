@@ -1,3 +1,4 @@
+import { isProtectedSong, PROTECTED_MEDIA_PATH } from '../security/protectedSong.js';
 import type { SongMetadata, SongCatalogItem, SongLyricFile, R2VideoItem } from '../types/karaoke';
 import manifestData from '../data/songs-manifest.json';
 import { parseSongInfoFromFilename, canonicalSongId } from '../core/tokenizer';
@@ -63,8 +64,8 @@ export async function loadCatalog(): Promise<SongCatalogItem[]> {
       isOnR2,
       hasLyrics: !song.scoreOnly,
       hasLiveLyrics: r2Data ? liveLyricsSet.has(song.id) : undefined,
-      videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`,
-      instrumentalUrl: hasInst ? `https://cdn.sudothy.me/${encodeURIComponent(instKey)}` : null
+      videoUrl: isProtectedSong(song.id) ? PROTECTED_MEDIA_PATH : `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`,
+      instrumentalUrl: !isProtectedSong(song.id) && hasInst ? `https://cdn.sudothy.me/${encodeURIComponent(instKey)}` : null
     };
   });
 
