@@ -18,7 +18,7 @@ binding = "PROTECTED_MEDIA_BUCKET"
 bucket_name = "karaoke-protected"
 
 [vars]
-PLAYBACK_HOSTNAMES = "karaoke.nixlabs.tech,karaoke-7n0.pages.dev"
+PLAYBACK_HOSTNAMES = "karaoke.nixlabs.tech,karaoke-7n0.pages.dev,music.sudothy.me"
 # TURNSTILE_SITE_KEY is set in Pages after creating the dedicated Invisible widget.
 # TURNSTILE_SECRET_KEY and PLAYBACK_SIGNING_SECRET are Pages secrets, never source.
 TURNSTILE_SITE_KEY = "0x4AAAAAAFOhbuAhkt6Ru69-"

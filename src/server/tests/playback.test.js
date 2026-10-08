@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { issuePlaybackGrant, verifyPlaybackGrant, GRANT_SECONDS } from '../playbackGate.js';
 import { parseRange, serveProtectedVideo } from '../protectedVideo.js';
 import { verifyTurnstile } from '../turnstile.js';
@@ -7,6 +8,26 @@ import { onRequest as session } from '../../../functions/api/karaoke/protected/s
 const env = { PLAYBACK_SIGNING_SECRET: 'test-secret-with-at-least-32-bytes-long', PROTECTED_MEDIA_BUCKET: {} };
 const now = Date.now();
 const mintRequest = () => new Request('https://karaoke.example/api/karaoke/protected/session', { method: 'POST', headers: { origin: 'https://karaoke.example', 'user-agent': 'viewer' } });
+test('music.sudothy.me can verify and obtain a same-origin playback grant', async () => {
+  const config = readFileSync(new URL('../../../wrangler.toml', import.meta.url), 'utf8');
+  const hostnames = config.match(/^PLAYBACK_HOSTNAMES = "([^"]+)"/m)[1];
+  const musicEnv = { ...env, PLAYBACK_HOSTNAMES: hostnames, TURNSTILE_SECRET_KEY: 'test-secret' };
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => Response.json({ success: true, hostname: 'music.sudothy.me', action: 'fantaisie_playback' });
+    const response = await session({ env: musicEnv, request: new Request('https://music.sudothy.me/api/karaoke/protected/session', {
+      method: 'POST', headers: { origin: 'https://music.sudothy.me', 'content-type': 'application/json', 'user-agent': 'viewer' },
+      body: JSON.stringify({ token: 'test-token' }),
+    }) });
+    assert.equal(response.status, 200);
+    const cookie = response.headers.get('set-cookie').split(';')[0];
+    assert.equal(await verifyPlaybackGrant(new Request('https://music.sudothy.me/api/karaoke/protected/video', {
+      headers: { cookie, 'user-agent': 'viewer', 'sec-fetch-site': 'same-origin' },
+    }), musicEnv), true);
+    globalThis.fetch = async () => Response.json({ success: true, hostname: 'karaoke.nixlabs.tech', action: 'fantaisie_playback' });
+    assert.equal(await verifyTurnstile(new Request('https://music.sudothy.me/api/karaoke/protected/session'), musicEnv, 'test-token'), false);
+  } finally { globalThis.fetch = original; }
+});
 async function granted(headers = {}) {
   const response = await issuePlaybackGrant(mintRequest(), env, now);
   return new Request('https://karaoke.example/api/karaoke/protected/video', { headers: { cookie: response.headers.get('set-cookie').split(';')[0], 'user-agent': 'viewer', ...headers } });
