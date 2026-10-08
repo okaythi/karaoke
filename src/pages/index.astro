@@ -22,6 +22,15 @@ import '../notation/render/notation.css';
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" href="https://cdn.sudothy.me/fonts/ZenKurenaido-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="preload" href="https://cdn.sudothy.me/fonts/NotoSansJP-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <script is:inline>
+    let musicVisitor = false;
+    try { musicVisitor = new URL(document.referrer).hostname === 'music.sudothy.me'; } catch {}
+    try {
+      musicVisitor ||= sessionStorage.getItem('karaoke-music-visitor') === '1';
+      if (musicVisitor) sessionStorage.setItem('karaoke-music-visitor', '1');
+    } catch {}
+    document.documentElement.classList.toggle('music-visitor', musicVisitor);
+  </script>
   <script is:inline src="https://accounts.nixlabs.tech/widget.js" async></script>
   <script is:inline>
     // 1. Disable text selection and drag
@@ -192,15 +201,17 @@ import '../notation/render/notation.css';
               <svg id="deck-pause-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             </button>
 
-            <button class="deck-vote-btn" id="deck-like-btn" title="Like">
+            <div class="deck-vote-group" id="deck-vote-group" role="group" aria-label="Song votes">
+            <button class="deck-vote-btn" id="deck-like-btn" title="Like" aria-label="Like">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
               <span class="vote-count" id="deck-like-count">0</span>
             </button>
 
-            <button class="deck-vote-btn" id="deck-dislike-btn" title="Dislike">
+            <button class="deck-vote-btn" id="deck-dislike-btn" title="Dislike" aria-label="Dislike">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"/></svg>
               <span class="vote-count" id="deck-dislike-count">0</span>
             </button>
+            </div>
           </div>
 
           <div class="deck-controls-right">
@@ -245,12 +256,15 @@ import '../notation/render/notation.css';
   </div>
 
   <div id="voice-pointer-pill" class="voice-pointer-pill" style="display: none;">Remove Vocals</div>
+  <div id="vote-tooltip" class="vote-tooltip" role="tooltip" hidden>Logged in users can like songs.</div>
 
   <script>
     import { initKaraokeTheater } from '../player/karaokePlayer';
     import { createSwipeDrawer } from '../player/swipeDrawer';
+    import { initMusicVisitorControls } from '../player/musicVisitor';
 
     document.addEventListener('DOMContentLoaded', () => {
+      initMusicVisitorControls();
       createSwipeDrawer({
         app: document.querySelector('.theater-app') as HTMLElement,
         drawer: document.getElementById('theater-sidebar') as HTMLElement,

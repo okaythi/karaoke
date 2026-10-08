@@ -518,7 +518,7 @@ export function initKaraokeTheater(els: PlayerElements) {
   };
 
   const castVote = async (action: 'like' | 'dislike') => {
-    if (!activeSong || isVoting) return;
+    if (document.documentElement.classList.contains('music-visitor') || !activeSong || isVoting) return;
     const prev = currentVote;
     currentVote = currentVote === action ? null : action;
     updateVoteStyles();

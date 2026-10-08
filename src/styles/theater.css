@@ -52,6 +52,9 @@
 .score-page svg,
 .score-half svg { display: block; width: 100%; height: 100%; overflow: hidden; }
 .score-playhead { stroke: var(--accent-brass); stroke-width: 0.15; opacity: 0.45; pointer-events: none; }
+.piano-score-container .notation-system .n-glide {
+  fill: var(--lyric-highlight, var(--accent-brass));
+}
 @media (max-width: 680px) {
   .piano-score-container { width: calc(100% - 14px); padding: 0; }
 }
@@ -1057,6 +1060,23 @@
 }
 .deck-vote-btn.active {
   color: var(--accent-brass);
+}
+
+.deck-vote-group { display: flex; align-items: center; gap: 12px; }
+.music-visitor nixlabs-account { display: none !important; }
+.music-visitor .deck-vote-btn { color: var(--theater-text-muted); cursor: default; }
+.music-visitor .deck-vote-btn svg { opacity: 0.55; }
+.vote-tooltip {
+  position: fixed;
+  z-index: 1100;
+  max-width: calc(100vw - 16px);
+  padding: 7px 10px;
+  border: 1px solid var(--theater-border);
+  border-radius: 5px;
+  background: var(--theater-surface);
+  color: var(--theater-text);
+  font: 12px/1.4 var(--font-sans);
+  pointer-events: none;
 }
 
 .volume-deck-group {
