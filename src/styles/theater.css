@@ -52,7 +52,8 @@
 .score-page svg,
 .score-half svg { display: block; width: 100%; height: 100%; overflow: hidden; }
 .score-playhead { stroke: var(--accent-brass); stroke-width: 0.15; opacity: 0.45; pointer-events: none; }
-.piano-score-container .notation-system .n-glide {
+.piano-score-container .notation-system .n-glide,
+.piano-score-container .notation-system [data-state='played'] {
   fill: var(--lyric-highlight, var(--accent-brass));
 }
 @media (max-width: 680px) {
