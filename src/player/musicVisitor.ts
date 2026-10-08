@@ -5,7 +5,11 @@ export function initMusicVisitorControls(): void {
   const tooltip = document.getElementById('vote-tooltip');
   if (!group || !tooltip) return;
 
+  group.tabIndex = 0;
+  group.setAttribute('aria-describedby', tooltip.id);
+
   for (const button of group.querySelectorAll('button')) {
+    button.disabled = true;
     button.setAttribute('aria-disabled', 'true');
     button.setAttribute('aria-describedby', tooltip.id);
     button.removeAttribute('title');

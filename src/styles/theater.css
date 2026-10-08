@@ -1065,7 +1065,7 @@
 
 .deck-vote-group { display: flex; align-items: center; gap: 12px; }
 .music-visitor nixlabs-account { display: none !important; }
-.music-visitor .deck-vote-btn { color: var(--theater-text-muted); cursor: default; }
+.music-visitor .deck-vote-btn { color: var(--theater-text-muted); cursor: default; pointer-events: none; }
 .music-visitor .deck-vote-btn svg { opacity: 0.55; }
 .vote-tooltip {
   position: fixed;

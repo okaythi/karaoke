@@ -23,8 +23,8 @@ import '../notation/render/notation.css';
   <link rel="preload" href="https://cdn.sudothy.me/fonts/ZenKurenaido-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="preload" href="https://cdn.sudothy.me/fonts/NotoSansJP-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <script is:inline>
-    let musicVisitor = false;
-    try { musicVisitor = new URL(document.referrer).hostname === 'music.sudothy.me'; } catch {}
+    let musicVisitor = location.hostname === 'music.sudothy.me';
+    try { musicVisitor ||= new URL(document.referrer).hostname === 'music.sudothy.me'; } catch {}
     try {
       musicVisitor ||= sessionStorage.getItem('karaoke-music-visitor') === '1';
       if (musicVisitor) sessionStorage.setItem('karaoke-music-visitor', '1');
