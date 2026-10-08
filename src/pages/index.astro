@@ -10,7 +10,7 @@ import '../notation/render/notation.css';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Karaoke · Nixlabs</title>
+  <title>Music · Nix</title>
   <link rel="privacy-policy" href="/privacy" />
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
   <meta name="googlebot" content="noindex, nofollow, nosnippet" />
@@ -30,6 +30,7 @@ import '../notation/render/notation.css';
       if (musicVisitor) sessionStorage.setItem('karaoke-music-visitor', '1');
     } catch {}
     document.documentElement.classList.toggle('music-visitor', musicVisitor);
+    document.title = musicVisitor ? 'Music · Thy' : 'Music · Nix';
   </script>
   <script is:inline src="https://accounts.nixlabs.tech/widget.js" async></script>
   <script is:inline>
