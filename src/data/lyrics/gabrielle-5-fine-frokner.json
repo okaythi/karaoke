@@ -161,7 +161,7 @@
       "verseEnd": 31.782,
       "words": [
         {
-          "word": "Å ",
+          "word": "Åh ",
           "start": 27.673,
           "end": 27.796
         },
@@ -498,7 +498,7 @@
       "verseEnd": 58.595,
       "words": [
         {
-          "word": "D ",
+          "word": "Det ",
           "start": 54.656,
           "end": 54.779
         },
@@ -595,7 +595,7 @@
       "verseEnd": 65.56,
       "words": [
         {
-          "word": "Sku ",
+          "word": "Skru ",
           "start": 62.824,
           "end": 63.068
         },
@@ -924,7 +924,7 @@
           "end": 87.582
         },
         {
-          "word": "ny?, ",
+          "word": "ny, ",
           "start": 87.582,
           "end": 88.04
         },
@@ -1123,8 +1123,13 @@
           "end": 104.889
         },
         {
-          "word": "ilag",
+          "word": "i ",
           "start": 104.889,
+          "end": 106.135
+        },
+        {
+          "word": "lag",
+          "start": 106.135,
           "end": 107.381
         }
       ]
@@ -1272,7 +1277,7 @@
       "verseEnd": 122.628,
       "words": [
         {
-          "word": "D ",
+          "word": "Det ",
           "start": 118.66,
           "end": 118.741
         },
@@ -1369,7 +1374,7 @@
       "verseEnd": 129.52,
       "words": [
         {
-          "word": "Sku ",
+          "word": "Skru ",
           "start": 126.694,
           "end": 126.899
         },
@@ -1553,7 +1558,7 @@
       "verseEnd": 145.495,
       "words": [
         {
-          "word": "Sku ",
+          "word": "Skru ",
           "start": 142.655,
           "end": 142.982
         },
@@ -1772,8 +1777,13 @@
           "end": 160.897
         },
         {
-          "word": "ilag",
+          "word": "i ",
           "start": 160.897,
+          "end": 162.1295
+        },
+        {
+          "word": "lag",
+          "start": 162.1295,
           "end": 163.362
         }
       ]
@@ -1921,7 +1931,7 @@
       "verseEnd": 179.367,
       "words": [
         {
-          "word": "D ",
+          "word": "Det ",
           "start": 174.673,
           "end": 174.8
         },
@@ -2018,7 +2028,7 @@
       "verseEnd": 185.528,
       "words": [
         {
-          "word": "Sku ",
+          "word": "Skru ",
           "start": 182.609,
           "end": 182.914
         },
@@ -2202,7 +2212,7 @@
       "verseEnd": 201.429,
       "words": [
         {
-          "word": "Sku ",
+          "word": "Skru ",
           "start": 198.668,
           "end": 198.914
         },
