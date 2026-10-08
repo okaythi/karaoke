@@ -94,10 +94,10 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       const cleanWord = w.word.replace(/\r?\n/g, '');
 
       const display = w.furigana
-        ? `<span class="yomitan-ruby" data-furi="${escapeHtml(w.furigana)}">${lyricHtml(cleanWord)}</span>`
+        ? `<span class="yomitan-ruby" data-furi="${escapeHtml(w.furigana)}"><span class="ruby-base">${lyricHtml(cleanWord)}</span></span>`
         : lyricHtml(cleanWord);
 
-      const wordSpan = `<span class="word-wrapper" id="w-${lineKey}-${wIdx}" style="margin: ${margin};">
+      const wordSpan = `<span class="word-wrapper${w.furigana ? ' word-has-ruby' : ''}" id="w-${lineKey}-${wIdx}" style="margin: ${margin};">
         <span class="word-base">${display}</span>
         <span class="word-highlight" aria-hidden="true">${display}</span>
       </span>`;

@@ -923,6 +923,21 @@
   opacity: 0.9;
 }
 
+/* Wipe ruby against its own width, including overhang beyond the base glyphs. */
+.word-has-ruby .word-highlight {
+  clip-path: none;
+  will-change: auto;
+}
+
+.ruby-base {
+  display: inline-block;
+}
+
+.word-highlight .ruby-base,
+.word-highlight .yomitan-ruby::before {
+  clip-path: inset(-30px calc(100% - var(--wipe-progress, 0%)) -15px 0);
+}
+
 /* ==========================================================================
    FLAT TRANSPORT CONTROL DECK: No floating glass, no shadow, structured layout
    ========================================================================== */
