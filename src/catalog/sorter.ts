@@ -53,7 +53,7 @@ const HIRAGANA_TO_ROMAJI: Record<string, string> = {
   'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
 
   // Voiced D-row
-  'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'de': 'de', 'ど': 'do',
+  'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do',
 
   // Voiced B-row
   'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
@@ -71,7 +71,7 @@ const HIRAGANA_TO_ROMAJI: Record<string, string> = {
 export function kanaToRomaji(text: string): string {
   if (!text) return '';
 
-  // 1. Normalize Katakana (0x30A1 - 0x30F6) to Hiragana (0x3041 - 0x3096)
+  // Katakana (U+30A1–30F6) sits exactly 0x60 above hiragana (U+3041–3096).
   let hira = text.replace(/[\u30A1-\u30F6]/g, ch =>
     String.fromCharCode(ch.charCodeAt(0) - 0x60)
   );
@@ -114,18 +114,17 @@ export function kanaToRomaji(text: string): string {
 /**
  * Extracts a deterministic, phonetic Latin sorting key from a song or title string.
  * Strips accents, punctuation, quotes, and romanizes Japanese kana.
- * This is STRICTLY an internal comparator key; user-facing titles are never modified.
+ * The key is only compared, never shown; titles are displayed as written.
  */
 export function getSortKey(item: { title: string; sortTitle?: string } | string): string {
   const raw = typeof item === 'string' ? item : (item.sortTitle || item.title || '');
 
-  // 1. Romanize any Japanese kana phonetically
   let key = kanaToRomaji(raw);
 
-  // 2. Decompose Unicode accents (e.g. É -> E, ø -> o, à -> a)
+  // Accents are decomposed and dropped: É sorts as E, à as a.
   key = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  // 3. Strip leading quotes, punctuation, and non-alphanumerics
+  // Leading quotes and punctuation do not count towards the order.
   key = key.replace(/^[^a-zA-Z0-9]+/, '');
 
   return key.toLowerCase().trim();

@@ -1,5 +1,6 @@
 import type { Word, Verse } from '../types/karaoke';
 import { OPENING_PUNCT_REGEX, CLOSING_PUNCT_REGEX, cleanVersePunctuation } from './punctuation';
+import { hasCjk } from './script';
 
 /**
  * Standardize text using Unicode NFC normalization and trimmed whitespace.
@@ -45,7 +46,7 @@ export function canonicalVideoFilename(artist: string, title: string, ext = 'mp4
 
 /**
  * Deterministically generates a URL-safe lowercase slug (e.g. "bmth-go-to-hell").
- * Transliterates Latin diacritics and handles CJK/Cyrillic scripts robustly.
+ * Latin diacritics are dropped; titles with no Latin letters at all (Japanese, Cyrillic) keep their own script.
  */
 export function canonicalSongId(artist: string, title: string, explicitSlug?: string): string {
   if (explicitSlug && explicitSlug.trim()) {
@@ -109,9 +110,9 @@ export function parseRawLyrics(rawText: string): Verse[] {
     const words: Word[] = [];
 
     // Check if line contains CJK characters
-    const hasCjk = /[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf\u3400-\u4dbf]/.test(verseContent);
+    const lineHasCjk = /[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf\u3400-\u4dbf]/.test(verseContent);
 
-    if (hasCjk) {
+    if (lineHasCjk) {
       // Regex tokenizer for Japanese lyrics:
       // 1. Ruby annotation: 漢字[ふりがな]
       // 2. Compound kana (拗音, 促音, 長音): standard kana followed by small kana or ー
@@ -130,7 +131,7 @@ export function parseRawLyrics(rawText: string): Verse[] {
         if (whitespace) {
           if (words.length > 0) {
             const lastWord = words[words.length - 1];
-            if (!/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(lastWord.word)) {
+            if (!hasCjk(lastWord.word)) {
               if (!lastWord.word.endsWith(' ')) {
                 lastWord.word += ' ';
               }

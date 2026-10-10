@@ -1,5 +1,7 @@
 ---
-// Standalone Karaoke Theater
+import LibraryDrawer from '../components/theater/LibraryDrawer.astro';
+import TrackHeader from '../components/theater/TrackHeader.astro';
+import TransportDeck from '../components/theater/TransportDeck.astro';
 import '../styles/global.css';
 import '../styles/theater.css';
 import '../notation/render/notation.css';
@@ -20,28 +22,26 @@ import '../notation/render/notation.css';
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="preload" href="https://cdn.sudothy.me/fonts/ZenKurenaido-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="preload" href="https://cdn.sudothy.me/fonts/NotoSansJP-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <script is:inline>
     let musicVisitor = location.hostname === 'music.sudothy.me';
-    try { musicVisitor ||= new URL(document.referrer).hostname === 'music.sudothy.me'; } catch {}
+    try { musicVisitor ||= new URL(document.referrer).hostname === 'music.sudothy.me'; } catch { /* no referrer */ }
     try {
       musicVisitor ||= sessionStorage.getItem('karaoke-music-visitor') === '1';
       if (musicVisitor) sessionStorage.setItem('karaoke-music-visitor', '1');
-    } catch {}
+    } catch { /* storage blocked: the hostname and referrer checks still apply */ }
     document.documentElement.classList.toggle('music-visitor', musicVisitor);
     document.title = musicVisitor ? 'Music · Thy' : 'Music · Nix';
   </script>
   <script is:inline src="https://accounts.nixlabs.tech/widget.js" async></script>
   <script is:inline>
-    // 1. Disable text selection and drag
+    // Disable text selection and drag
     document.addEventListener('selectstart', e => e.preventDefault());
     document.addEventListener('dragstart', e => e.preventDefault());
 
-    // 2. Disable context menu (right click)
+    // Disable context menu (right click)
     document.addEventListener('contextmenu', e => e.preventDefault());
 
-    // 3. Disable DevTools inspection hotkeys
+    // Disable DevTools inspection hotkeys
     document.addEventListener('keydown', e => {
       if (
         e.key === 'F12' ||
@@ -54,116 +54,23 @@ import '../notation/render/notation.css';
       }
     });
 
-    // 4. Suppress console output
+    // Suppress console output
     try {
       console.log = () => {};
       console.debug = () => {};
       console.info = () => {};
-    } catch (_) {}
+    } catch { /* console is read-only here */ }
   </script>
 </head>
 <body>
 
   <div class="theater-app">
+    <LibraryDrawer />
 
-    <!-- Left Sidebar: Songs List & Search Pill -->
-    <aside class="theater-sidebar" id="theater-sidebar">
-      
-      <!-- Top Brand Header -->
-      <div class="sidebar-header">
-        <div class="brand-container">
-          <div class="brand-logo-frame" aria-label="Karaoke by Thy">
-            <img class="brand-logo-image brand-logo-standard" src="/karaoke-logo.svg" alt="" />
-            <img class="brand-logo-image brand-logo-japanese" id="brand-logo-japanese" src="/karaoke-logo-japanese.svg" alt="" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Fuzzy Search Pill Container -->
-      <div class="search-pill-container">
-        <div class="search-pill">
-          <svg class="search-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-pill-input" placeholder="Search songs or artists..." autocomplete="off" spellcheck="false" />
-          <button class="search-pill-clear" id="search-pill-clear" title="Clear Search">✕</button>
-        </div>
-        <!-- Library mode: sing along to lyrics, or play along to a piano score -->
-        <div class="library-mode" id="library-mode" role="radiogroup" aria-label="Library">
-          <input class="library-mode-input" type="radio" name="library-mode" id="library-mode-lyrics" value="lyrics" checked disabled />
-          <label class="library-mode-option" for="library-mode-lyrics">
-            <svg class="library-mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-            <span>Lyrics</span>
-            <span class="library-mode-count" id="library-mode-lyrics-count"></span>
-          </label>
-          <input class="library-mode-input" type="radio" name="library-mode" id="library-mode-piano" value="piano" disabled />
-          <label class="library-mode-option" for="library-mode-piano">
-            <svg class="library-mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M9 14v5M15 14v5"/><path d="M9 5v8M15 5v8" stroke-width="3.5" stroke-linecap="butt"/></svg>
-            <span>Piano</span>
-            <span class="library-mode-count" id="library-mode-piano-count"></span>
-          </label>
-          <span class="library-mode-thumb" aria-hidden="true"></span>
-        </div>
-        <span class="visually-hidden" id="song-list-status" role="status">Loading tracks...</span>
-      </div>
-
-      <!-- Scrollable Song List -->
-      <div class="sidebar-song-list" id="sidebar-song-list">
-        <!-- Rendered dynamically by TypeScript -->
-      </div>
-
-      <!-- Pull tab for the swipeable mobile drawer -->
-      <button class="drawer-handle" id="drawer-handle" type="button" aria-label="Song list" aria-controls="theater-sidebar" aria-expanded="false"></button>
-    </aside>
-
-    <div class="drawer-scrim" id="drawer-scrim" aria-hidden="true"></div>
-
-    <!-- Center Stage: Expansive Video & High-Precision Lyrics -->
     <main class="theater-stage">
+      <TrackHeader />
 
-      <!-- Track Hero Bar -->
-      <header class="theater-header">
-        <div class="active-track-hero">
-          <img id="active-track-art" class="active-artwork-hero" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%23c5a14c'><rect width='44' height='44' rx='4'/></svg>" alt="Album Cover" />
-          <div class="active-hero-text">
-            <h1 id="active-track-title">
-              <span id="active-track-title-text">Select a Track</span>
-              <button class="track-share-btn" id="track-share-btn" title="Share Song" aria-label="Share Song">
-                <svg class="share-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                  <polyline points="16 6 12 2 8 6"></polyline>
-                  <line x1="12" y1="2" x2="12" y2="15"></line>
-                </svg>
-                <span class="share-copied-label" id="share-copied-label">Copied</span>
-              </button>
-              <span class="badge badge-trans" id="badge-translation" style="display: none;">SUB</span>
-              <span class="badge badge-dialect" id="badge-dialect" style="display: none;">DIALECT</span>
-            </h1>
-            <p id="active-track-artist">Waiting for media...</p>
-          </div>
-        </div>
-
-        <div class="theater-header-right">
-          <div class="support-dropdown-container" id="support-dropdown-container" style="display: none;">
-            <button class="support-artist-btn" id="support-artist-btn" title="Support the Artist" aria-label="Support the Artist">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-              </svg>
-              <span>Support the Artist</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-            <div class="support-menu" id="support-menu" style="display: none;"></div>
-          </div>
-
-          <nixlabs-account placement="inline" theme-mode="fixed-dark"></nixlabs-account>
-
-          <button class="mobile-queue-toggle" id="mobile-queue-btn" title="Toggle Queue" aria-label="Toggle Queue" aria-controls="theater-sidebar" aria-expanded="false">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
-          </button>
-        </div>
-      </header>
-
-      <!-- 16:9 Video Frame -->
       <section class="video-stage-wrapper" id="video-stage-wrapper">
-        <div class="backlight-canvas-container" id="backlight-container" style="display: none;"></div>
         <div class="video-frame-container">
           <video id="theater-video" playsinline preload="auto"></video>
           <p id="playback-status" class="playback-status" role="status" aria-live="polite" hidden></p>
@@ -174,8 +81,7 @@ import '../notation/render/notation.css';
       </section>
 
       <!-- Lyrics and score, centred between the video and the deck on phones -->
-      <div class="stage-middle">
-        <!-- Constrained Lyrics Stage (Centered) -->
+      <div class="stage-middle" id="stage-middle">
         <section class="lyrics-stage-container" id="lyrics-stage-container">
           <div id="k-line-top" class="k-line k-line-top"></div>
           <div id="k-line-bottom" class="k-line k-line-bottom"></div>
@@ -184,152 +90,30 @@ import '../notation/render/notation.css';
         <section class="piano-score-container" id="piano-score-container" aria-label="Piano karaoke score" hidden></section>
       </div>
 
-      <!-- Flat Transport Control Deck -->
-      <footer class="transport-deck-theater">
-        <!-- Scrubber Row: [1:31] [ -------●------- ] [4:09] -->
-        <div class="deck-scrubber-row">
-          <span class="timecode-label timecode-current" id="deck-time-current">0:00</span>
-          <input type="range" class="progress-scrubber" id="deck-progress-scrubber" value="0" min="0" max="100" step="0.1" title="Seek" />
-          <span class="timecode-label timecode-duration" id="deck-time-duration">0:00</span>
-          <span id="deck-timecode" style="display: none;">0:00 / 0:00</span>
-        </div>
-
-        <!-- Controls Row -->
-        <div class="deck-controls-row">
-          <div class="deck-controls-left">
-            <button class="deck-play-btn" id="deck-play-btn" title="Play / Pause (Space or K)">
-              <svg id="deck-play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 19 12 7 20 7 4"/></svg>
-              <svg id="deck-pause-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-            </button>
-
-            <div class="deck-vote-group" id="deck-vote-group" role="group" aria-label="Song votes">
-            <button class="deck-vote-btn" id="deck-like-btn" title="Like" aria-label="Like">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-              <span class="vote-count" id="deck-like-count">0</span>
-            </button>
-
-            <button class="deck-vote-btn" id="deck-dislike-btn" title="Dislike" aria-label="Dislike">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"/></svg>
-              <span class="vote-count" id="deck-dislike-count">0</span>
-            </button>
-            </div>
-          </div>
-
-          <div class="deck-controls-right">
-            <div class="volume-deck-group">
-              <button class="deck-icon-btn" id="deck-vol-btn" title="Mute / Unmute (M)">
-                <svg id="deck-vol-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                </svg>
-              </button>
-              <input type="range" class="volume-slider" id="deck-volume-slider" min="0" max="1" step="0.05" value="0.7" title="Volume" />
-            </div>
-
-            <button class="deck-icon-btn deck-voice-btn" id="deck-voice-btn" aria-label="Toggle Vocals" style="display: none;">
-              <svg id="voice-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" x2="12" y1="19" y2="22"></line>
-              </svg>
-              <svg id="voice-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                <line x1="2" x2="22" y1="2" y2="22"></line>
-                <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"></path>
-                <path d="M5 10v2a7 7 0 0 0 12 5"></path>
-                <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"></path>
-                <path d="M9 9v3a3 3 0 0 0 5.12 2.12"></path>
-                <line x1="12" x2="12" y1="19" y2="22"></line>
-              </svg>
-            </button>
-
-            <button class="deck-icon-btn" id="deck-shuffle-btn" title="Shuffle Play">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
-            </button>
-
-            <button class="deck-icon-btn" id="deck-fullscreen-btn" title="Fullscreen (F)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-            </button>
-          </div>
-        </div>
-      </footer>
+      <TransportDeck />
     </main>
-
   </div>
 
-  <div id="voice-pointer-pill" class="voice-pointer-pill" style="display: none;">Remove Vocals</div>
+  <!-- Pointer-following tips sit outside the app so no ancestor clips or offsets them. -->
+  <div id="voice-pointer-pill" class="voice-pointer-pill" hidden>Remove Vocals</div>
   <div id="vote-tooltip" class="vote-tooltip" role="tooltip" hidden>Logged in users can like songs.</div>
 
   <script>
     import { initKaraokeTheater } from '../player/karaokePlayer';
     import { createSwipeDrawer } from '../player/swipeDrawer';
     import { initMusicVisitorControls } from '../player/musicVisitor';
+    import { byId } from '../player/dom';
 
     document.addEventListener('DOMContentLoaded', () => {
       initMusicVisitorControls();
-      createSwipeDrawer({
-        app: document.querySelector('.theater-app') as HTMLElement,
-        drawer: document.getElementById('theater-sidebar') as HTMLElement,
-        handle: document.getElementById('drawer-handle') as HTMLButtonElement,
-        scrim: document.getElementById('drawer-scrim') as HTMLElement,
-        toggle: document.getElementById('mobile-queue-btn') as HTMLButtonElement
+      const drawer = createSwipeDrawer({
+        app: document.querySelector<HTMLElement>('.theater-app')!,
+        drawer: byId('theater-sidebar'),
+        handle: byId<HTMLButtonElement>('drawer-handle'),
+        scrim: byId('drawer-scrim'),
+        toggle: byId<HTMLButtonElement>('mobile-queue-btn')
       });
-
-      initKaraokeTheater({
-        japaneseLogo: document.getElementById('brand-logo-japanese') as HTMLImageElement,
-        sidebarList: document.getElementById('sidebar-song-list') as HTMLElement,
-        searchPillInput: document.getElementById('search-pill-input') as HTMLInputElement,
-        searchPillClear: document.getElementById('search-pill-clear') as HTMLButtonElement,
-        songListStatus: document.getElementById('song-list-status') as HTMLElement,
-        libraryMode: document.getElementById('library-mode') as HTMLElement,
-        libraryModeInputs: {
-          lyrics: document.getElementById('library-mode-lyrics') as HTMLInputElement,
-          piano: document.getElementById('library-mode-piano') as HTMLInputElement
-        },
-        libraryModeCounts: {
-          lyrics: document.getElementById('library-mode-lyrics-count') as HTMLElement,
-          piano: document.getElementById('library-mode-piano-count') as HTMLElement
-        },
-
-        videoContainer: document.getElementById('video-stage-wrapper') as HTMLElement,
-        backlightContainer: document.getElementById('backlight-container') as HTMLElement,
-        video: document.getElementById('theater-video') as HTMLVideoElement,
-        centerPlayBtn: document.getElementById('center-play-btn') as HTMLButtonElement,
-        lyricsContainer: document.getElementById('lyrics-stage-container') as HTMLElement,
-        lineTop: document.getElementById('k-line-top') as HTMLElement,
-        lineBottom: document.getElementById('k-line-bottom') as HTMLElement,
-
-        activeArtwork: document.getElementById('active-track-art') as HTMLImageElement,
-        activeTitle: document.getElementById('active-track-title') as HTMLElement,
-        activeTitleText: document.getElementById('active-track-title-text') as HTMLElement,
-        trackShareBtn: document.getElementById('track-share-btn') as HTMLButtonElement,
-        activeArtist: document.getElementById('active-track-artist') as HTMLElement,
-        badgeTranslation: document.getElementById('badge-translation') as HTMLElement,
-        badgeDialect: document.getElementById('badge-dialect') as HTMLElement,
-        supportContainer: document.getElementById('support-dropdown-container') as HTMLElement,
-        supportBtn: document.getElementById('support-artist-btn') as HTMLButtonElement,
-        supportMenu: document.getElementById('support-menu') as HTMLElement,
-
-        btnPlayPause: document.getElementById('deck-play-btn') as HTMLButtonElement,
-        playIcon: document.getElementById('deck-play-icon') as unknown as SVGElement,
-        pauseIcon: document.getElementById('deck-pause-icon') as unknown as SVGElement,
-        timecodeDisplay: document.getElementById('deck-timecode') as HTMLElement,
-        timeCurrent: document.getElementById('deck-time-current') as HTMLElement,
-        timeDuration: document.getElementById('deck-time-duration') as HTMLElement,
-        progressBar: document.getElementById('deck-progress-scrubber') as HTMLInputElement,
-        volBtn: document.getElementById('deck-vol-btn') as HTMLButtonElement,
-        volIcon: document.getElementById('deck-vol-icon') as HTMLElement,
-        volInput: document.getElementById('deck-volume-slider') as HTMLInputElement,
-        btnVoice: document.getElementById('deck-voice-btn') as HTMLButtonElement,
-        voiceIconOn: document.getElementById('voice-icon-on') as unknown as SVGElement,
-        voiceIconOff: document.getElementById('voice-icon-off') as unknown as SVGElement,
-        voicePointerPill: document.getElementById('voice-pointer-pill') as HTMLElement,
-        btnLike: document.getElementById('deck-like-btn') as HTMLButtonElement,
-        btnDislike: document.getElementById('deck-dislike-btn') as HTMLButtonElement,
-        likeCount: document.getElementById('deck-like-count') as HTMLElement,
-        dislikeCount: document.getElementById('deck-dislike-count') as HTMLElement,
-        btnShuffle: document.getElementById('deck-shuffle-btn') as HTMLButtonElement,
-        btnFullscreen: document.getElementById('deck-fullscreen-btn') as HTMLButtonElement
-      });
+      initKaraokeTheater({ showLibrary: drawer.open });
     });
   </script>
 </body>

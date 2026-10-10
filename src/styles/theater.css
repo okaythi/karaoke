@@ -31,8 +31,6 @@
 .drawer-handle,
 .drawer-scrim { display: none; }
 
-.piano-score-container[hidden] { display: none; }
-.lyrics-stage-container[hidden] { display: none; }
 .piano-score-container {
   box-sizing: border-box;
   width: min(100%, 1180px);
@@ -237,7 +235,7 @@
 }
 
 .search-pill-clear {
-  display: none;
+  display: block;
   font-size: 11px;
   color: var(--theater-text-muted);
   cursor: pointer;
@@ -710,10 +708,6 @@
   width: 100%;
 }
 
-.backlight-canvas-container {
-  display: none !important;
-}
-
 .video-frame-container {
   position: relative;
   box-sizing: border-box;
@@ -877,6 +871,12 @@
   position: relative;
   display: inline-block;
   vertical-align: baseline;
+  margin: 0 3px;
+}
+
+/* Kana and kanji are set solid, without word spaces. */
+.word-wrapper.word-cjk {
+  margin: 0;
 }
 
 .word-base {
@@ -1456,7 +1456,6 @@
 /* Account menu typography and palette are owned by Accounts. */
 
 .playback-status { position: absolute; bottom: 12px; left: 16px; right: 16px; margin: 0; color: var(--theater-text-muted); font-size: 13px; text-align: center; z-index: 6; }
-.playback-status[hidden] { display: none; }
 
 .playback-status.is-loading {
   top: 50%; left: 50%; right: auto; bottom: auto;
@@ -1474,4 +1473,72 @@
 @keyframes playback-spinner-rotate { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
   .playback-status.is-loading::before { animation: none; }
+}
+
+/* Desktop uses the same slide-out library as mobile, leaving the stage full width. */
+@media (min-width: 769px) {
+  .theater-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 280px;
+    min-width: 0;
+    max-width: min(280px, 90vw);
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+  .theater-app.sidebar-open .theater-sidebar { transform: translateX(0); }
+  .mobile-queue-toggle { display: flex; }
+  .drawer-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(8, 7, 6, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .theater-app.sidebar-open .drawer-scrim { opacity: 1; pointer-events: auto; }
+  .theater-app.drawer-dragging .theater-sidebar { transition: none; }
+  .theater-app.drawer-dragging .drawer-scrim { opacity: var(--drawer-progress, 0); transition: none; }
+}
+
+/* Instrumental score with one synchronized verse beneath it. */
+.stage-middle.score-with-lyrics {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 0;
+  gap: 8px;
+}
+.score-with-lyrics .piano-score-container { order: 0; flex-shrink: 1; }
+.stage-middle .lyrics-stage-container.lyrics-single-line {
+  order: 1;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 48px;
+  max-height: 96px;
+  max-width: 100%;
+  padding: 4px 12px;
+  gap: 0;
+}
+.lyrics-single-line .k-line { flex-wrap: nowrap; white-space: nowrap; }
+.lyrics-single-line .word-wrapper { flex-shrink: 0; }
+.lyrics-single-line .k-line-bottom,
+.lyrics-single-line .k-line-translation { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .theater-sidebar, .drawer-scrim { transition: none; }
+}
+
+/* Transport icons follow the state their button carries. */
+.deck-play-btn[data-state='paused'] .deck-pause-icon,
+.deck-play-btn[data-state='playing'] .deck-play-icon,
+.deck-voice-btn:not(.karaoke-active) .voice-icon-off,
+.deck-voice-btn.karaoke-active .voice-icon-on,
+.deck-vol-btn:not([data-level='muted']) .vol-cross,
+.deck-vol-btn[data-level='muted'] .vol-wave-low,
+.deck-vol-btn:not([data-level='high']) .vol-wave-high {
+  display: none;
 }

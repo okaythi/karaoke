@@ -51,7 +51,6 @@ export interface SongCatalogItem extends SongMetadata {
   hasLiveLyrics?: boolean;
   videoUrl: string;
   instrumentalUrl?: string | null;
-  lyricsUrl?: string | null;
 }
 
 export interface SaveLyricsPayload {
@@ -71,16 +70,6 @@ export interface SaveLyricsPayload {
   supportItems?: SupportItem[];
   shareCode?: string;
   lyricsData: Verse[];
-}
-
-export interface SaveLyricsResponse {
-  success: boolean;
-  id: string;
-  filePath?: string;
-  liveCached?: boolean;
-  githubCommitted?: boolean;
-  githubError?: string | null;
-  error?: string;
 }
 
 export interface R2VideoItem {

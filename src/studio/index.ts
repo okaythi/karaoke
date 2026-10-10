@@ -3,16 +3,8 @@ import { loadCatalog, loadLyrics } from '../catalog/catalog';
 import { parseRawLyrics } from '../core/tokenizer';
 import { cleanVersePunctuation } from '../core/punctuation';
 import { getStudioElements } from './dom';
-import { 
-  state, 
-  setCatalog, 
-  setFilter, 
-  setActiveSong, 
-  setLyrics, 
-  setOffset, 
-  setTargetIndices 
-} from './state';
-import { fetchAlbumArt } from '../catalog/itunes';
+import { state } from './state';
+import { albumArtQuery, fetchAlbumArt } from '../catalog/itunes';
 import { initPlayer } from './player';
 import { renderMatrix, updateTelemetry } from './renderer';
 import { initSyncEngine } from './syncEngine';
@@ -20,6 +12,13 @@ import { saveMaster } from './persistence';
 import { initModals } from './modals';
 import type { SongCatalogItem } from '../types/karaoke';
 import type { FilterMode } from './types';
+
+type TrackStatus = { label: string; dot: string };
+
+function trackStatus(song: SongCatalogItem): TrackStatus {
+  if (!song.isOnR2) return { label: 'No media', dot: 'missing' };
+  return song.hasLyrics ? { label: 'Synced', dot: 'synced' } : { label: 'Needs sync', dot: 'needs-sync' };
+}
 
 export async function bootstrapStudio(): Promise<void> {
   const els = getStudioElements();
@@ -35,9 +34,9 @@ export async function bootstrapStudio(): Promise<void> {
   };
 
   const updateTrackSelection = (song: SongCatalogItem) => {
-    const status = !song.isOnR2 ? 'No media' : song.hasLyrics ? 'Synced' : 'Needs sync';
+    const { label: status, dot: dotClass } = trackStatus(song);
     const dot = document.createElement('span');
-    dot.className = `track-status-dot ${!song.isOnR2 ? 'missing' : song.hasLyrics ? 'synced' : 'needs-sync'}`;
+    dot.className = `track-status-dot ${dotClass}`;
     dot.setAttribute('aria-hidden', 'true');
     const statusLabel = document.createElement('span');
     statusLabel.className = 'track-picker-current-status';
@@ -138,15 +137,16 @@ export async function bootstrapStudio(): Promise<void> {
       item.className = 'track-picker-option';
       item.setAttribute('role', 'option');
       item.dataset.trackId = song.id;
+      const { label: statusLabel, dot: dotClass } = trackStatus(song);
       const dot = document.createElement('span');
-      dot.className = `track-status-dot ${!song.isOnR2 ? 'missing' : song.hasLyrics ? 'synced' : 'needs-sync'}`;
+      dot.className = `track-status-dot ${dotClass}`;
       dot.setAttribute('aria-hidden', 'true');
       const name = document.createElement('span');
       name.className = 'track-option-name';
       name.textContent = `${song.artist} – ${song.title}`;
       const status = document.createElement('span');
       status.className = 'track-option-status';
-      status.textContent = !song.isOnR2 ? 'No media' : song.hasLyrics ? 'Synced' : 'Needs sync';
+      status.textContent = statusLabel;
       item.appendChild(dot);
       item.appendChild(name);
       item.appendChild(status);
@@ -175,7 +175,7 @@ export async function bootstrapStudio(): Promise<void> {
     const song = state.catalog.find(s => s.id === songId);
     if (!song) return;
 
-    setActiveSong(song);
+    state.activeSong = song;
     els.trackSelector.value = song.id;
     updateTrackSelection(song);
 
@@ -188,18 +188,13 @@ export async function bootstrapStudio(): Promise<void> {
     els.metaHasTranslation.checked = !!song.hasTranslation;
     els.metaIsDialect.checked = !!song.isDialect;
 
-    setOffset(song.globalOffset || 0);
+    state.globalOffset = song.globalOffset || 0;
     els.offsetDisplay.textContent = `${state.globalOffset >= 0 ? '+' : ''}${state.globalOffset.toFixed(2)}s`;
 
     els.statsR2Status.textContent = song.isOnR2 ? '🟢 In Media Bucket' : '🔴 Missing on R2';
     els.statsR2Status.style.color = song.isOnR2 ? 'var(--accent-green)' : 'var(--accent-red)';
 
-    fetchAlbumArt(
-      song.itunesArtist || song.artist,
-      song.itunesTrack || song.title,
-      els.trackArtImg,
-      els.artStatusBadge
-    );
+    fetchAlbumArt(albumArtQuery(song), els.trackArtImg, { badgeEl: els.artStatusBadge });
 
     // Video stream
     await prepareProtectedPlayback(song.id);
@@ -210,8 +205,9 @@ export async function bootstrapStudio(): Promise<void> {
     // Load Lyrics
     const lyricsDoc = await loadLyrics(song.id);
     const parsedLyrics = lyricsDoc?.lyricsData ? JSON.parse(JSON.stringify(lyricsDoc.lyricsData)) : [];
-    setLyrics(cleanVersePunctuation(parsedLyrics));
-    setTargetIndices(0, 0);
+    state.localLyrics = cleanVersePunctuation(parsedLyrics);
+    state.currentV = 0;
+    state.currentW = 0;
 
     renderMatrix(els, playerController.renderBlocks);
     playerController.renderBlocks();
@@ -261,7 +257,7 @@ export async function bootstrapStudio(): Promise<void> {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      setFilter((btn.getAttribute('data-filter') || 'all') as FilterMode);
+      state.currentFilter = (btn.getAttribute('data-filter') || 'all') as FilterMode;
       refreshDropdown();
     });
   });
@@ -277,7 +273,8 @@ export async function bootstrapStudio(): Promise<void> {
           w.end = 0;
         });
       });
-      setTargetIndices(0, 0);
+      state.currentV = 0;
+      state.currentW = 0;
       els.vid.currentTime = 0;
       renderMatrix(els, playerController.renderBlocks);
       playerController.renderBlocks();
@@ -313,7 +310,7 @@ export async function bootstrapStudio(): Promise<void> {
   // Boot initial catalog
   try {
     const loaded = await loadCatalog();
-    setCatalog(loaded);
+    state.catalog = loaded;
     refreshDropdown();
   } catch (err) {
     console.error('Failed to load initial catalog:', err);

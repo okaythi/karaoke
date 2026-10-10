@@ -1,137 +1,164 @@
-import { isProtectedSong, PROTECTED_MEDIA_PATH } from '../security/protectedSong.js';
-import type { SongMetadata, SongCatalogItem, SongLyricFile, R2VideoItem } from '../types/karaoke';
-import manifestData from '../data/songs-manifest.json';
+import { mediaUrl } from '../core/media';
 import { parseSongInfoFromFilename, canonicalSongId } from '../core/tokenizer';
+import manifestData from '../data/songs-manifest.json';
+import { isProtectedSong, PROTECTED_MEDIA_PATH, PROTECTED_SONG_ID } from '../security/protectedSong.js';
+import type { SongMetadata, SongCatalogItem, SongLyricFile, R2VideoItem } from '../types/karaoke';
 import { sortSongs } from './sorter';
 
-// Vite lazy-load mapping for all individual lyric files committed to git
-const lyricModules = import.meta.glob('../data/lyrics/*.json');
+const manifest = manifestData as SongMetadata[];
 
-/**
- * Returns static song metadata committed to git
- */
-export function getLocalManifest(): SongMetadata[] {
-  return manifestData as SongMetadata[];
+// One lazily loaded chunk per lyric file committed to git.
+const lyricModules = import.meta.glob<SongLyricFile>('../data/lyrics/*.json', { import: 'default' });
+
+/** What R2 holds: the video files, and the songs with a live lyric overlay. */
+interface MediaListing {
+  videoKeys: string[];
+  liveLyrics: Set<string>;
 }
 
-/**
- * Fetches the list of video files and live lyrics overlays from Cloudflare R2
- */
-export async function fetchR2Data(): Promise<{ videoKeys: string[]; liveLyrics: Set<string> } | null> {
+async function fetchMediaListing(): Promise<MediaListing | null> {
   try {
     const res = await fetch('/api/karaoke/videos');
     if (!res.ok) return null;
-    const data = (await res.json()) as any;
-    let videoList: (R2VideoItem | string)[] = [];
-    let liveLyricsList: string[] = [];
-
-    if (Array.isArray(data)) {
-      videoList = data;
-    } else if (data && typeof data === 'object') {
-      if (Array.isArray(data.videos)) videoList = data.videos;
-      if (Array.isArray(data.liveLyrics)) liveLyricsList = data.liveLyrics;
-    }
-
-    const videoKeys = videoList.map((v: R2VideoItem | string) => typeof v === 'string' ? v : v.key);
+    const data = await res.json() as { videos?: (R2VideoItem | string)[]; liveLyrics?: string[] };
     return {
-      videoKeys,
-      liveLyrics: new Set(liveLyricsList)
+      videoKeys: (data.videos ?? []).map(video => typeof video === 'string' ? video : video.key),
+      liveLyrics: new Set(data.liveLyrics ?? [])
     };
-  } catch (err) {
-    console.warn('[Karaoke Catalog] Failed to query /api/karaoke/videos, falling back to local list:', err);
+  } catch (error) {
+    console.warn('[catalog] media listing unavailable, using the bundled manifest:', error);
     return null;
   }
 }
 
-/**
- * Returns the unified catalog combining R2 storage videos, Git lyrics, and R2 live overlay lyrics
- */
-export async function loadCatalog(): Promise<SongCatalogItem[]> {
-  const localSongs = getLocalManifest();
-  const r2Data = await fetchR2Data();
+/** The stem that replaces a video's audio when the vocals are removed, if R2 holds one. */
+function instrumentalKey(song: SongMetadata, videoKeys: Set<string> | null): string | null {
+  if (song.instrumentalFile) return song.instrumentalFile;
+  const conventional = `${song.videoFile.replace(/\.[^/.]+$/, '')} (Instrumental).m4a`;
+  return videoKeys?.has(conventional) ? conventional : null;
+}
 
-  const r2KeySet = r2Data ? new Set(r2Data.videoKeys) : null;
-  const liveLyricsSet = r2Data ? r2Data.liveLyrics : new Set<string>();
-  const knownVideoFiles = new Set(localSongs.map(s => s.videoFile));
+/** Without a listing, every manifest song is assumed to be in R2. */
+function buildCatalog(listing: MediaListing | null): SongCatalogItem[] {
+  const videoKeys = listing ? new Set(listing.videoKeys) : null;
 
-  // 1. Process all songs registered in the Git manifest
-  const catalog: SongCatalogItem[] = localSongs.map(song => {
-    const isOnR2 = r2KeySet ? r2KeySet.has(song.videoFile) : true;
-    const instKey = song.instrumentalFile || `${song.videoFile.replace(/\.[^/.]+$/, '')} (Instrumental).m4a`;
-    const hasInst = song.instrumentalFile ? true : (r2KeySet ? r2KeySet.has(instKey) : false);
+  const catalog: SongCatalogItem[] = manifest.map(song => {
+    const isProtected = isProtectedSong(song.id);
+    const stem = isProtected ? null : instrumentalKey(song, videoKeys);
     return {
       ...song,
-      isOnR2,
+      isOnR2: videoKeys ? videoKeys.has(song.videoFile) : true,
       hasLyrics: !song.scoreOnly,
-      hasLiveLyrics: r2Data ? liveLyricsSet.has(song.id) : undefined,
-      videoUrl: isProtectedSong(song.id) ? PROTECTED_MEDIA_PATH : `https://cdn.sudothy.me/${encodeURIComponent(song.videoFile)}`,
-      instrumentalUrl: !isProtectedSong(song.id) && hasInst ? `https://cdn.sudothy.me/${encodeURIComponent(instKey)}` : null
+      hasLiveLyrics: listing?.liveLyrics.has(song.id),
+      videoUrl: isProtected ? PROTECTED_MEDIA_PATH : mediaUrl(song.videoFile),
+      instrumentalUrl: stem ? mediaUrl(stem) : null
     };
   });
 
-  // 2. Discover unsynced or live-synced videos in R2
-  if (r2Data) {
-    for (const videoKey of r2Data.videoKeys) {
-      if (!knownVideoFiles.has(videoKey)) {
-        const { artist, title } = parseSongInfoFromFilename(videoKey);
-        const slug = canonicalSongId(artist, title);
-        const hasLyrics = liveLyricsSet.has(slug);
-        catalog.push({
-          id: slug,
-          videoFile: videoKey,
-          title,
-          artist,
-          globalOffset: 0,
-          hasTranslation: false,
-          isDialect: false,
-          isOnR2: true,
-          hasLyrics,
-          hasLiveLyrics: hasLyrics,
-          videoUrl: `https://cdn.sudothy.me/${encodeURIComponent(videoKey)}`
-        });
-      }
-    }
+  // Videos in R2 that the manifest does not know yet: uploaded, perhaps synced live, not yet committed.
+  const known = new Set(manifest.map(song => song.videoFile));
+  for (const videoKey of listing?.videoKeys ?? []) {
+    if (known.has(videoKey)) continue;
+    const { artist, title } = parseSongInfoFromFilename(videoKey);
+    const id = canonicalSongId(artist, title);
+    const hasLyrics = listing!.liveLyrics.has(id);
+    catalog.push({
+      id,
+      videoFile: videoKey,
+      title,
+      artist,
+      globalOffset: 0,
+      hasTranslation: false,
+      isDialect: false,
+      isOnR2: true,
+      hasLyrics,
+      hasLiveLyrics: hasLyrics,
+      videoUrl: mediaUrl(videoKey)
+    });
   }
 
-  return sortSongs(catalog);
+  return sortSongs(withLocalPreview(catalog));
 }
 
 /**
- * Dynamically loads word/verse timing data for a specific song on demand.
- * Checks for live overlay from R2/cache first for zero-build-delay live updates,
- * then falls back to static git bundled JSON. `live: false` (the catalog saw
- * no overlay in R2) skips the overlay request.
+ * Local review of the protected piece: `?preview=fantaisie` in development
+ * plays the copy Vite serves from the working directory.
  */
-export async function loadLyrics(songId: string, options: { live?: boolean } = {}): Promise<SongLyricFile | null> {
-  // Check live overlay API first (if hosted on Cloudflare Pages)
-  if (options.live !== false) {
-    try {
-      const liveRes = await fetch(`/api/karaoke/lyrics?id=${encodeURIComponent(songId)}`, {
-        headers: { 'Accept': 'application/json' }
-      });
-      if (liveRes.ok) {
-        const liveData = (await liveRes.json()) as any;
-        if (liveData && liveData.lyricsData) {
-          return liveData as SongLyricFile;
-        }
-      }
-    } catch (_) {
-      // Non-blocking fallback to local bundle
-    }
-  }
+function withLocalPreview(catalog: SongCatalogItem[]): SongCatalogItem[] {
+  if (!import.meta.env.DEV || new URLSearchParams(location.search).get('preview') !== 'fantaisie') return catalog;
+  return catalog.map(song => song.id === PROTECTED_SONG_ID ? {
+    ...song,
+    isOnR2: true,
+    videoUrl: `/${encodeURIComponent('Fantaisie-impromptu op 66')}/${encodeURIComponent('fantaisie-tokyo-ghoul-final-720p.mp4')}`
+  } : song);
+}
 
-  // Fallback to static bundled module
-  const targetPath = `../data/lyrics/${songId}.json`;
-  const loader = lyricModules[targetPath];
-  if (!loader) {
-    console.warn(`[Karaoke Catalog] No static lyrics found for "${songId}" at ${targetPath}`);
-    return null;
-  }
+/** The catalog as the bundled manifest describes it, available without a request. */
+export function localCatalog(): SongCatalogItem[] {
+  return buildCatalog(null);
+}
+
+/** The catalog checked against R2: missing videos marked, uploaded ones added, live lyrics known. */
+export async function loadCatalog(): Promise<SongCatalogItem[]> {
+  return buildCatalog(await fetchMediaListing());
+}
+
+async function fetchLiveLyrics(songId: string, signal?: AbortSignal): Promise<SongLyricFile | null> {
   try {
-    const module = await loader() as { default: SongLyricFile } | SongLyricFile;
-    return ('default' in module) ? module.default : module;
-  } catch (err) {
-    console.error(`[Karaoke Catalog] Error loading static lyrics for "${songId}":`, err);
+    const res = await fetch(`/api/karaoke/lyrics?id=${encodeURIComponent(songId)}`, { headers: { Accept: 'application/json' }, signal });
+    if (!res.ok) return null;
+    const data = await res.json() as SongLyricFile | null;
+    return data?.lyricsData ? data : null;
+  } catch {
+    // No overlay endpoint (local development) or the request was aborted; the bundled file is used.
     return null;
   }
+}
+
+async function loadBundledLyrics(songId: string): Promise<SongLyricFile | null> {
+  const loader = lyricModules[`../data/lyrics/${songId}.json`];
+  if (!loader) return null;
+  try {
+    return await loader();
+  } catch (error) {
+    console.error(`[catalog] bundled lyrics for "${songId}" failed to load:`, error);
+    return null;
+  }
+}
+
+/** Speaker labels for overlay files saved before the studio recorded them, by song and sung line. */
+const SPEAKERS: Record<string, Record<string, string>> = {
+  'the-fairly-odd-parents-theme-song': {
+    'wands and wings': 'Wanda',
+    'floaty crowny things': 'Cosmo'
+  }
+};
+
+function withSpeakers(file: SongLyricFile, songId: string): SongLyricFile {
+  const speakers = SPEAKERS[songId];
+  if (!speakers) return file;
+  return {
+    ...file,
+    lyricsData: file.lyricsData.map(verse => {
+      if (verse.speaker) return verse;
+      const line = verse.words.map(word => word.word).join(' ').replace(/\s+/g, ' ').trim().toLowerCase();
+      return speakers[line] ? { ...verse, speaker: speakers[line] } : verse;
+    })
+  };
+}
+
+/**
+ * A song's word and verse timings. A live overlay in R2 wins over the file
+ * bundled from git, so a save in the studio shows without a deploy; the two
+ * are requested together. `live: false` (the catalog saw no overlay) skips
+ * the overlay request.
+ */
+export async function loadLyrics(songId: string, options: { live?: boolean; signal?: AbortSignal } = {}): Promise<SongLyricFile | null> {
+  const [live, bundled] = await Promise.all([
+    options.live === false ? null : fetchLiveLyrics(songId, options.signal),
+    loadBundledLyrics(songId)
+  ]);
+  const file = live ?? bundled;
+  if (!file) console.warn(`[catalog] no lyrics found for "${songId}"`);
+  return file && withSpeakers(file, songId);
 }

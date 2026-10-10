@@ -38,6 +38,11 @@
   -webkit-touch-callout: none !important;
 }
 
+/* `hidden` wins over any display value a component sets. */
+[hidden] {
+  display: none !important;
+}
+
 ::selection {
   background: transparent !important;
   color: inherit !important;

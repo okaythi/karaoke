@@ -1,0 +1,43 @@
+---
+// The playing song: cover, title, artist, share and support links, and the account avatar.
+---
+<header class="theater-header">
+  <div class="active-track-hero">
+    <img id="active-track-art" class="active-artwork-hero" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='%23c5a14c'><rect width='44' height='44' rx='4'/></svg>" alt="Album Cover" />
+    <div class="active-hero-text">
+      <h1 id="active-track-title">
+        <span id="active-track-title-text">Select a Track</span>
+        <button class="track-share-btn" id="track-share-btn" title="Share Song" aria-label="Share Song">
+          <svg class="share-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+            <polyline points="16 6 12 2 8 6"></polyline>
+            <line x1="12" y1="2" x2="12" y2="15"></line>
+          </svg>
+          <span class="share-copied-label">Copied</span>
+        </button>
+        <span class="badge badge-trans" id="badge-translation" hidden>SUB</span>
+        <span class="badge badge-dialect" id="badge-dialect" hidden>DIALECT</span>
+      </h1>
+      <p id="active-track-artist">Waiting for media...</p>
+    </div>
+  </div>
+
+  <div class="theater-header-right">
+    <div class="support-dropdown-container" id="support-dropdown-container" hidden>
+      <button class="support-artist-btn" id="support-artist-btn" title="Support the Artist" aria-label="Support the Artist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>Support the Artist</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <div class="support-menu" id="support-menu" hidden></div>
+    </div>
+
+    <nixlabs-account placement="inline" theme-mode="fixed-dark"></nixlabs-account>
+
+    <button class="mobile-queue-toggle" id="mobile-queue-btn" title="Toggle Queue" aria-label="Toggle Queue" aria-controls="theater-sidebar" aria-expanded="false">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>

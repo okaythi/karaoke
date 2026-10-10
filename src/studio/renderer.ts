@@ -1,4 +1,4 @@
-import { state, setTargetIndices } from './state';
+import { state } from './state';
 import { formatTime } from './format';
 import type { getStudioElements } from './dom';
 
@@ -115,7 +115,8 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
     el.addEventListener('click', () => {
       const v = Number(el.getAttribute('data-v'));
       const w = Number(el.getAttribute('data-w'));
-      setTargetIndices(v, w);
+      state.currentV = v;
+      state.currentW = w;
 
       const targetWord = state.localLyrics[v]?.words[w];
       const targetTime = (targetWord?.start && targetWord.start > 0)
@@ -136,7 +137,8 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const v = Number(btn.getAttribute('data-v'));
-      setTargetIndices(v, 0);
+      state.currentV = v;
+      state.currentW = 0;
       const start = state.localLyrics[v]?.verseStart || 0;
       if (start > 0) vid.currentTime = Math.max(0, start + state.globalOffset - 1.0);
       renderMatrix(els, onRenderBlocks);

@@ -1,0 +1,68 @@
+---
+// Scrubber, play, votes, volume, the vocal toggle, shuffle and fullscreen.
+---
+<footer class="transport-deck-theater">
+  <div class="deck-scrubber-row">
+    <span class="timecode-label timecode-current" id="deck-time-current">0:00</span>
+    <input type="range" class="progress-scrubber" id="deck-progress-scrubber" value="0" min="0" max="100" step="0.1" title="Seek" />
+    <span class="timecode-label timecode-duration" id="deck-time-duration">0:00</span>
+  </div>
+
+  <div class="deck-controls-row">
+    <div class="deck-controls-left">
+      <button class="deck-play-btn" id="deck-play-btn" title="Play / Pause (Space or K)" data-state="paused">
+        <svg class="deck-play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 19 12 7 20 7 4"/></svg>
+        <svg class="deck-pause-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+
+      <div class="deck-vote-group" id="deck-vote-group" role="group" aria-label="Song votes">
+        <button class="deck-vote-btn" id="deck-like-btn" title="Like" aria-label="Like">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+          <span class="vote-count" id="deck-like-count">0</span>
+        </button>
+        <button class="deck-vote-btn" id="deck-dislike-btn" title="Dislike" aria-label="Dislike">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"/></svg>
+          <span class="vote-count" id="deck-dislike-count">0</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="deck-controls-right">
+      <div class="volume-deck-group">
+        <button class="deck-icon-btn deck-vol-btn" id="deck-vol-btn" title="Mute / Unmute (M)" data-level="high">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path class="vol-wave-low" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path class="vol-wave-high" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            <g class="vol-cross"><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></g>
+          </svg>
+        </button>
+        <input type="range" class="volume-slider" id="deck-volume-slider" min="0" max="1" step="0.05" value="0.7" title="Volume" />
+      </div>
+
+      <button class="deck-icon-btn deck-voice-btn" id="deck-voice-btn" aria-label="Toggle Vocals" hidden>
+        <svg class="voice-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" x2="12" y1="19" y2="22"></line>
+        </svg>
+        <svg class="voice-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="2" x2="22" y1="2" y2="22"></line>
+          <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"></path>
+          <path d="M5 10v2a7 7 0 0 0 12 5"></path>
+          <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"></path>
+          <path d="M9 9v3a3 3 0 0 0 5.12 2.12"></path>
+          <line x1="12" x2="12" y1="19" y2="22"></line>
+        </svg>
+      </button>
+
+      <button class="deck-icon-btn" id="deck-shuffle-btn" title="Shuffle Play">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+      </button>
+
+      <button class="deck-icon-btn" id="deck-fullscreen-btn" title="Fullscreen (F)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      </button>
+    </div>
+  </div>
+</footer>

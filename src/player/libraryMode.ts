@@ -49,5 +49,7 @@ export function readStoredMode(): LibraryMode | null {
 export function storeMode(mode: LibraryMode): void {
   try {
     localStorage.setItem(STORAGE_KEY, mode);
-  } catch {}
+  } catch {
+    // Not remembered; the next visit opens in the default mode.
+  }
 }

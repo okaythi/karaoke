@@ -1,202 +1,169 @@
-export interface FetchAlbumArtOptions {
+import type { SongMetadata } from '../types/karaoke';
+
+/** What to look a song's cover up by. `coverUrl` skips the lookup. */
+export interface AlbumArtQuery {
+  artist: string;
+  track: string;
   country?: string;
   coverUrl?: string;
+}
+
+export interface AlbumArtOptions {
+  /** Edge length in pixels to request; iTunes serves any square size. */
+  size?: number;
+  /** Shows the lookup's progress, for the studio. */
   badgeEl?: HTMLElement;
 }
 
-// In-memory cache for resolved artwork URLs
-const artCache = new Map<string, string>();
-
-/**
- * Normalizes string for fuzzy track/artist matching.
- */
-function normalize(str: string): string {
-  return (str || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
+interface ItunesResult {
+  artworkUrl100?: string;
+  artistName?: string;
+  trackName?: string;
+  collectionName?: string;
 }
 
-/**
- * Strips punctuation that often disrupts the iTunes search tokenizer (e.g. trailing ! in "Chop Suey!").
- */
+const DEFAULT_SIZE = 600;
+/** Storefronts tried in turn when a song names no country and the default one has no match. */
+const FALLBACK_STOREFRONTS = ['gb', 'no', 'be', 'fr', 'jp', 'us'];
+const STORE_PREFIX = 'karaoke.art.';
+const NOT_FOUND = 'none';
+
+/** Lookups by query, shared so the same cover is never requested twice at once. */
+const lookups = new Map<string, Promise<string | null>>();
+
+export function albumArtQuery(song: SongMetadata): AlbumArtQuery {
+  return {
+    artist: song.itunesArtist || song.artist,
+    track: song.itunesTrack || song.title,
+    country: song.itunesCountry,
+    coverUrl: song.coverUrl
+  };
+}
+
+function normalize(text: string): string {
+  return (text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+/** Punctuation such as the `!` in "Chop Suey!" derails the iTunes search tokenizer. */
 function cleanQueryTerm(term: string): string {
-  return (term || '')
-    .replace(/[!?,;:]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (term || '').replace(/[!?,;:]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/**
- * Scores an iTunes search result against target artist and track.
- * Higher score is better. Penalizes unintended remixes, karaokes, and covers.
- */
-function scoreResult(targetArtist: string, targetTrack: string, r: any): number {
-  if (!r || !r.artworkUrl100) return -1;
+/** How well a search result matches the song; higher is better, and remixes, covers and karaoke versions lose. */
+function scoreResult(artist: string, track: string, result: ItunesResult): number {
+  if (!result.artworkUrl100) return -1;
 
-  const targetA = normalize(targetArtist);
-  const targetT = normalize(targetTrack);
-  const resultA = normalize(r.artistName || '');
-  const resultT = normalize(r.trackName || '');
+  const wantedArtist = normalize(artist);
+  const wantedTrack = normalize(track);
+  const foundArtist = normalize(result.artistName || '');
+  const foundTrack = normalize(result.trackName || '');
 
   let score = 0;
+  if (foundTrack === wantedTrack) score += 100;
+  else if (foundTrack.includes(wantedTrack) || wantedTrack.includes(foundTrack)) score += 60;
 
-  // Track name exact match
-  if (resultT === targetT) {
-    score += 100;
-  } else if (resultT.includes(targetT) || targetT.includes(resultT)) {
-    score += 60;
-  }
+  if (foundArtist === wantedArtist) score += 50;
+  else if (foundArtist.includes(wantedArtist) || wantedArtist.includes(foundArtist)) score += 30;
 
-  // Artist match
-  if (resultA === targetA) {
-    score += 50;
-  } else if (resultA.includes(targetA) || targetA.includes(resultA)) {
-    score += 30;
-  }
-
-  // Check if original query asks for remix
-  const queryIsRemix = targetT.includes('remix') || targetA.includes('remix');
-  const resultIsRemix = resultT.includes('remix');
-
-  if (resultIsRemix && !queryIsRemix) {
-    score -= 40; // Penalize unwanted remixes
-  }
-
-  // Penalize karaoke, lullabies, tributes, acoustic covers
-  if (/karaoke|lullaby|tribute|cover|instrumental/i.test(resultT + ' ' + (r.collectionName || ''))) {
-    score -= 80;
-  }
+  const wantsRemix = wantedTrack.includes('remix') || wantedArtist.includes('remix');
+  if (foundTrack.includes('remix') && !wantsRemix) score -= 40;
+  if (/karaoke|lullaby|tribute|cover|instrumental/i.test(`${foundTrack} ${result.collectionName || ''}`)) score -= 80;
 
   return score;
 }
 
-/**
- * Searches iTunes API for a specific country storefront.
- */
+/** The 100px artwork URL of the best match in one storefront. */
 async function searchStorefront(artist: string, track: string, country?: string): Promise<string | null> {
-  const cleanTrack = cleanQueryTerm(track);
-  const cleanArtist = cleanQueryTerm(artist);
-  const term = encodeURIComponent(`${cleanArtist} ${cleanTrack}`);
+  const term = encodeURIComponent(`${cleanQueryTerm(artist)} ${cleanQueryTerm(track)}`);
   const countryParam = country ? `&country=${encodeURIComponent(country)}` : '';
-  const url = `https://itunes.apple.com/search?term=${term}&entity=song&limit=10${countryParam}`;
-
   try {
-    const res = await fetch(url);
+    const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&limit=10${countryParam}`);
     if (!res.ok) return null;
-    const data = (await res.json()) as any;
-    const results = data.results || [];
-    if (results.length === 0) return null;
+    const results = (await res.json() as { results?: ItunesResult[] }).results ?? [];
 
-    let bestResult: any = null;
-    let bestScore = -100;
-
-    for (const r of results) {
-      const s = scoreResult(artist, track, r);
-      if (s > bestScore) {
-        bestScore = s;
-        bestResult = r;
+    let best: ItunesResult | undefined;
+    let bestScore = 0;
+    for (const result of results) {
+      const score = scoreResult(artist, track, result);
+      if (score > bestScore) {
+        bestScore = score;
+        best = result;
       }
     }
-
-    if (bestResult && bestScore > 0 && bestResult.artworkUrl100) {
-      return bestResult.artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg');
-    }
-
-    // Fallback: if highest score result has art
-    if (results[0]?.artworkUrl100) {
-      return results[0].artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg');
-    }
-
-    return null;
+    // Nothing scored as a match: the first result's cover is still better than none.
+    return (best ?? results[0])?.artworkUrl100 ?? null;
   } catch {
     return null;
   }
 }
 
-/**
- * Fetches high-resolution album artwork from the iTunes Search API.
- * Supports smart candidate scoring, regional storefront fallbacks, and caching.
- */
-export function fetchAlbumArt(
-  artist: string,
-  track: string,
-  imgEl: HTMLImageElement,
-  options?: FetchAlbumArtOptions | HTMLElement
-): void {
-  const opts: FetchAlbumArtOptions = (options && 'country' in options) || (options && 'coverUrl' in options)
-    ? (options as FetchAlbumArtOptions)
-    : { badgeEl: options as HTMLElement | undefined };
-
-  const { country, coverUrl, badgeEl } = opts;
-
-  // Direct explicit cover URL override
-  if (coverUrl) {
-    imgEl.src = coverUrl;
-    if (badgeEl) badgeEl.textContent = 'Custom Art';
-    return;
+async function searchItunes({ artist, track, country }: AlbumArtQuery): Promise<string | null> {
+  const found = await searchStorefront(artist, track, country);
+  if (found || country) return found;
+  for (const storefront of FALLBACK_STOREFRONTS) {
+    const fallback = await searchStorefront(artist, track, storefront);
+    if (fallback) return fallback;
   }
+  return null;
+}
 
-  // Normalizations & known track aliases
-  let queryArtist = artist;
-  let queryTrack = track;
-
-  if (artist.toLowerCase() === 'ic3peak' && track.toLowerCase() === 'boo-hoo') {
-    queryTrack = 'Плак-плак';
-  } else if (artist.toLowerCase() === 'unknown' && track.toLowerCase() === 'inori') {
-    queryArtist = 'Creepy Corpse Corp';
-  }
-
-  const cacheKey = `${queryArtist}::${queryTrack}::${country || 'default'}`;
-
-  // Check in-memory cache
-  if (artCache.has(cacheKey)) {
-    const cached = artCache.get(cacheKey)!;
-    imgEl.src = cached;
-    if (badgeEl) badgeEl.textContent = 'iTunes Match';
-    return;
-  }
-
-  // Check sessionStorage
+// Covers are remembered across visits; a miss only for this session, so it is retried later.
+// Storage throws in private windows and when site data is blocked, where every visit looks covers up again.
+function readStored(key: string): string | null | undefined {
   try {
-    const stored = sessionStorage.getItem(`_art_${cacheKey}`);
-    if (stored) {
-      artCache.set(cacheKey, stored);
-      imgEl.src = stored;
-      if (badgeEl) badgeEl.textContent = 'iTunes Match';
-      return;
-    }
-  } catch {}
+    const found = localStorage.getItem(STORE_PREFIX + key);
+    if (found) return found;
+    return sessionStorage.getItem(STORE_PREFIX + key) === NOT_FOUND ? null : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
-  if (badgeEl) badgeEl.textContent = 'Searching iTunes...';
+function store(key: string, url: string | null): void {
+  try {
+    if (url) localStorage.setItem(STORE_PREFIX + key, url);
+    else sessionStorage.setItem(STORE_PREFIX + key, NOT_FOUND);
+  } catch {
+    // The lookup still succeeded; it just will not be remembered.
+  }
+}
 
-  // Perform search with potential regional fallbacks
-  (async () => {
-    // 1. Primary search (with specified country or default)
-    let artUrl = await searchStorefront(queryArtist, queryTrack, country);
+/** The song's 100px iTunes artwork URL, or null when iTunes has no match. */
+function lookUp(query: AlbumArtQuery): Promise<string | null> {
+  const key = `${query.artist}::${query.track}::${query.country || 'default'}`;
+  let lookup = lookups.get(key);
+  if (!lookup) {
+    const stored = readStored(key);
+    lookup = stored !== undefined
+      ? Promise.resolve(stored)
+      : searchItunes(query).then(url => {
+        store(key, url);
+        return url;
+      });
+    lookups.set(key, lookup);
+  }
+  return lookup;
+}
 
-    // 2. If no result and country wasn't explicitly given, try common storefronts
-    if (!artUrl && !country) {
-      const fallbacks = ['gb', 'no', 'be', 'fr', 'jp', 'us'];
-      for (const fb of fallbacks) {
-        artUrl = await searchStorefront(queryArtist, queryTrack, fb);
-        if (artUrl) break;
-      }
-    }
+/** Puts the song's cover on `imgEl`: its own `coverUrl` if it has one, else the best iTunes match. */
+export function fetchAlbumArt(query: AlbumArtQuery, imgEl: HTMLImageElement, { size = DEFAULT_SIZE, badgeEl }: AlbumArtOptions = {}): void {
+  const setBadge = (text: string) => {
+    if (badgeEl) badgeEl.textContent = text;
+  };
+  // The image element is reused between songs; a slower, older lookup must not overwrite a newer one.
+  const request = `${query.artist}::${query.track}::${query.coverUrl ?? ''}`;
+  imgEl.dataset.artRequest = request;
 
-    if (artUrl) {
-      artCache.set(cacheKey, artUrl);
-      try {
-        sessionStorage.setItem(`_art_${cacheKey}`, artUrl);
-      } catch {}
+  if (query.coverUrl) {
+    imgEl.src = query.coverUrl;
+    setBadge('Custom Art');
+    return;
+  }
 
-      imgEl.src = artUrl;
-      if (badgeEl) badgeEl.textContent = 'iTunes Match';
-    } else {
-      if (badgeEl) badgeEl.textContent = 'No Art Found';
-    }
-  })().catch(() => {
-    if (badgeEl) badgeEl.textContent = 'Art Offline';
+  setBadge('Searching iTunes...');
+  lookUp(query).then(url => {
+    if (imgEl.dataset.artRequest !== request) return;
+    if (url) imgEl.src = url.replace('100x100bb', `${size}x${size}bb`);
+    setBadge(url ? 'iTunes Match' : 'No Art Found');
   });
 }

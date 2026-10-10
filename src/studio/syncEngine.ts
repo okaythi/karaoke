@@ -1,4 +1,4 @@
-import { state, setOffset, setPlaybackRate } from './state';
+import { state } from './state';
 import { renderMatrix, updateTelemetry } from './renderer';
 import { formatTime } from './format';
 import { ALL_PUNCT_REGEX } from '../core/punctuation';
@@ -30,15 +30,15 @@ export function initSyncEngine(
       const stampedV = state.currentV;
       const stampedW = state.currentW;
 
-      // 1. Stamp start of current word
+      // Stamp start of current word
       verse.words[stampedW].start = Math.max(0, time);
 
-      // 2. If first word of verse, set verseStart
+      // If first word of verse, set verseStart
       if (stampedW === 0) {
         verse.verseStart = Math.max(0, time);
       }
 
-      // 3. Close end timestamp of previous word
+      // Close end timestamp of previous word
       if (stampedW > 0) {
         verse.words[stampedW - 1].end = Math.max(verse.words[stampedW - 1].start, time);
       } else if (stampedV > 0) {
@@ -53,7 +53,7 @@ export function initSyncEngine(
         }
       }
 
-      // 4. Advance target indices
+      // Advance target indices
       state.currentW++;
       if (state.currentW >= verse.words.length) {
         const lastWord = verse.words[stampedW];
@@ -192,7 +192,7 @@ export function initSyncEngine(
   // Offset Steppers
   const adjustOffset = (delta: number) => {
     const updated = parseFloat((state.globalOffset + delta).toFixed(3));
-    setOffset(updated);
+    state.globalOffset = updated;
     offsetDisplay.textContent = `${updated >= 0 ? '+' : ''}${updated.toFixed(2)}s`;
   };
 
@@ -207,7 +207,7 @@ export function initSyncEngine(
       document.querySelectorAll('[data-rate]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const rate = parseFloat(btn.getAttribute('data-rate') || '1.0');
-      setPlaybackRate(rate);
+      state.playbackRate = rate;
       vid.playbackRate = rate;
     });
   });

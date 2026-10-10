@@ -1,5 +1,5 @@
 /**
- * Strongly-typed DOM element cache for the Karaoke Studio
+ * Every element the studio's modules touch, looked up once.
  */
 export function getStudioElements() {
   return {

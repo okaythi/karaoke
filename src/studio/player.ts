@@ -1,3 +1,5 @@
+import { escapeHtml, lyricHtml } from '../core/html';
+import { wordProgress } from '../renderer/renderEngine';
 import { state } from './state';
 import { formatTime } from './format';
 import type { getStudioElements } from './dom';
@@ -92,8 +94,8 @@ export function initPlayer(els: StudioElements) {
         currentRenderedVerse = activeV;
         activeHudWords.innerHTML = verse.words.map((w, idx) => {
           const display = w.furigana
-            ? `<span class="yomitan-ruby" data-furi="${w.furigana}">${w.word}</span>`
-            : w.word;
+            ? `<span class="yomitan-ruby" data-furi="${escapeHtml(w.furigana)}">${lyricHtml(w.word)}</span>`
+            : lyricHtml(w.word);
           return `
             <span class="hud-word-wrapper" id="hud-w-${idx}">
               <span class="hud-word-base">${display}</span>
@@ -109,17 +111,8 @@ export function initPlayer(els: StudioElements) {
         const el = document.getElementById(`hud-w-${j}`);
         if (!el) continue;
 
-        let progress = 0;
-        if (w.start > 0 || w.end > 0) {
-          const wEnd = (w.end && w.end > w.start) ? w.end : (w.start + 1.2);
-          if (adjustedTime < w.start) {
-            progress = 0;
-          } else if (adjustedTime >= wEnd) {
-            progress = 100;
-          } else if (adjustedTime > w.start && wEnd > w.start) {
-            progress = Math.min(100, Math.max(0, ((adjustedTime - w.start) / (wEnd - w.start)) * 100));
-          }
-        }
+        // A word with no times yet has not been synced, so it stays unwiped.
+        const progress = w.start > 0 || w.end > 0 ? wordProgress(w.start, w.end, adjustedTime) : 0;
         el.style.setProperty('--wipe-progress', `${progress}%`);
       }
     } else {

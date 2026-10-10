@@ -11,8 +11,8 @@
  * the current music.
  *
  * Media time is the only clock: every frame reads `video.currentTime`, so
- * seeking and pausing never drift. The next frame is scheduled before
- * drawing, so a failed draw cannot stop the score following playback.
+ * seeking and pausing never drift. Frames are drawn while the media plays and
+ * on each seek; a paused score is left alone.
  */
 import { engrave } from '../layout/engrave';
 import type { Engraving } from '../layout/engrave';
@@ -21,6 +21,7 @@ import { ScoreIndex } from '../model/query';
 import { GlideController } from '../playback/glide';
 import { playheadAnchors, playheadX } from '../playback/playhead';
 import type { PlayheadAnchor } from '../playback/playhead';
+import { followPlayback } from '../../playback/frames';
 import { renderSystemView } from '../render/svg';
 import type { RenderedSystem } from '../render/svg';
 import type { SongScore } from '../songs';
@@ -77,8 +78,9 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
   let width = 0;
   let starts: number[] = [];
   let slots: Slot[] = [];
-  let finalEnd = 0;
-  let frameRequest = 0;
+  const finalEnd = Math.max(...[...song.timing.notes.values()].map(note => note.soundingEnd));
+  /** Engravings by line width, so turning a phone back does not engrave the piece again. */
+  const engravings = new Map<number, Engraving>();
   let destroyed = false;
   let lastTime = NaN;
   let laidOutFor = '';
@@ -99,14 +101,15 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
       ? Math.max(slotWidth / COMPACT_MAX_SPACES, Math.min(slotWidth / COMPACT_MIN_SPACES, byHeight))
       : Math.max(4, rect.height / DESKTOP_FRAME);
     width = Math.max(24, (slotWidth / spacePx - LEFT_ROOM - MARGIN) * (compact ? 1 : WIDE_SPACING_SCALE));
-    engraving = engrave(song.score, { width, settings: song.layout });
+    const widthKey = Math.round(width * 100);
+    engraving = engravings.get(widthKey) ?? engrave(song.score, { width, settings: song.layout });
+    engravings.set(widthKey, engraving);
     // Include all ink: clipping tall slurs hides a layout error and cuts off music.
     frame = {
       top: Math.min(...engraving.systems.map(system => system.box.y0)),
       bottom: Math.max(...engraving.systems.map(system => system.box.y1))
     };
     starts = engraving.systems.map(system => song.timing.timeAt(F.toNumber(index.measureStarts[system.first])));
-    finalEnd = Math.max(...[...song.timing.notes.values()].map(note => note.soundingEnd));
 
     container.replaceChildren();
     container.classList.toggle('score-halves', compact);
@@ -192,10 +195,6 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
     container.style.opacity = String(1 - Math.max(0, Math.min(1, time - finalEnd)));
   }
 
-  const loop = () => {
-    if (!destroyed) frameRequest = requestAnimationFrame(loop);
-    renderNow();
-  };
   let resizeTimer = 0;
   const relayout = () => {
     clearTimeout(resizeTimer);
@@ -204,20 +203,18 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
   const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(relayout) : undefined;
   resizeObserver?.observe(container);
   compactQuery?.addEventListener('change', relayout);
-  video.addEventListener('seeked', renderNow);
   layout();
-  frameRequest = requestAnimationFrame(loop);
+  const frames = followPlayback(video, renderNow);
   renderNow();
 
   return {
     renderNow,
     destroy() {
       destroyed = true;
-      cancelAnimationFrame(frameRequest);
+      frames.stop();
       clearTimeout(resizeTimer);
       resizeObserver?.disconnect();
       compactQuery?.removeEventListener('change', relayout);
-      video.removeEventListener('seeked', renderNow);
       container.classList.remove('score-halves');
       container.style.removeProperty('--score-half-aspect');
       container.style.removeProperty('opacity');

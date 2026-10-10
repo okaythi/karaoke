@@ -28,7 +28,6 @@
     "@cloudflare/workers-types": "^5.20260911.1",
     "@types/node": "^26.5.1",
     "tsx": "^4.19.3",
-    "vexflow": "^5.0.0",
     "wrangler": "^4.86.0"
   }
 }

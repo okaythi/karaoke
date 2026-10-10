@@ -1,7 +1,7 @@
 import type { SongCatalogItem } from '../types/karaoke';
 import { kanaToRomaji, getSortKey } from '../catalog/sorter';
 
-export interface FuzzySearchResult {
+interface FuzzySearchResult {
   item: SongCatalogItem;
   score: number;
 }

@@ -1,11 +1,11 @@
 /**
- * Swipeable song-list drawer for narrow screens.
+ * Slide-out song-list drawer on every screen.
  *
  * Swiping right anywhere on the stage pulls the drawer out under the finger,
  * swiping left (or tapping the scrim) pushes it back, and the pull tab on the
  * drawer's edge works as a plain button. The drawer follows the finger and
  * settles on release by position and flick velocity. Mouse input keeps to
- * clicks so desktop behaviour is unchanged.
+ * clicks through the header toggle.
  */
 
 export interface SwipeDrawerOptions {
@@ -25,7 +25,6 @@ export interface SwipeDrawerController {
   destroy(): void;
 }
 
-const DRAWER_QUERY = '(max-width: 768px)';
 const HINT_QUERY = '(max-width: 768px) and (orientation: portrait)';
 const HINT_STORAGE_KEY = 'karaoke.drawerHintSeen';
 const DRAG_SLOP_PX = 10;
@@ -47,8 +46,7 @@ interface DragState {
 }
 
 export function createSwipeDrawer({ app, drawer, handle, scrim, toggle }: SwipeDrawerOptions): SwipeDrawerController {
-  const drawerMode = matchMedia(DRAWER_QUERY);
-  let isOpen = app.classList.contains('sidebar-open');
+  let isOpen = app.classList.contains('sidebar-open') || matchMedia('(min-width: 769px)').matches;
   let drag: DragState | null = null;
   let suppressClickUntil = 0;
 
@@ -58,6 +56,11 @@ export function createSwipeDrawer({ app, drawer, handle, scrim, toggle }: SwipeD
     const expanded = String(next);
     handle.setAttribute('aria-expanded', expanded);
     toggle?.setAttribute('aria-expanded', expanded);
+    // Keep the pull tab accessible while closed; hidden list controls cannot receive focus.
+    for (const child of Array.from(drawer.children)) {
+      if (child instanceof HTMLElement && child !== handle) child.inert = !next;
+    }
+    if (!next && drawer.contains(document.activeElement)) toggle?.focus();
   };
 
   const applyOffset = (offset: number, width: number) => {
@@ -73,7 +76,7 @@ export function createSwipeDrawer({ app, drawer, handle, scrim, toggle }: SwipeD
   };
 
   const onPointerDown = (event: PointerEvent) => {
-    if (!drawerMode.matches || event.pointerType === 'mouse' || !event.isPrimary || drag) return;
+    if (event.pointerType === 'mouse' || !event.isPrimary || drag) return;
     const target = event.target as Element | null;
     if (!target || target.closest(NO_SWIPE_SELECTOR)) return;
     // A closed drawer opens from the stage or its pull tab; an open one closes from anywhere.
@@ -146,17 +149,13 @@ export function createSwipeDrawer({ app, drawer, handle, scrim, toggle }: SwipeD
 
   const onDrawerClick = (event: MouseEvent) => {
     // Picking a song hands the screen back to the player.
-    if (drawerMode.matches && isOpen && (event.target as Element | null)?.closest('.song-card')) setOpen(false);
+    if (isOpen && (event.target as Element | null)?.closest('.song-card')) setOpen(false);
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape' || !isOpen || !drawerMode.matches) return;
+    if (event.key !== 'Escape' || !isOpen) return;
     if (document.activeElement instanceof HTMLInputElement) return;
     setOpen(false);
-  };
-
-  const onModeChange = () => {
-    if (drag) endDrag();
   };
 
   const onHandleClick = () => setOpen(!isOpen);
@@ -196,7 +195,6 @@ export function createSwipeDrawer({ app, drawer, handle, scrim, toggle }: SwipeD
   handle.addEventListener('click', onHandleClick);
   toggle?.addEventListener('click', onToggleClick);
   scrim.addEventListener('click', onScrimClick);
-  drawerMode.addEventListener('change', onModeChange);
   setOpen(isOpen);
   showHintOnce();
 
@@ -217,7 +215,6 @@ export function createSwipeDrawer({ app, drawer, handle, scrim, toggle }: SwipeD
       handle.removeEventListener('click', onHandleClick);
       toggle?.removeEventListener('click', onToggleClick);
       scrim.removeEventListener('click', onScrimClick);
-      drawerMode.removeEventListener('change', onModeChange);
     }
   };
 }

@@ -1,5 +1,5 @@
 import { isProtectedVideo, PROTECTED_MEDIA_PATH } from '../security/protectedSong.js';
-import { state, setLyrics, setTargetIndices } from './state';
+import { state } from './state';
 import { 
   parseSongInfoFromFilename, 
   canonicalSongId, 
@@ -17,7 +17,7 @@ type StudioElements = ReturnType<typeof getStudioElements>;
  * 1. Video Upload to R2
  * 2. Raw Lyrics / LRC Ingestion
  * 3. Keyboard Shortcuts
- * 4. JSON Export (Zero Data Loss)
+ * 4. JSON Export
  */
 export function initModals(
   els: StudioElements,
@@ -49,8 +49,9 @@ export function initModals(
     if (!text) return;
     const parsed = parseRawLyrics(text);
     if (parsed.length > 0) {
-      setLyrics(parsed);
-      setTargetIndices(0, 0);
+      state.localLyrics = parsed;
+      state.currentV = 0;
+      state.currentW = 0;
       onLyricsIngested();
       ingestModal.classList.remove('open');
       showToast(`Ingested ${parsed.length} verses ready for synchronization!`);

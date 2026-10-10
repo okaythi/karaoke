@@ -29,10 +29,10 @@ export function buildPayload(els: StudioElements): SaveLyricsPayload | null {
 }
 
 /**
- * Multi-tier Save Pipeline:
+ * Saves to the first destination that accepts it:
  * 1. Local Sync Daemon (localhost:4322) -> atomic file write in git
  * 2. Cloudflare Pages Function (/api/admin/karaoke/save) -> R2 live cache + GitHub commit
- * 3. Fallback to Export Modal with zero data loss
+ * 3. The export modal, so the timing work can still be copied out
  */
 export async function saveMaster(
   els: StudioElements,
