@@ -176,21 +176,9 @@ Because `.word-highlight` clones the exact inner HTML—including the `.yomitan-
 
 ---
 
-## 💡 Ambient Dynamic Backlight
-
-To enhance visual immersion during playback, [`src/renderer/backlight.ts`](file:///home/thy/Projects/%E3%82%AB%E3%83%A9%E3%82%AA%E3%82%B1/src/renderer/backlight.ts) projects an ambient glow behind the video frame based on its real-time color palette:
-
-1. **Offscreen Downsampling**: An off-screen HTML5 `<canvas>` (64×64 pixels) is initialized with `{ willReadFrequently: true }`.
-2. **Throttled Sampling**: The sampler runs every other frame (30 FPS) to minimize GPU/CPU bus overhead.
-3. **Color Averaging**: Pixel data is sampled at 16-pixel strides across the canvas:
-   $$\overline{R} = \frac{1}{M}\sum R_i, \quad \overline{G} = \frac{1}{M}\sum G_i, \quad \overline{B} = \frac{1}{M}\sum B_i$$
-4. **Dual-Layer Projection**: Colors are assigned to two layered background `<div>` elements with Gaussian blurs of `35px` and `60px` with smooth CSS transitions (`transition: background 0.35s ease`), creating a responsive stage lighting effect.
-
----
-
 ## 🎮 Theater Controls & Keybindings
 
-The Theater frontend ([`src/player/karaokePlayer.ts`](file:///home/thy/Projects/%E3%82%AB%E3%83%A9%E3%82%AA%E3%82%B1/src/player/karaokePlayer.ts)) provides transport controls and hotkeys:
+The Theater frontend provides transport controls ([`src/player/transport.ts`](../src/player/transport.ts), [`src/player/audioMix.ts`](../src/player/audioMix.ts)) and hotkeys ([`src/player/karaokePlayer.ts`](../src/player/karaokePlayer.ts)). Hotkeys are ignored while Ctrl, Cmd or Alt is held, so browser shortcuts keep working:
 
 | Keybinding | Function | Description |
 | :--- | :--- | :--- |

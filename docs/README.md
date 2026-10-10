@@ -152,17 +152,17 @@ karaoke/
 │   ├── 08-standalone-engine-blueprint.md
 │   └── 09-notation-engine.md
 ├── functions/                     # Cloudflare Pages Functions (Edge API)
-│   ├── _middleware.js             # Anti-crawler and link preview suppression middleware
-│   ├── [code].js                  # Dynamic 6-character shortlink redirect router
+│   ├── _middleware.ts             # Anti-crawler and link preview suppression middleware
+│   ├── [code].ts                  # Dynamic 6-character shortlink redirect router
 │   └── api/
 │       ├── fingerprint.ts         # Device fingerprinting & kr-ID resolution
-│       ├── vote.js                # Like/dislike voting & 5.47s genuine view counter
+│       ├── vote.ts                # Like/dislike voting & 5.47s genuine view counter
 │       ├── admin/karaoke/
-│       │   ├── save.js            # Multi-tier remote save (R2 live overlay + GitHub commit)
-│       │   └── upload.js          # Direct multipart video upload to R2
+│       │   ├── save.ts            # Multi-tier remote save (R2 live overlay + GitHub commit)
+│       │   └── upload.ts          # Direct multipart video upload to R2
 │       └── karaoke/
-│           ├── lyrics.js          # R2 live overlay reader (_lyrics_live/<id>.json)
-│           └── videos.js          # R2 bucket video and live lyric scanner
+│           ├── lyrics.ts          # R2 live overlay reader (_lyrics_live/<id>.json)
+│           └── videos.ts          # R2 bucket video and live lyric scanner
 ├── scripts/                       # Developer & maintenance tooling
 │   ├── sync-server.ts             # Local atomic persistence HTTP daemon (port 4322)
 │   ├── generate-share-links.ts    # Shortlink generator & D1 database synchronizer
@@ -181,18 +181,32 @@ karaoke/
     │   ├── songs-manifest.json    # Master registry of catalog metadata
     │   └── lyrics/                # Individual lyric JSON files (*.json)
     ├── fingerprint/               # Passive device fingerprinting
-    │   ├── fingerprint.ts         # 12 parallel browser entropy signal collectors
-    │   └── kr-id.ts               # Branded types and deterministic kr-XXXX-XXXX generator
+    │   ├── fingerprint.ts         # Stable browser signals hashed into one fingerprint
+    │   └── kr-id.ts               # kr-XXXX-XXXX format check and generator
     ├── pages/                     # Astro entrypoint routes
     │   ├── index.astro            # Karaoke Theater presentation page
     │   └── admin/
     │       └── karaoke.astro      # Synchronization Studio Workstation
-    ├── player/                    # Theater frontend orchestration
-    │   ├── fuzzySearch.ts         # Phonetic fuzzy search & ranking engine
-    │   └── karaokePlayer.ts       # Main theater player controller & event bindings
-    ├── renderer/                  # 60 FPS presentation engine
-    │   ├── backlight.ts           # Ambient dynamic canvas backlight sampler
-    │   └── renderEngine.ts        # 60 FPS dual-line alternating wipe engine
+    ├── components/theater/        # Markup of the theater page: drawer, header, transport deck
+    ├── playback/
+    │   └── frames.ts              # Frame loop that runs only while the media plays
+    ├── player/                    # Theater frontend, one module per concern
+    │   ├── karaokePlayer.ts       # Song selection, boot and keyboard shortcuts
+    │   ├── library.ts             # Song list, search and the Lyrics/Piano switch
+    │   ├── libraryMode.ts         # Which songs belong to which mode
+    │   ├── fuzzySearch.ts         # Phonetic fuzzy search & ranking
+    │   ├── stage.ts               # Mounts lyrics and score under the video
+    │   ├── transport.ts           # Play button, clock and scrubber
+    │   ├── audioMix.ts            # Volume, mute and the instrumental stem
+    │   ├── nowPlaying.ts          # Header: cover, title, badges, support links
+    │   ├── votes.ts               # Like/dislike buttons
+    │   ├── viewCounter.ts         # 5.47s genuine-play view counter
+    │   ├── identity.ts            # Anonymous listener ID, worked out when idle
+    │   ├── share.ts               # Share button and copy guard
+    │   ├── swipeDrawer.ts         # Slide-out drawer gestures
+    │   └── api.ts                 # Calls to /api/vote and /api/fingerprint
+    ├── renderer/
+    │   └── renderEngine.ts        # Dual-line alternating lyric wipe
     ├── studio/                    # Studio synchronization workstation implementation
     │   ├── dom.ts                 # Strongly-typed DOM element bindings
     │   ├── format.ts              # Timecode formatting utilities (mm:ss.xxx)
