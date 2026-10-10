@@ -1,8 +1,6 @@
-import { isValidKrId, bytesToKrId } from '../../src/fingerprint/kr-id.js';
+import { isValidKrId, bytesToKrId } from '../../src/fingerprint/kr-id';
+import { json, type Context } from '../../src/server/http';
 
-// ─── Shared Utilities ─────────────────────────────────────────────────────────
-
-/** Server-side SHA-256 using Web Crypto (available in Workers) */
 async function sha256(input: string): Promise<Uint8Array> {
   return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input)));
 }
@@ -11,23 +9,13 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/** Generate a kr-ID from the first 8 bytes of a SHA-256 hash */
 async function hashToKrId(combined: string): Promise<string> {
   return bytesToKrId((await sha256(combined)).slice(0, 8));
 }
 
-/** Identities are per visitor, so no response may be cached on the way. */
-function json(data: unknown, status = 200): Response {
-  return Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
-}
-
 const MAX_ID_ATTEMPTS = 8;
 
-// ─── POST /api/fingerprint ────────────────────────────────────────────────────
-
-type Env = { DB: D1Database };
-
-export async function onRequestPost({ request, env }: { request: Request & { cf?: Record<string, unknown> }; env: Env }) {
+export async function onRequestPost({ request, env }: Context): Promise<Response> {
   if (!env.DB) {
     return json({ error: 'DB not bound' }, 503);
   }
@@ -44,20 +32,17 @@ export async function onRequestPost({ request, env }: { request: Request & { cf?
     return json({ error: 'Invalid clientHash' }, 400);
   }
 
-  // Merge with server-side network signals (no client trust required)
-  const ip         = request.headers.get('CF-Connecting-IP') ?? '';
-  const country    = request.headers.get('CF-IPCountry') ?? '';
-  const ua         = request.headers.get('User-Agent') ?? '';
-  const asn        = request.cf?.asn ?? '';
-  const tlsCipher  = request.cf?.tlsCipher ?? '';
-  const tlsVersion = request.cf?.tlsVersion ?? '';
-
-  // Server fingerprint: IP + country + ASN + UA + TLS details
-  const serverSig   = [ip, country, String(asn), ua, tlsCipher, tlsVersion].join('|');
-  const serverHash  = toHex(await sha256(serverSig));
-
-  // Combined hash: mix client-observed entropy with server-observed entropy
-  const combinedHash = toHex(await sha256(clientHash + '::' + serverHash));
+  // Network signals the server observes itself, so the client hash is not trusted alone.
+  const cf = (request as Request & { cf?: Record<string, unknown> }).cf;
+  const serverSignals = [
+    request.headers.get('CF-Connecting-IP') ?? '',
+    request.headers.get('CF-IPCountry') ?? '',
+    String(cf?.asn ?? ''),
+    request.headers.get('User-Agent') ?? '',
+    cf?.tlsCipher ?? '',
+    cf?.tlsVersion ?? ''
+  ].join('|');
+  const combinedHash = toHex(await sha256(clientHash + '::' + toHex(await sha256(serverSignals))));
 
   try {
     // Returning visitor: refresh last_seen and read the ID in one statement.

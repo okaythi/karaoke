@@ -1,18 +1,14 @@
-// Global Cloudflare Pages middleware to block all rich link preview embed generation
-import { apiDenied, isAdminPath, isSameOriginWrite, notFound, resolveAdminAccess, signInPage } from '../src/server/adminGate.js';
+// Runs before every route: answers link-preview scrapers with nothing and gates the admin area.
+import { apiDenied, isAdminPath, isSameOriginWrite, notFound, resolveAdminAccess, signInPage } from '../src/server/adminGate';
+import type { Context } from '../src/server/http';
 
 const SCRAPER_PATTERN = /facebookexternalhit|Facebot|facebookcatalog|meta-externalagent|Twitterbot|Discordbot|TelegramBot|WhatsApp|LinkedInBot|Slackbot|SkypeUriPreview|Applebot|Googlebot|bingbot|Yahoo|Baidu|DuckDuckBot|Yandex|bot|crawl|spider|preview|fetcher/i;
 const ROBOTS_TAG = 'noindex, nofollow, nosnippet, noimageindex, noarchive';
 
-export async function onRequest(context) {
-  const { request, next } = context;
-  const ua = request.headers.get('user-agent') || '';
-
-  // Runs before every route, including the shortlink router, so scrapers never reach them.
-  if (SCRAPER_PATTERN.test(ua)) {
-    // Return empty 200 plain text with zero content so chat apps produce zero embed card
+export async function onRequest({ request, next }: Context): Promise<Response> {
+  // An empty body gives chat apps nothing to build an embed card from.
+  if (SCRAPER_PATTERN.test(request.headers.get('user-agent') || '')) {
     return new Response('', {
-      status: 200,
       headers: {
         'Content-Type': 'text/plain',
         'X-Robots-Tag': ROBOTS_TAG,
@@ -31,10 +27,8 @@ export async function onRequest(context) {
     if (access !== 'admin') return isApi ? apiDenied(403) : notFound();
   }
 
+  // The response from next() may have immutable headers, so it is re-wrapped first.
   const response = await next();
-
-  // Attach anti-snippet and noindex headers to all responses. The response
-  // from next() may have immutable headers, so it is re-wrapped first.
   const wrapped = new Response(response.body, response);
   wrapped.headers.set('X-Robots-Tag', ROBOTS_TAG);
   wrapped.headers.set('X-Content-Type-Options', 'nosniff');

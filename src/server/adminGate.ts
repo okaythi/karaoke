@@ -6,6 +6,8 @@
 // authoritative session endpoint, which also checks signature, expiry,
 // revocation and account standing. Any failure denies access.
 
+import { cookieValues } from './http';
+
 const ACCOUNTS_ORIGIN = 'https://accounts.nixlabs.tech';
 const SESSION_COOKIE = '_nixlabs_session';
 
@@ -17,28 +19,20 @@ export const RoleFlag = Object.freeze({
   INTERNAL_SUPER_ADMIN: 1 << 3,
 });
 
-export function isAdminPath(pathname) {
+export function isAdminPath(pathname: string): boolean {
   return /^\/(api\/)?admin(\/|$)/.test(pathname);
 }
 
-function sessionToken(request) {
-  const match = (request.headers.get('cookie') || '').match(/(?:^|;\s*)_nixlabs_session=([^;]+)/);
-  return match ? match[1] : null;
-}
-
-/**
- * Resolves the caller's standing with the IdP.
- * @returns {Promise<'admin' | 'signed-out' | 'forbidden'>}
- */
-export async function resolveAdminAccess(request) {
-  const token = sessionToken(request);
+/** Resolves the caller's standing with the IdP. */
+export async function resolveAdminAccess(request: Request): Promise<'admin' | 'signed-out' | 'forbidden'> {
+  const [token] = cookieValues(request, SESSION_COOKIE);
   if (!token) return 'signed-out';
   try {
     const res = await fetch(`${ACCOUNTS_ORIGIN}/api/session`, {
       headers: { Accept: 'application/json', Cookie: `${SESSION_COOKIE}=${token}` },
     });
     if (!res.ok) return 'forbidden';
-    const session = await res.json();
+    const session = await res.json() as { authenticated?: boolean; account?: { banned?: boolean }; user?: { role_flags?: unknown } };
     if (!session?.authenticated) return 'signed-out';
     if (session.account?.banned) return 'forbidden';
     const flags = Number(session.user?.role_flags) | 0;
@@ -50,7 +44,7 @@ export async function resolveAdminAccess(request) {
 }
 
 /** State-changing admin API calls must come from the karaoke site itself. */
-export function isSameOriginWrite(request) {
+export function isSameOriginWrite(request: Request): boolean {
   if (request.method === 'GET' || request.method === 'HEAD') return true;
   const origin = request.headers.get('Origin');
   return !origin || origin === new URL(request.url).origin;
@@ -59,11 +53,11 @@ export function isSameOriginWrite(request) {
 const NO_STORE = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' };
 
 /** Admin pages are not acknowledged to anyone who may not use them. */
-export function notFound() {
+export function notFound(): Response {
   return new Response('Not found', { status: 404, headers: { 'Content-Type': 'text/plain', ...NO_STORE } });
 }
 
-export function apiDenied(status) {
+export function apiDenied(status: 401 | 403): Response {
   return Response.json({ error: status === 401 ? 'Sign in required' : 'Forbidden' }, { status, headers: NO_STORE });
 }
 
@@ -71,7 +65,7 @@ export function apiDenied(status) {
  * Signed-out visitors are sent through the Accounts handshake and come back
  * to the page they asked for. Styled with the theater palette.
  */
-export function signInPage(request) {
+export function signInPage(request: Request): Response {
   const returnTo = new URL(request.url).href;
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -97,7 +91,7 @@ export function signInPage(request) {
         const { url } = await res.json();
         if (typeof url === 'string' && url.startsWith('${ACCOUNTS_ORIGIN}/')) document.getElementById('sign-in').href = url;
       }
-    } catch (_) {}
+    } catch (_) { /* the plain sign-in link above still works */ }
   })();
 </script></body></html>`;
   return new Response(html, { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8', ...NO_STORE } });

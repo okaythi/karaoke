@@ -1,22 +1,12 @@
-// Live lyrics overlay reader from R2
+// Reads a song's live lyric overlay from R2.
+import { isSongId, json, type Context } from '../../../src/server/http';
 
-function json(data, status) {
-  return Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
-}
-
-/** Song IDs are single path segments (slugs, possibly Japanese). */
-function isSongId(id) {
-  return id.length <= 200 && !/[\/\\]/.test(id) && !id.includes('..');
-}
-
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env }: Context): Promise<Response> {
   if (!env.MEDIA_BUCKET) {
     return json({ error: 'MEDIA_BUCKET not bound' }, 404);
   }
 
-  const url = new URL(request.url);
-  const id = url.searchParams.get('id');
-
+  const id = new URL(request.url).searchParams.get('id');
   if (!id) {
     return json({ error: 'Missing id param' }, 400);
   }
@@ -26,8 +16,7 @@ export async function onRequestGet({ request, env }) {
 
   try {
     // Conditional read: an unchanged overlay answers 304 without a body.
-    const object = await env.MEDIA_BUCKET.get(`_lyrics_live/${id}.json`, { onlyIf: request.headers });
-
+    const object = await env.MEDIA_BUCKET.get(`_lyrics_live/${id}.json`, { onlyIf: request.headers as unknown as Headers });
     if (!object) {
       return json({ error: 'Not found in live overlay' }, 404);
     }
@@ -42,9 +31,9 @@ export async function onRequestGet({ request, env }) {
     if (!('body' in object)) {
       return new Response(null, { status: 304, headers });
     }
-    return new Response(object.body, { headers });
-  } catch (err) {
-    console.error('[lyrics] overlay read failed:', err);
+    return new Response(object.body as BodyInit, { headers });
+  } catch (error) {
+    console.error('[lyrics] overlay read failed:', error);
     return json({ error: 'Overlay read failed' }, 500);
   }
 }

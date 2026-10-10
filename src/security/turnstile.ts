@@ -1,4 +1,6 @@
 // Lazy-loaded only for the protected song. Use an Invisible widget in Cloudflare.
+import { PLAYBACK_ACTION } from './protectedSong.js';
+
 interface Turnstile {
   render(container: HTMLElement, options: Record<string, unknown>): string;
   execute(id: string): void;
@@ -30,7 +32,7 @@ export async function challenge(siteKey: string): Promise<string> {
     const timer = setTimeout(fail, 25_000);
     try {
       widget = api()!.render(container, {
-        sitekey: siteKey, action: 'fantaisie_playback', execution: 'execute', appearance: 'interaction-only',
+        sitekey: siteKey, action: PLAYBACK_ACTION, execution: 'execute', appearance: 'interaction-only',
         retry: 'never', 'refresh-expired': 'never',
         callback: (token: string) => { cleanup(); resolve(token); },
         'error-callback': fail, 'expired-callback': fail, 'timeout-callback': fail,

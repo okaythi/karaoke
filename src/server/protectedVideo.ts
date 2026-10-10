@@ -1,11 +1,13 @@
 import { PROTECTED_VIDEO_KEY } from '../security/protectedSong.js';
-import { PRIVATE_HEADERS, playbackError, verifyPlaybackGrant } from './playbackGate.js';
+import type { Env } from './http';
+import { PRIVATE_HEADERS, playbackError, verifyPlaybackGrant } from './playbackGate';
 
-export function parseRange(header, size) {
+/** The byte range a `Range` header asks for: `null` when absent, `false` when it cannot be satisfied. */
+export function parseRange(header: string | null, size: number): { offset: number; length: number } | null | false {
   if (!header) return null;
   const match = /^bytes=(\d*)-(\d*)$/.exec(header);
   if (!match || (!match[1] && !match[2]) || size <= 0) return false;
-  let start, end;
+  let start: number, end: number;
   if (!match[1]) {
     const suffix = Number(match[2]);
     if (!Number.isSafeInteger(suffix) || suffix <= 0) return false;
@@ -17,7 +19,8 @@ export function parseRange(header, size) {
   }
   return { offset: start, length: end - start + 1 };
 }
-export async function serveProtectedVideo({ request, env }) {
+
+export async function serveProtectedVideo({ request, env }: { request: Request; env: Env }): Promise<Response> {
   if (!['GET', 'HEAD'].includes(request.method)) return playbackError(405, 'Method not allowed');
   if (!await verifyPlaybackGrant(request, env)) return playbackError(403, 'Playback session required');
   // Never fall back to MEDIA_BUCKET: it has a public CDN origin.
@@ -41,7 +44,7 @@ export async function serveProtectedVideo({ request, env }) {
       onlyIf: { etagMatches: object.etag }, ...(range ? { range } : {})
     });
     if (!body || !('body' in body)) return playbackError(409, 'Media changed; retry playback');
-    return new Response(body.body, { status: range ? 206 : 200, headers });
+    return new Response(body.body as BodyInit, { status: range ? 206 : 200, headers });
   } catch {
     return playbackError(503, 'Protected playback unavailable');
   }
