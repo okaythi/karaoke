@@ -1475,35 +1475,6 @@
   .playback-status.is-loading::before { animation: none; }
 }
 
-/* Desktop uses the same slide-out library as mobile, leaving the stage full width. */
-@media (min-width: 769px) {
-  .theater-sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: 280px;
-    min-width: 0;
-    max-width: min(280px, 90vw);
-    z-index: 100;
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
-  }
-  .theater-app.sidebar-open .theater-sidebar { transform: translateX(0); }
-  .mobile-queue-toggle { display: flex; }
-  .drawer-scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 99;
-    background: rgba(8, 7, 6, 0.6);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-  }
-  .theater-app.sidebar-open .drawer-scrim { opacity: 1; pointer-events: auto; }
-  .theater-app.drawer-dragging .theater-sidebar { transition: none; }
-  .theater-app.drawer-dragging .drawer-scrim { opacity: var(--drawer-progress, 0); transition: none; }
-}
-
 /* Instrumental score with one synchronized verse beneath it. */
 .stage-middle.score-with-lyrics {
   display: flex;
@@ -1528,9 +1499,6 @@
 .lyrics-single-line .word-wrapper { flex-shrink: 0; }
 .lyrics-single-line .k-line-bottom,
 .lyrics-single-line .k-line-translation { display: none !important; }
-@media (prefers-reduced-motion: reduce) {
-  .theater-sidebar, .drawer-scrim { transition: none; }
-}
 
 /* Transport icons follow the state their button carries. */
 .deck-play-btn[data-state='paused'] .deck-pause-icon,
