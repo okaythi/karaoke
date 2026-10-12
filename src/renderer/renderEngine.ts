@@ -67,7 +67,7 @@ const speakerKey = (speaker?: string): string =>
  * current verse is shown, fitted to one line.
  */
 export function createRenderEngine(options: RenderEngineOptions): RenderEngineController {
-  if (options.parts?.length) return createEnsembleEngine(options);
+  if (options.parts?.length || options.lyricsData?.some(verse => verse.speaker || verse.speakers?.length)) return createEnsembleEngine(options);
   const { videoElement, containerElement } = options;
   const lyrics = (options.lyricsData || []).filter(verse => verse && Array.isArray(verse.words) && verse.words.length > 0);
   const globalOffset = options.globalOffset || 0;

@@ -1286,7 +1286,8 @@ video#studio-video { border-radius: 9px; box-shadow: none; }
 .active-hud .word-highlight { position: absolute; top: 0; left: 0; width: 100%; height: 100%; color: var(--lyric-highlight, #deb668); clip-path: inset(-30px calc(100% - var(--wipe-progress, 0%)) -15px 0); }
 .active-hud .k-line-translation { display: block; font-size: 12px; }
 .active-hud.ensemble-lyrics { display: block; }
-.active-hud .ensemble-line { font-size: 16px; }
+.active-hud .ensemble-voice { font-size: 16px; }
+.active-hud .ensemble-line { font-size: inherit; }
 .transport-deck .timeline-scrubber-track { height: calc(var(--timeline-lanes, 1) * 24px); min-height: 24px; max-height: 72px; overflow-y: auto; }
 .timeline-lane { position: absolute; left: 0; width: 100%; height: 24px; border-bottom: 1px solid var(--studio-border); }
 .timeline-lane-name { position: relative; z-index: 1; padding: 2px 4px; font-size: 10px; background: #181614c9; color: var(--text-muted); pointer-events: none; }
