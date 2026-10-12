@@ -113,3 +113,17 @@ test('Swedish draft imports without character headers or review notes becoming w
   assert.equal(parsed.verses.some(v => !partIds(v).length), false);
   assert.equal(parsed.verses.some(v => v.words.some(w => /@|REVIEW:/.test(w.word))), false);
 });
+
+test('corrected Swedish assignments separate the opening, announcement and complete reprise tracks', () => {
+  const parsed = parseLyricImport(readFileSync(new URL('../../data/lyric-drafts/vi-pratar-inte-om-bruno.sv.txt', import.meta.url), 'utf8'));
+  const text = (verse: Verse) => verse.words.map(word => word.word).join('').trim();
+  assert.deepEqual(partIds(parsed.verses[0]), ['pepa']);
+  assert.deepEqual(partIds(parsed.verses[1]), ['pepa']);
+  const announcement = parsed.verses.find(verse => text(verse) === 'Isabela, din pojkvän är här!')!;
+  assert.deepEqual(partIds(announcement), ['camilo']);
+  const arrival = parsed.verses.find(verse => text(verse) === 'Han är här!')!;
+  assert.deepEqual(partIds(arrival), ['kör']);
+  assert.equal(parsed.verses.filter(verse => text(verse) === 'En gänglig gestalt' && partIds(verse).includes('camilo')).length, 3);
+  assert.equal(parsed.verses.filter(verse => text(verse) === 'Jag mår bra' && partIds(verse).includes('dolores')).length, 3);
+  assert.equal(parsed.verses.filter(verse => text(verse) === 'Den ger mer' && partIds(verse).includes('isabela')).length, 4);
+});

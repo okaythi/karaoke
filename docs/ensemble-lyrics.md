@@ -2,7 +2,9 @@
 
 The upload dialog still uploads one final video. Select the uploaded track, open **Raw / LRC**, and load the Swedish Bruno draft or paste/import a `.txt`, `.lrc`, or exported lyric `.json` file.
 
-The draft is `src/data/lyric-drafts/vi-pratar-inte-om-bruno.sv.txt`. It reformats the lyrics supplied in this chat, splitting parenthetical responses into separately assigned phrases. Its 93 phrases and 11 parts are **not an audio-verified, complete transcription**. The official reference is https://www.youtube.com/watch?v=zVrLyU9YHpE. Review notes identify uncertain group assignments and the absent independent Isabela/Dolores finale text. No absent Swedish lyrics were invented.
+The import file is `src/data/lyric-drafts/vi-pratar-inte-om-bruno.sv.txt`. It contains the supplied Swedish lyrics with corrected named-part assignments and the finale's missing Dolores/Isabela reprise passages. It has been compared with the [attributed Swedish transcript](https://lyricstranslate.com/de/encanto-ost-vi-pratar-inte-om-bruno-we-dont-talk-about-bruno-lyrics.html), the [English part breakdown](https://movies.supertran.net/2021/12/encanto-2021.html), and frames from the user's copy of the [official Swedish video](https://www.youtube.com/watch?v=zVrLyU9YHpE).
+
+This remains **source-checked rather than audio-certified**: audio input is unavailable in the assistant session and the official upload has no available transcript. The import preview states this limit. `Kör` represents group responses whose individual voice membership cannot be certified here. The named main chorus following Camilo is assigned to Pepa/Félix/Camilo, with Dolores's separate echo. The opening is Pepa alone, the boyfriend announcement is Camilo, and the final “Han är här!” belongs to the ensemble. The file groups each voice's finale passage together, rather than pretending that those passages are sequential. Timings establish the overlap.
 
 ## Import format
 
