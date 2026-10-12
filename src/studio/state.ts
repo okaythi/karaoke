@@ -8,6 +8,7 @@ export const state: StudioState = {
   localLyrics: [],
   parts: [],
   selectedPart: '*',
+  recordingPart: null,
   partCursors: {},
   lastStamped: null,
   loopStart: 0,

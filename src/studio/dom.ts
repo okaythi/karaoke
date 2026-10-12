@@ -10,6 +10,7 @@ export function getStudioElements() {
     matrixPane: document.getElementById('matrix-pane') as HTMLElement,
     versesContainer: document.getElementById('verses-container') as HTMLElement,
     partSelector: document.getElementById('part-selector') as HTMLSelectElement,
+    recordingPartSelector: document.getElementById('recording-part-selector') as HTMLSelectElement,
     partColor: document.getElementById('part-color') as HTMLInputElement,
     btnAddPart: document.getElementById('btn-add-part') as HTMLButtonElement,
     loopStart: document.getElementById('loop-start') as HTMLInputElement,

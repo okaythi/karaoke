@@ -249,7 +249,8 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
         </div>
 
         <div class="part-toolbar">
-          <label>Time this part<select class="field-input" id="part-selector"><option value="*">All parts</option></select></label>
+          <label>Show parts<select class="field-input" id="part-selector"><option value="*">All parts</option></select></label>
+          <label>Record voice<select class="field-input" id="recording-part-selector"><option value="*">Choose singer…</option></select></label>
           <label>Colour<input id="part-color" type="color" value="#deb668" aria-label="Selected character colour" /></label>
           <button class="micro-btn" id="btn-add-part">+ Character</button>
           <p id="part-status" role="status">Select a character to record one voice per pass. E ends the last tapped word.</p>
@@ -353,7 +354,8 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
       <div class="modal-body">
         <table class="shortcut-table">
           <tbody>
-            <tr><td><kbd class="kbd-chip">SPACE</kbd></td><td>Stamp current word timing & advance to next word</td></tr>
+            <tr><td><kbd class="kbd-chip">SPACE</kbd></td><td>Stamp the next word of the recording voice. Click a phrase or choose Record voice first.</td></tr>
+            <tr><td><kbd class="kbd-chip">1</kbd>–<kbd class="kbd-chip">9</kbd></td><td>Switch recording voice while keeping playback running</td></tr>
             <tr><td><kbd class="kbd-chip">E</kbd></td><td>Mark the end of the last tapped word; click a word first to edit its end</td></tr>
             <tr><td><kbd class="kbd-chip">BACKSPACE</kbd></td><td>Undo / wipe timing of current word</td></tr>
             <tr><td><kbd class="kbd-chip">SHIFT</kbd> + <kbd class="kbd-chip">BACKSPACE</kbd></td><td>Delete current verse</td></tr>

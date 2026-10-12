@@ -22,6 +22,8 @@ export interface RenderEngineOptions {
 export interface RenderEngineController {
   destroy: () => void;
   setLineMode: (mode: LineMode) => void;
+  /** Redraw changed timestamps without remounting the lyric renderer. */
+  refreshTimings: () => void;
 }
 
 /** A verse appears this long before its first word is sung. */
@@ -208,6 +210,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
       containerElement.classList.remove('lyrics-single-line');
       bottom.element.hidden = false;
     },
-    setLineMode
+    setLineMode,
+    refreshTimings: redraw
   };
 }

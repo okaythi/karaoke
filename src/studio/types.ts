@@ -9,6 +9,8 @@ export interface StudioState {
   localLyrics: Verse[];
   parts: LyricPart[];
   selectedPart: string;
+  /** Recording target is independent of the visible-part filter. Null means unarmed ensemble. */
+  recordingPart: string | null;
   partCursors: Record<string, { v: number; w: number }>;
   lastStamped: { v: number; w: number } | null;
   loopStart: number;

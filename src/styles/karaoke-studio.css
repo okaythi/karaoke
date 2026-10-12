@@ -1296,3 +1296,4 @@ video#studio-video { border-radius: 9px; box-shadow: none; }
 .ensemble-workspace .transport-center, .ensemble-workspace #btn-save-deck { display: none; }
 .ensemble-workspace .transport-controls { flex-wrap: wrap; gap: 6px; }
 .ensemble-workspace .panel-center { padding-block: 12px; gap: 8px; }
+.part-toolbar > label:has(select) { flex: 1 1 140px; min-width: 0; }

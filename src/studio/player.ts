@@ -24,25 +24,30 @@ export function initPlayer(els: StudioElements) {
     if (Number.isFinite(vid.duration) && vid.duration > 0) vid.currentTime = Math.max(0, Math.min(vid.duration, (e.clientX - rect.left) / rect.width * vid.duration));
   });
   let singing = new Set<string>();
+  let lastTick = -1;
   const updatePlaybackFrame = () => {
     const time = vid.currentTime;
+    const tick = Math.floor(time * 10);
+    if (tick === lastTick) return;
+    lastTick = tick;
     els.hudCurrentTime.textContent = formatTime(time);
     els.hudTotalTime.textContent = formatTime(vid.duration || 0);
     if (vid.duration > 0) els.timelinePlayhead.style.left = `${time / vid.duration * 100}%`;
     const adjusted = time - state.globalOffset;
     const next = new Set<string>();
     state.localLyrics.forEach((verse, v) => {
-      if (!isVerseTimed(verse) || adjusted < verse.verseStart || adjusted >= verse.verseEnd) return;
+      if (verse.verseEnd <= verse.verseStart || adjusted < verse.verseStart || adjusted >= verse.verseEnd) return;
       verse.words.forEach((word, w) => {
         if (isTimed(word) && adjusted >= word.start && adjusted < word.end) next.add(`chip-${v}-${w}`);
       });
     });
     for (const id of singing) if (!next.has(id)) document.getElementById(id)?.classList.remove('active-singing');
-    for (const id of next) document.getElementById(id)?.classList.add('active-singing');
+    for (const id of next) if (!singing.has(id)) document.getElementById(id)?.classList.add('active-singing');
     singing = next;
   };
   const frames = followPlayback(vid, updatePlaybackFrame);
   const renderBlocks = () => {
+    lastTick = -1; singing = new Set();
     renderTimelineBlocks(els.timelineBlocksContainer, vid.duration);
     preview?.destroy();
     preview = createRenderEngine({
@@ -57,7 +62,13 @@ export function initPlayer(els: StudioElements) {
     frames.draw();
   };
   vid.addEventListener('loadedmetadata', renderBlocks);
-  return { togglePlay, renderBlocks };
+  const refreshTimings = (indices: number[]) => {
+    updateTimelineTimings(els.timelineBlocksContainer, vid.duration, indices);
+    preview?.refreshTimings();
+    lastTick = -1;
+    frames.draw();
+  };
+  return { togglePlay, renderBlocks, refreshTimings };
 }
 
 export function renderTimelineBlocks(container: HTMLElement, duration: number) {
@@ -69,23 +80,41 @@ export function renderTimelineBlocks(container: HTMLElement, duration: number) {
   ids.forEach((id, row) => {
     const lane = document.createElement('div');
     lane.className = 'timeline-lane';
+    lane.dataset.part = id;
     lane.style.top = `${row * 24}px`;
     const label = document.createElement('span');
     label.className = 'timeline-lane-name';
     label.textContent = state.parts.find(part => part.id === id)?.name ?? 'Unassigned';
     lane.appendChild(label);
     for (const verse of state.localLyrics) {
-      if (!matchesPart(verse, id) || !isVerseTimed(verse)) continue;
-      const start = Math.max(0, Math.min(100, (verse.verseStart + state.globalOffset) / dur * 100));
-      const end = Math.max(0, Math.min(100, (verse.verseEnd + state.globalOffset) / dur * 100));
+      if (!matchesPart(verse, id)) continue;
       const block = document.createElement('div');
       block.className = 'timeline-verse-block';
-      block.style.left = `${start}%`;
-      block.style.width = `${Math.max(0.2, end - start)}%`;
+      block.dataset.verse = String(state.localLyrics.indexOf(verse));
+      writeTimelineTiming(block, verse, dur);
       block.style.borderColor = partColor(verse, state.parts);
       block.style.background = `${partColor(verse, state.parts)}33`;
       lane.appendChild(block);
     }
     container.appendChild(lane);
   });
+}
+
+function writeTimelineTiming(block: HTMLElement, verse: typeof state.localLyrics[number], duration: number): void {
+  block.hidden = !isVerseTimed(verse);
+  if (block.hidden) return;
+  const start = Math.max(0, Math.min(100, (verse.verseStart + state.globalOffset) / duration * 100));
+  const end = Math.max(0, Math.min(100, (verse.verseEnd + state.globalOffset) / duration * 100));
+  block.style.left = `${start}%`;
+  block.style.width = `${Math.max(.2, end - start)}%`;
+}
+
+/** Existing blocks, including untimed placeholders, survive individual timing taps. */
+export function updateTimelineTimings(container: HTMLElement, duration: number, indices: number[]): void {
+  const dur = Number.isFinite(duration) && duration > 0 ? duration : 1;
+  for (const index of new Set(indices)) {
+    const verse = state.localLyrics[index];
+    if (!verse) continue;
+    container.querySelectorAll<HTMLElement>(`[data-verse="${index}"]`).forEach(block => writeTimelineTiming(block, verse, dur));
+  }
 }

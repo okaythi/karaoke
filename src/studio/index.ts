@@ -210,6 +210,7 @@ export async function bootstrapStudio(): Promise<void> {
     state.localLyrics = cleanVersePunctuation(parsedLyrics);
     state.parts = collectParts(state.localLyrics, lyricsDoc?.parts ?? []);
     state.selectedPart = '*';
+    state.recordingPart = null;
     partsController.reset();
     state.loopStart = state.loopEnd = 0;
     els.loopStart.value = els.loopEnd.value = '0';
@@ -248,7 +249,8 @@ export async function bootstrapStudio(): Promise<void> {
     els,
     () => saveMaster(els, showToast, modalController.openExportModal, refreshDropdown),
     playerController.renderBlocks,
-    playerController.togglePlay
+    playerController.togglePlay,
+    playerController.refreshTimings
   );
 
   // Track Selector Change

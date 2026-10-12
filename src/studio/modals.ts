@@ -90,6 +90,7 @@ export function initModals(
       state.parts = parsed.parts;
       if (state.parts.length && window.innerWidth > 1050) els.studioGrid.classList.add('sidebar-collapsed');
       state.selectedPart = '*';
+      state.recordingPart = null;
       state.partCursors = {}; state.lastStamped = null;
       state.currentV = 0; state.currentW = 0;
       if (parsed.offset !== undefined) {

@@ -1,7 +1,8 @@
 import { state } from './state';
 import { escapeHtml, lyricHtml } from '../core/html';
 import { collectParts, isTimed, isVerseTimed, partIds, partColor } from '../core/parts';
-import { matchesPart } from './timing';
+import { matchesPart, phraseRecordingPart, recordingTarget, type Cursor } from './timing';
+import { armRecordingPart } from './recording';
 import { formatTime } from './format';
 import type { getStudioElements } from './dom';
 
@@ -38,15 +39,11 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
   els.studioGrid.classList.toggle('ensemble-workspace', state.parts.length > 0);
   els.partSelector.innerHTML = '<option value="*">All parts</option><option value="">Unassigned</option>' + state.parts.map(part => `<option value="${escapeHtml(part.id)}">${escapeHtml(part.name)}</option>`).join('');
   els.partSelector.value = state.selectedPart;
-  const selected = state.parts.find(part => part.id === state.selectedPart);
+  els.recordingPartSelector.innerHTML = '<option value="*">Choose singer…</option><option value="">Unassigned</option>' + state.parts.map(part => `<option value="${escapeHtml(part.id)}">${escapeHtml(part.name)}</option>`).join('');
+  const selected = state.parts.find(part => part.id === state.recordingPart);
   els.partColor.disabled = !selected;
   els.partColor.value = selected?.color ?? '#deb668';
-  const targetWord = state.localLyrics[state.currentV]?.words[state.currentW];
-  els.wordStart.value = targetWord && isTimed(targetWord) ? String(targetWord.start) : '';
-  els.wordEnd.value = targetWord && isTimed(targetWord) ? String(targetWord.end) : '';
-  els.btnSetWordTimes.disabled = !targetWord;
-  const remaining = state.localLyrics.filter(verse => matchesPart(verse, state.selectedPart)).flatMap(verse => verse.words).filter(word => !isTimed(word)).length;
-  els.partStatus.textContent = `${remaining} untimed words in ${selected?.name ?? (state.selectedPart === '*' ? 'all parts' : 'unassigned')}. Space starts the next word; E ends the last tapped word.`;
+  updateTimingControls(els);
 
   if (state.localLyrics.length === 0) {
     versesContainer.innerHTML = `
@@ -80,7 +77,7 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
 
   versesContainer.innerHTML = state.localLyrics.map((verse, vIdx) => {
     if (!matchesPart(verse, state.selectedPart)) return '';
-    const isCurrentVerse = vIdx === state.currentV;
+    const isCurrentVerse = vIdx === state.currentV && recordingTarget(state.parts.length, state.recordingPart) !== null;
     const rangeDisplay = isVerseTimed(verse)
       ? `${formatTime(verse.verseStart)} → ${formatTime(verse.verseEnd)}`
       : '--:--.---';
@@ -92,12 +89,12 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
             <span class="verse-id-badge">#${String(vIdx + 1).padStart(2, '0')}</span>
             <span class="verse-time-range">${rangeDisplay}</span>
             <details class="phrase-parts"><summary>${escapeHtml(partIds(verse).map(id => state.parts.find(part => part.id === id)?.name ?? id).join(' + ') || 'Unassigned')} ▾</summary>
-              ${state.parts.map(part => `<label><input type="checkbox" data-part="${escapeHtml(part.id)}" data-v="${vIdx}" ${partIds(verse).includes(part.id) ? 'checked' : ''} />${escapeHtml(part.name)}</label>`).join('')}
-              <small>Select multiple only for identical words and timing.</small>
+              <div class="phrase-part-options" data-v="${vIdx}"></div>
             </details>
           </div>
           <div class="verse-actions">
             ${state.activeSong?.hasTranslation && !verse.translation ? `<button class="icon-btn" data-action="add-translation" data-v="${vIdx}" title="Add translation">+Tr</button>` : ''}
+            <button class="micro-btn" data-action="record-verse" data-v="${vIdx}" aria-label="Time this phrase">Time</button>
             <button class="icon-btn" data-action="seek-verse" data-v="${vIdx}" title="Seek video to verse">▶</button>
             <button class="icon-btn" data-action="add-word-to-v" data-v="${vIdx}" title="Add word to verse">+</button>
             <button class="icon-btn danger" data-action="del-verse" data-v="${vIdx}" title="Delete verse">✕</button>
@@ -107,7 +104,7 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
         <div class="words-grid">
           ${verse.words.map((w, wIdx) => {
             const wordTimed = isTimed(w);
-            const isTargetNext = vIdx === state.currentV && wIdx === state.currentW;
+            const isTargetNext = isCurrentVerse && wIdx === state.currentW;
             const displayWord = w.furigana
               ? `<span class="yomitan-ruby" data-furi="${escapeHtml(w.furigana)}">${lyricHtml(w.word)}</span>`
               : lyricHtml(w.word);
@@ -131,18 +128,27 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
     `;
   }).join('');
 
-  versesContainer.querySelectorAll<HTMLInputElement>('[data-part]').forEach(input => {
-    input.addEventListener('change', () => {
-      const verse = state.localLyrics[Number(input.dataset.v)];
-      const assigned = new Set(partIds(verse));
-      if (input.checked) assigned.add(input.dataset.part!); else assigned.delete(input.dataset.part!);
-      const ids = [...assigned];
-      verse.speaker = ids[0];
-      verse.speakers = ids.length > 1 ? ids : undefined;
-      state.partCursors = {};
-      state.lastStamped = null;
-      renderMatrix(els, onRenderBlocks);
-      onRenderBlocks();
+  // Assignment checkboxes are built only when opened, rather than eleven controls on every row.
+  versesContainer.querySelectorAll<HTMLDetailsElement>('.phrase-parts').forEach(details => {
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;
+      const options = details.querySelector<HTMLElement>('.phrase-part-options')!;
+      const v = Number(options.dataset.v);
+      const verse = state.localLyrics[v];
+      if (!verse) return;
+      options.innerHTML = state.parts.map(part => `<label><input type="checkbox" data-part="${escapeHtml(part.id)}" ${partIds(verse).includes(part.id) ? 'checked' : ''} />${escapeHtml(part.name)}</label>`).join('') + '<small>Select multiple only for identical words and timing.</small>';
+      options.querySelectorAll<HTMLInputElement>('[data-part]').forEach(input => {
+        input.addEventListener('change', () => {
+          const assigned = new Set(partIds(verse));
+          if (input.checked) assigned.add(input.dataset.part!); else assigned.delete(input.dataset.part!);
+          const ids = [...assigned];
+          verse.speaker = ids[0];
+          verse.speakers = ids.length > 1 ? ids : undefined;
+          state.partCursors = {}; state.recordingPart = null; state.lastStamped = null;
+          renderMatrix(els, onRenderBlocks);
+          onRenderBlocks();
+        });
+      });
     });
   });
 
@@ -151,17 +157,16 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
     el.addEventListener('click', () => {
       const v = Number(el.getAttribute('data-v'));
       const w = Number(el.getAttribute('data-w'));
-      state.currentV = v;
-      state.currentW = w;
-      state.lastStamped = null;
-
+      const previous = { v: state.currentV, w: state.currentW };
+      armRecordingPart(phraseRecordingPart(state.localLyrics[v], state.recordingPart), { v, w });
       const targetWord = state.localLyrics[v]?.words[w];
       const targetTime = targetWord && isTimed(targetWord) ? targetWord.start : state.localLyrics[v]?.verseStart || 0;
-      if ((targetWord && isTimed(targetWord)) || isVerseTimed(state.localLyrics[v])) {
+      // Switching voices during playback must not jump the video clock.
+      if (vid.paused && ((targetWord && isTimed(targetWord)) || isVerseTimed(state.localLyrics[v]))) {
         vid.currentTime = Math.max(0, targetTime + state.globalOffset - 1.0);
       }
+      updateTimingCursor(els, previous);
 
-      renderMatrix(els, onRenderBlocks);
       matrixPane.focus({ preventScroll: true });
     });
   });
@@ -171,11 +176,25 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const v = Number(btn.getAttribute('data-v'));
-      state.currentV = v;
-      state.currentW = 0;
+      const previous = { v: state.currentV, w: state.currentW };
+      armRecordingPart(phraseRecordingPart(state.localLyrics[v], state.recordingPart), { v, w: 0 });
       const start = state.localLyrics[v]?.verseStart || 0;
       if (isVerseTimed(state.localLyrics[v])) vid.currentTime = Math.max(0, start + state.globalOffset - 1.0);
-      renderMatrix(els, onRenderBlocks);
+      updateTimingCursor(els, previous);
+      matrixPane.focus({ preventScroll: true });
+    });
+  });
+
+  // Time a phrase (or click its background) to arm its singer, leaving the overview visible.
+  versesContainer.querySelectorAll<HTMLElement>('.verse-card').forEach(card => {
+    card.addEventListener('click', event => {
+      const target = event.target as HTMLElement;
+      if (target.closest('.word-chip, details, [data-action]:not([data-action="record-verse"])')) return;
+      const v = Number(card.id.slice('card-v-'.length));
+      const previous = { v: state.currentV, w: state.currentW };
+      armRecordingPart(phraseRecordingPart(state.localLyrics[v], state.recordingPart), { v, w: 0 });
+      updateTimingCursor(els, previous);
+      matrixPane.focus({ preventScroll: true });
     });
   });
 
@@ -245,7 +264,7 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
       const containerTop = versesContainer.offsetTop;
       versesContainer.scrollTo({
         top: Math.max(0, cardTop - containerTop - 12),
-        behavior: 'smooth'
+        behavior: 'auto'
       });
     }
   }
@@ -255,4 +274,56 @@ let lastScrolledVerse = -1;
 
 export function resetScrollTrack(): void {
   lastScrolledVerse = -1;
+}
+
+/** Small control update, independent of rebuilding the phrase list. */
+export function updateTimingControls(els: StudioElements): void {
+  const target = recordingTarget(state.parts.length, state.recordingPart);
+  els.recordingPartSelector.value = state.recordingPart ?? '*';
+  els.recordingPartSelector.disabled = state.parts.length === 0;
+  const selected = state.parts.find(part => part.id === state.recordingPart);
+  els.partColor.disabled = !selected;
+  els.partColor.value = selected?.color ?? '#deb668';
+  const word = state.localLyrics[state.currentV]?.words[state.currentW];
+  els.wordStart.value = word && isTimed(word) ? String(word.start) : '';
+  els.wordEnd.value = word && isTimed(word) ? String(word.end) : '';
+  els.btnSetWordTimes.disabled = !word;
+  if (target === null) {
+    els.partStatus.textContent = 'Choose a singer or click their phrase to record. Space will follow that voice only.';
+    return;
+  }
+  const name = selected?.name ?? (target === '*' ? 'this song' : 'Unassigned');
+  const complete = !state.localLyrics[state.currentV] || !matchesPart(state.localLyrics[state.currentV], target);
+  els.partStatus.textContent = complete ? `${name}: end of part. Click a phrase to continue or choose another voice.` : `Recording ${name} · phrase ${state.currentV + 1}, word ${state.currentW + 1}. Space starts; E ends the last tapped word.`;
+}
+
+/** Timing taps never replace the matrix DOM or its event listeners. */
+export function updateTimingCursor(els: StudioElements, previous: Cursor, changed: number[] = []): void {
+  document.getElementById(`chip-${previous.v}-${previous.w}`)?.classList.remove('target-next');
+  document.getElementById(`card-v-${previous.v}`)?.classList.remove('active');
+  const armed = recordingTarget(state.parts.length, state.recordingPart) !== null;
+  const card = document.getElementById(`card-v-${state.currentV}`);
+  if (armed) {
+    document.getElementById(`chip-${state.currentV}-${state.currentW}`)?.classList.add('target-next');
+    card?.classList.add('active');
+  }
+  for (const v of new Set(changed)) {
+    const verse = state.localLyrics[v];
+    if (!verse) continue;
+    const range = document.getElementById(`card-v-${v}`)?.querySelector('.verse-time-range');
+    if (range) range.textContent = isVerseTimed(verse) ? `${formatTime(verse.verseStart)} → ${formatTime(verse.verseEnd)}` : '--:--.---';
+    verse.words.forEach((word, w) => {
+      const chip = document.getElementById(`chip-${v}-${w}`);
+      chip?.classList.toggle('timed', isTimed(word));
+      const timestamp = chip?.querySelector('.word-timestamp');
+      const text = isTimed(word) ? `${word.start.toFixed(2)}s` : '--';
+      if (timestamp && timestamp.textContent !== text) timestamp.textContent = text;
+    });
+  }
+  updateTimingControls(els);
+  if (card && previous.v !== state.currentV) {
+    const pane = els.versesContainer;
+    const top = card.offsetTop - pane.offsetTop;
+    if (top < pane.scrollTop || top + card.offsetHeight > pane.scrollTop + pane.clientHeight) pane.scrollTo({ top: Math.max(0, top - 12), behavior: 'auto' });
+  }
 }

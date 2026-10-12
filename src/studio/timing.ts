@@ -36,3 +36,14 @@ export function stampEnd(verse: Verse, index: number, time: number): void {
   word.endLocked = true;
   autoHealTimings([verse]);
 }
+
+/** Solo imports keep ordinary traversal; ensemble recording never silently uses all voices. */
+export function recordingTarget(partCount: number, recordingPart: string | null): string | null {
+  return partCount ? recordingPart : '*';
+}
+
+/** A clicked shared phrase stays on the armed voice if it belongs to that phrase. */
+export function phraseRecordingPart(verse: Verse, recordingPart: string | null): string {
+  const ids = partIds(verse);
+  return recordingPart !== null && ids.includes(recordingPart) ? recordingPart : ids[0] ?? '';
+}

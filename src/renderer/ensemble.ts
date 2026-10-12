@@ -10,7 +10,7 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   const { videoElement: video, containerElement: container } = options;
   const verses = options.lyricsData ?? [];
   const parts = collectParts(verses, options.parts ?? []);
-  const sections = buildEnsembleSections(verses);
+  let sections = buildEnsembleSections(verses);
   const grid = document.createElement('div');
   grid.className = 'ensemble-grid';
   container.appendChild(grid);
@@ -26,14 +26,17 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   };
   const mountSection = (section: EnsembleSection | undefined) => {
     current = section;
-    grid.replaceChildren();
-    lines = (section?.slots ?? []).map(() => {
+    const count = section?.slots.length ?? 0;
+    const previousCount = lines.length;
+    // Retain lyric nodes and wipe caches when edited timings keep the same lane count.
+    while (lines.length > count) lines.pop()!.element.remove();
+    while (lines.length < count) {
       const element = document.createElement('div');
       element.className = 'ensemble-line';
       grid.appendChild(element);
-      return { element, target: -2, words: [], written: [] };
-    });
-    fit();
+      lines.push({ element, target: -2, words: [], written: [] });
+    }
+    if (count !== previousCount) fit();
   };
   const draw = () => {
     const time = video.currentTime - (options.globalOffset ?? 0);
@@ -73,6 +76,7 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   resize?.observe(container);
   draw();
   return {
+    refreshTimings() { sections = buildEnsembleSections(verses); draw(); },
     setLineMode() { /* Ensemble vocals always retain every simultaneous phrase. */ },
     destroy() {
       frames.stop(); resize?.disconnect(); grid.remove();
