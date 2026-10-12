@@ -20,6 +20,8 @@ export function getStudioElements() {
     wordStart: document.getElementById('word-start') as HTMLInputElement,
     wordEnd: document.getElementById('word-end') as HTMLInputElement,
     btnSetWordTimes: document.getElementById('btn-set-word-times') as HTMLButtonElement,
+    btnEndWord: document.getElementById('btn-end-word') as HTMLButtonElement,
+    endWordTarget: document.getElementById('end-word-target') as HTMLElement,
     partStatus: document.getElementById('part-status') as HTMLElement,
 
     hudCurrentTime: document.getElementById('hud-current-time') as HTMLElement,

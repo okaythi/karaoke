@@ -1,7 +1,7 @@
 import { state } from './state';
 import { escapeHtml, lyricHtml } from '../core/html';
 import { collectParts, isTimed, isVerseTimed, partIds, partColor } from '../core/parts';
-import { matchesPart, phraseRecordingPart, recordingTarget, type Cursor } from './timing';
+import { matchesPart, phraseRecordingPart, recordingTarget, endWordCursor, type Cursor } from './timing';
 import { armRecordingPart } from './recording';
 import { formatTime } from './format';
 import type { getStudioElements } from './dom';
@@ -288,6 +288,12 @@ export function updateTimingControls(els: StudioElements): void {
   els.wordStart.value = word && isTimed(word) ? String(word.start) : '';
   els.wordEnd.value = word && isTimed(word) ? String(word.end) : '';
   els.btnSetWordTimes.disabled = !word;
+  const endTarget = endWordCursor(state.localLyrics, { v: state.currentV, w: state.currentW }, state.lastStamped, target);
+  els.btnEndWord.disabled = endTarget === null;
+  const endingWord = endTarget ? state.localLyrics[endTarget.v].words[endTarget.w] : null;
+  els.endWordTarget.textContent = endingWord
+    ? `Ends “${endingWord.word.replace(/<[^>]*>/g, '').trim()}” at the current video time.${endingWord.endLocked ? ' End is locked.' : ''}`
+    : 'Tap a word with Space, or select a timed word, to mark its end.';
   if (target === null) {
     els.partStatus.textContent = 'Choose a singer or click their phrase to record. Space will follow that voice only.';
     return;

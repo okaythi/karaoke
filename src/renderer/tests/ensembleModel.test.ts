@@ -1,9 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildEnsembleSections, ensembleLayout, laneVerses, reservedLaneHeight, visibleSection } from '../ensembleModel';
+import { buildEnsembleSections, ensembleLayout, visiblePhrases, reservedLaneHeight, visibleSection } from '../ensembleModel';
 import type { Verse } from '../../types/karaoke';
 
 const cue = (speaker: string, start: number, end: number): Verse => ({ speaker, verseStart: start, verseEnd: end, words: [{ word: speaker, start, end, timed: true }] });
+const shown = (section: ReturnType<typeof buildEnsembleSections>[number], verses: Verse[], time: number, key: string) => {
+  const phrase = visiblePhrases(section, verses, time).get(key);
+  return phrase ? [phrase.index] : [];
+};
 const cast = (section: ReturnType<typeof buildEnsembleSections>[number]) => section.voices.map(lane => lane.partIds[0]);
 
 test('sequential, touching and overlapping lines of one singer use one area', () => {
@@ -13,10 +17,9 @@ test('sequential, touching and overlapping lines of one singer use one area', ()
   const lane = sections[0].voices[0];
   assert.deepEqual(cast(sections[0]), ['a']);
   assert.deepEqual(lane.verses, [0, 1, 2, 3]);
-  assert.equal(lane.maxLines, 2);
-  assert.deepEqual(laneVerses(lane, verses, 2.5), [1, 0]);
-  assert.deepEqual(laneVerses(lane, verses, 4), [2]);
-  assert.deepEqual(laneVerses(lane, verses, 5.5), [3]);
+  assert.deepEqual(shown(sections[0], verses, 2.5, lane.key), [1]);
+  assert.deepEqual(shown(sections[0], verses, 4, lane.key), [2]);
+  assert.deepEqual(shown(sections[0], verses, 5.5, lane.key), [3]);
 });
 
 test('duet sides stay the same when entrance order and local prominence reverse', () => {
@@ -41,7 +44,9 @@ test('duplicated same-singer phrases do not inflate lead prominence', () => {
   const section = buildEnsembleSections(verses)[0];
   assert.equal(cast(section)[0], 'lead');
   assert.equal(section.voices.length, 3);
-  assert.equal(section.voices.find(lane => lane.partIds[0] === 'echo')!.maxLines, 12);
+  const displayed = [...visiblePhrases(section, verses, 2.5).values()].filter(phrase => phrase.partIds.includes('echo'));
+  assert.equal(displayed.length, 1);
+  assert.equal(displayed[0].index, 11);
 });
 
 test('solo prominence counts exposed entrances and allows a different passage lead', () => {
@@ -58,7 +63,7 @@ test('a shared chorus renders once without creating a third duet singer', () => 
   assert.equal(section.voices.length, 2);
   assert.equal(section.shared.length, 1);
   assert.deepEqual(section.shared[0].partIds, ['a', 'b']);
-  assert.deepEqual(laneVerses(section.shared[0], verses, 8.5), [3, 2]);
+  assert.deepEqual(shown(section, verses, 8.5, section.shared[0].key), [3]);
 });
 
 test('shared-only passages are centered without empty solo lanes', () => {
@@ -91,11 +96,11 @@ test('lead-in and release respect exact boundaries without dropping an active si
   const verses = [cue('a', 5, 8), cue('b', 6, 7)];
   const section = buildEnsembleSections(verses)[0];
   const lane = section.voices.find(lane => lane.partIds[0] === 'b')!;
-  assert.deepEqual(laneVerses(lane, verses, 3.99), []);
-  assert.deepEqual(laneVerses(lane, verses, 4), [1]);
-  assert.deepEqual(laneVerses(lane, verses, 6.5), [1]);
-  assert.deepEqual(laneVerses(lane, verses, 7.5), [1]);
-  assert.deepEqual(laneVerses(lane, verses, 7.61), []);
+  assert.deepEqual(shown(section, verses, 3.99, lane.key), []);
+  assert.deepEqual(shown(section, verses, 4, lane.key), [1]);
+  assert.deepEqual(shown(section, verses, 6.5, lane.key), [1]);
+  assert.deepEqual(shown(section, verses, 7.5, lane.key), [1]);
+  assert.deepEqual(shown(section, verses, 7.61, lane.key), []);
 });
 
 test('responsive formations are centered and no singer cells overlap', () => {
@@ -118,13 +123,35 @@ test('responsive formations are centered and no singer cells overlap', () => {
   assert.deepEqual(ensembleLayout(2, 400).places, [{ column: 1, span: 1, row: 1 }, { column: 2, span: 1, row: 1 }]);
 });
 
-test('wrapped held lines reserve their real stack height for the entire passage', () => {
+test('overlapping timestamps reserve only the tallest single wrapped phrase', () => {
   const verses = [cue('a', 0, 4), cue('a', 3, 6), cue('a', 6, 8)];
   const lane = buildEnsembleSections(verses)[0].voices[0];
-  const heights = new Map([[0, { primary: 50, tail: 40 }], [1, { primary: 60, tail: 48 }], [2, { primary: 30, tail: 24 }]]);
-  assert.equal(reservedLaneHeight(lane, verses, heights), 100);
+  const heights = new Map([[0, 50], [1, 60], [2, 30]]);
+  assert.equal(reservedLaneHeight(lane, heights), 60);
   const touching = [cue('a', 0, 3), cue('a', 3, 5)];
   const touchingLane = buildEnsembleSections(touching)[0].voices[0];
-  heights.set(99, { primary: 999, tail: 999 });
-  assert.equal(reservedLaneHeight(touchingLane, touching, heights), 60);
+  heights.set(99, 999);
+  assert.equal(reservedLaneHeight(touchingLane, heights), 60);
+});
+
+test('a superseded phrase never reappears even when its locked end outlasts the next line', () => {
+  const verses = [cue('a', 0, 10), cue('a', 2, 3), cue('b', 1, 12)];
+  verses[0].words[0].endLocked = true;
+  const section = buildEnsembleSections(verses)[0];
+  const a = section.voices.find(lane => lane.partIds[0] === 'a')!;
+  assert.deepEqual(shown(section, verses, 2, a.key), [1]);
+  assert.deepEqual(shown(section, verses, 4, a.key), []);
+  assert.deepEqual(shown(section, verses, 1, a.key), [0], 'Backward seeks recover the earlier phrase');
+  assert.equal(verses[0].words[0].end, 10, 'Rendering never rewrites recorded durations');
+});
+
+test('solo and shared phrases compete for each singer, without silencing the other partner', () => {
+  const verses = [cue('a', 0, 8), cue('b', 0, 8), { ...cue('a', 3, 9), speakers: ['a', 'b'] }, cue('a', 5, 7)];
+  const section = buildEnsembleSections(verses)[0];
+  assert.deepEqual([...visiblePhrases(section, verses, 3.5).values()], [{ index: 2, partIds: ['a', 'b'] }]);
+  const displayed = [...visiblePhrases(section, verses, 5.5).values()];
+  assert.deepEqual(displayed.find(phrase => phrase.index === 3)?.partIds, ['a']);
+  assert.deepEqual(displayed.find(phrase => phrase.index === 2)?.partIds, ['b']);
+  const singers = displayed.flatMap(phrase => phrase.partIds);
+  assert.equal(new Set(singers).size, singers.length);
 });

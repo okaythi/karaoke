@@ -1263,6 +1263,10 @@ video#studio-video { border-radius: 9px; box-shadow: none; }
 .part-toolbar label, .ensemble-controls label, .word-time-editor label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--text-muted); }
 .part-toolbar select { width: 100%; }
 .part-toolbar input[type=color] { width: 40px; height: 30px; padding: 2px; background: var(--studio-panel); border: 1px solid var(--studio-border); }
+.timing-guide { flex-basis: 100%; margin: 0; font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+.timing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; }
+#btn-end-word { flex: 0 0 auto; border-color: var(--studio-accent, #deb668); }
+#end-word-target { flex: 1 1 160px; font-size: 11px; line-height: 1.5; color: var(--text-muted); }
 #part-status { flex-basis: 100%; margin: 0; font-size: 11px; color: var(--text-muted); }
 .word-time-editor, .ensemble-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
 .word-time-editor { width: 100%; }

@@ -4,7 +4,7 @@ import { formatTime } from './format';
 import { autoHealTimings } from '../core/contracts';
 import { isTimed } from '../core/parts';
 import { armRecordingPart } from './recording';
-import { nextCursor, stampStart, stampEnd, matchesPart, recordingTarget, phraseRecordingPart, type Cursor } from './timing';
+import { nextCursor, stampStart, stampEnd, matchesPart, recordingTarget, phraseRecordingPart, endWordCursor, type Cursor } from './timing';
 import type { getStudioElements } from './dom';
 
 type StudioElements = ReturnType<typeof getStudioElements>;
@@ -28,6 +28,19 @@ export function initSyncEngine(
     if (changed.length) { onTimingsChanged(changed); updateTelemetry(els); }
   };
 
+  const finishWord = () => {
+    const cursor = { v: state.currentV, w: state.currentW };
+    const part = recordingTarget(state.parts.length, state.recordingPart);
+    const target = endWordCursor(state.localLyrics, cursor, state.lastStamped, part);
+    if (!target) { updateTimingControls(els); return; }
+    stampEnd(state.localLyrics[target.v], target.w, vid.currentTime - state.globalOffset);
+    refresh(cursor, [target.v]);
+  };
+  els.btnEndWord.addEventListener('click', () => {
+    finishWord();
+    matrixPane.focus({ preventScroll: true });
+  });
+
   matrixPane.addEventListener('keydown', (e: KeyboardEvent) => {
     if ((e.target as HTMLElement).closest('input, textarea, select, button')) return;
     if (e.repeat && ['Space', 'KeyE', 'Backspace'].includes(e.code)) { e.preventDefault(); return; }
@@ -47,10 +60,7 @@ export function initSyncEngine(
       refresh(cursor, [cursor.v]);
     } else if (e.code === 'KeyE') {
       e.preventDefault();
-      const target = state.lastStamped ?? cursor;
-      const targetVerse = state.localLyrics[target.v];
-      if (targetVerse && matchesPart(targetVerse, part)) stampEnd(targetVerse, target.w, time);
-      refresh(cursor, [target.v]);
+      finishWord();
     } else if (e.code === 'Backspace') {
       e.preventDefault();
       if (e.shiftKey && verse) {

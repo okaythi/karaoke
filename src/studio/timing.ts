@@ -47,3 +47,12 @@ export function phraseRecordingPart(verse: Verse, recordingPart: string | null):
   const ids = partIds(verse);
   return recordingPart !== null && ids.includes(recordingPart) ? recordingPart : ids[0] ?? '';
 }
+
+/** Both E and the visible button end the same recorded word, after Space advances. */
+export function endWordCursor(verses: Verse[], cursor: Cursor, lastStamped: Cursor | null, part: string | null): Cursor | null {
+  if (part === null) return null;
+  const target = lastStamped ?? cursor;
+  const verse = verses[target.v];
+  const word = verse?.words[target.w];
+  return verse && matchesPart(verse, part) && word && isTimed(word) ? target : null;
+}

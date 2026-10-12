@@ -9,8 +9,6 @@ export interface EnsembleLane {
   key: string;
   partIds: string[];
   verses: number[];
-  /** Reserved stack height keeps lower singers still when a held line clears. */
-  maxLines: number;
 }
 
 export interface EnsembleSection {
@@ -20,6 +18,8 @@ export interface EnsembleSection {
   voices: EnsembleLane[];
   /** Shared words appear once, centered, rather than becoming another singer. */
   shared: EnsembleLane[];
+  /** Every singer has one chronological stream, including their shared phrases. */
+  singers: { id: string; verses: number[]; ends: number[] }[];
 }
 
 type Entrance = { verse: Verse; index: number };
@@ -30,7 +30,7 @@ function groupLanes(members: Entrance[]): { voices: EnsembleLane[]; shared: Ense
     const ids = partIds(verse).sort();
     const key = JSON.stringify(ids);
     let lane = lanes.get(key);
-    if (!lane) { lane = { key, partIds: ids, verses: [], maxLines: 1 }; lanes.set(key, lane); }
+    if (!lane) { lane = { key, partIds: ids, verses: [] }; lanes.set(key, lane); }
     lane.verses.push(index);
   }
   return {
@@ -90,7 +90,7 @@ export function buildEnsembleSections(verses: Verse[]): EnsembleSection[] {
   let start = 0, end = 0;
   const finish = () => {
     if (!members.length) return;
-    const section: EnsembleSection = { start, end, ...groupLanes(members) };
+    const section: EnsembleSection = { start, end, ...groupLanes(members), singers: [] };
     const previous = sections.at(-1);
     if (previous && start - previous.end <= ENSEMBLE_LEAD_IN && sameCast(previous, section)) {
       previous.end = end;
@@ -113,12 +113,21 @@ export function buildEnsembleSections(verses: Verse[]): EnsembleSection[] {
     // Choose a passage lead once, then preserve the song's order for all backing voices.
     const lead = [...section.voices].sort((a, b) => scores.get(b.key)! - scores.get(a.key)! || stableOrder(a, b))[0];
     if (lead && section.voices.length > 2) section.voices = [lead, ...section.voices.filter(lane => lane !== lead)];
-    for (const lane of [...section.voices, ...section.shared]) {
-      const edges = lane.verses.flatMap(index => [{ time: verses[index].verseStart, delta: 1 }, { time: verses[index].verseEnd, delta: -1 }]);
-      edges.sort((a, b) => a.time - b.time || a.delta - b.delta);
-      let active = 0;
-      for (const edge of edges) { active += edge.delta; lane.maxLines = Math.max(lane.maxLines, active); }
+    const singerCues = new Map<string, number[]>();
+    const cues = [...section.voices, ...section.shared].flatMap(lane => lane.verses).sort((a, b) => verses[a].verseStart - verses[b].verseStart || a - b);
+    for (const index of cues) {
+      const ids = partIds(verses[index]);
+      for (const id of ids.length ? ids : ['']) {
+        const items = singerCues.get(id) ?? [];
+        items.push(index);
+        singerCues.set(id, items);
+      }
     }
+    section.singers = [...singerCues].map(([id, cues]) => ({
+      id, verses: cues,
+      // Presentation boundaries only: saved words and locked releases stay intact.
+      ends: cues.map((index, i) => Math.min(verses[index].verseEnd, verses[cues[i + 1]]?.verseStart ?? Infinity))
+    }));
     section.shared.sort((a, b) => a.key.localeCompare(b.key));
   }
   return sections;
@@ -130,16 +139,43 @@ export function visibleSection(sections: EnsembleSection[], time: number): Ensem
     ?? sections.find(section => time >= section.end && time <= section.end + FADE_OUT_GRACE);
 }
 
-/** The latest entrance owns the singer's main line. Real held overlaps remain
- * beneath it, in the same area, with independent word wipes. No active text is lost.
+export interface DisplayedPhrase {
+  index: number;
+  /** A shared phrase can retain a singer whose partner has moved to a solo. */
+  partIds: string[];
+}
+
+/** At most one phrase per singer. The next entrance retires the previous phrase
+ * even if its saved/estimated end is later. It must never reappear after that.
+ * Resolve solo and shared ownership together, so a singer cannot occupy both.
  */
-export function laneVerses(lane: EnsembleLane, verses: Verse[], time: number): number[] {
-  const active = lane.verses.filter(index => time >= verses[index].verseStart && time < verses[index].verseEnd);
-  if (active.length) return active.reverse();
-  const next = lane.verses.find(index => time < verses[index].verseStart && time >= verses[index].verseStart - ENSEMBLE_LEAD_IN);
-  if (next !== undefined) return [next];
-  const recent = lane.verses.findLast(index => time >= verses[index].verseEnd && time <= verses[index].verseEnd + FADE_OUT_GRACE);
-  return recent === undefined ? [] : [recent];
+export function visiblePhrases(section: EnsembleSection, verses: Verse[], time: number): Map<string, DisplayedPhrase> {
+  const candidates = new Map<number, { partIds: string[]; priority: number }>();
+  for (const singer of section.singers) {
+    const started = singer.verses.findLastIndex(index => time >= verses[index].verseStart);
+    let selected = -1;
+    let priority = 0;
+    if (started >= 0 && time < singer.ends[started]) {
+      selected = started; priority = 2;
+    } else if (singer.verses[started + 1] !== undefined && time >= verses[singer.verses[started + 1]].verseStart - ENSEMBLE_LEAD_IN) {
+      selected = started + 1; priority = 1;
+    } else if (started >= 0 && time <= singer.ends[started] + FADE_OUT_GRACE) {
+      selected = started;
+    }
+    if (selected < 0) continue;
+    const index = singer.verses[selected];
+    const candidate = candidates.get(index) ?? { partIds: [], priority };
+    if (singer.id) candidate.partIds.push(singer.id);
+    candidate.priority = Math.max(candidate.priority, priority);
+    candidates.set(index, candidate);
+  }
+  const result = new Map<string, DisplayedPhrase>();
+  for (const lane of [...section.voices, ...section.shared]) {
+    // An active shared line takes precedence over another member's early preview.
+    const selected = lane.verses.filter(index => candidates.has(index)).sort((a, b) => candidates.get(b)!.priority - candidates.get(a)!.priority || verses[b].verseStart - verses[a].verseStart || b - a)[0];
+    if (selected !== undefined) result.set(lane.key, { index: selected, partIds: candidates.get(selected)!.partIds });
+  }
+  return result;
 }
 
 export interface EnsemblePlacement { column: number; span: number; row: number }
@@ -166,22 +202,9 @@ export function ensembleLayout(count: number, width: number): { columns: number;
   return { columns, places };
 }
 
-/** Reserve the tallest possible visible stack for a lane, using measured text
- * heights at its current width. Touching phrases never reserve a false overlap.
+/** Reserve the tallest single phrase, including wrapping, so line changes do
+ * not move lower singers. Overlapping timestamps never reserve a second row.
  */
-export function reservedLaneHeight(lane: EnsembleLane, verses: Verse[], heights: Map<number, { primary: number; tail: number }>): number {
-  const events = lane.verses.flatMap((index, rank) => [{ time: verses[index].verseStart, rank, delta: 1 }, { time: verses[index].verseEnd, rank, delta: -1 }]);
-  events.sort((a, b) => a.time - b.time || a.delta - b.delta);
-  const active = new Set<number>();
-  let tailHeight = 0;
-  let maximum = Math.max(0, ...lane.verses.map(index => heights.get(index)!.primary));
-  for (const event of events) {
-    const height = heights.get(lane.verses[event.rank])!;
-    if (event.delta > 0) active.add(event.rank); else active.delete(event.rank);
-    tailHeight += event.delta * height.tail;
-    if (!active.size) continue;
-    const latest = heights.get(lane.verses[Math.max(...active)])!;
-    maximum = Math.max(maximum, tailHeight + latest.primary - latest.tail);
-  }
-  return Math.ceil(maximum);
+export function reservedLaneHeight(lane: EnsembleLane, heights: Map<number, number>): number {
+  return Math.ceil(Math.max(0, ...lane.verses.map(index => heights.get(index)!)));
 }

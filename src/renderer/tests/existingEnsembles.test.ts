@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildEnsembleSections, laneVerses, visibleSection } from '../ensembleModel';
+import { buildEnsembleSections, visiblePhrases, visibleSection } from '../ensembleModel';
 import { isVerseTimed, partIds } from '../../core/parts';
 import { autoHealTimings } from '../../core/contracts';
 import { stampEnd, stampStart } from '../../studio/timing';
@@ -34,21 +34,32 @@ for (const id of ['disney-en-helt-ny-varld', 'encanto-vi-pratar-inte-om-bruno'])
       if (!active.length) continue;
       const section = visibleSection(sections, time)!;
       assert.equal(new Set(section.voices.map(lane => lane.key)).size, section.voices.length, 'One lane per singer');
-      const shown = [...section.voices, ...section.shared].flatMap(lane => laneVerses(lane, verses, time));
-      for (const index of active) assert.ok(shown.includes(index), `Phrase ${index} dropped at ${time}s`);
-      assert.equal(new Set(shown).size, shown.length, 'Shared lyrics must not be duplicated');
+      const shown = [...visiblePhrases(section, verses, time).values()];
+      const singers = shown.flatMap(phrase => phrase.partIds);
+      assert.equal(new Set(singers).size, singers.length, `Singer displayed twice at ${time}s`);
+      assert.equal(new Set(shown.map(phrase => phrase.index)).size, shown.length, 'Shared lyrics must not be duplicated');
+      for (const phrase of shown) {
+        for (const singer of phrase.partIds) {
+          const laterEntrance = active.some(index => partIds(verses[index]).includes(singer) && (verses[index].verseStart > verses[phrase.index].verseStart || verses[index].verseStart === verses[phrase.index].verseStart && index > phrase.index));
+          assert.equal(laterEntrance, false, `Superseded phrase shown for ${singer} at ${time}s`);
+        }
+      }
     }
   });
 
-  test(`${id}: each timed final word stays visible and wipes until its own endpoint`, () => {
+  test(`${id}: a final word lasts until its endpoint or that singer's next entrance`, () => {
     const sections = buildEnsembleSections(verses);
     for (const [index, verse] of verses.entries()) {
       const last = verse.words.at(-1)!;
       if (!last.timed || last.end <= last.start) continue;
       const time = last.end - Math.min(.01, (last.end - last.start) / 2);
       const section = visibleSection(sections, time)!;
-      const shown = [...section.voices, ...section.shared].flatMap(lane => laneVerses(lane, verses, time));
-      assert.ok(shown.includes(index), `Final word cut early in phrase ${index}`);
+      const shown = [...visiblePhrases(section, verses, time).values()];
+      for (const singer of partIds(verse)) {
+        const superseded = verses.some((v, i) => isVerseTimed(v) && partIds(v).includes(singer) && v.verseStart <= time && (v.verseStart > verse.verseStart || v.verseStart === verse.verseStart && i > index));
+        if (superseded) assert.equal(shown.some(phrase => phrase.index === index && phrase.partIds.includes(singer)), false, 'Do not show an old vowel alongside a new phrase');
+        else assert.ok(shown.some(phrase => phrase.index === index && phrase.partIds.includes(singer)), `Final word cut early in phrase ${index} for ${singer}`);
+      }
       assert.ok(wordProgress(last.start, last.end, time) < 100);
       assert.equal(wordProgress(last.start, last.end, last.end), 100);
     }
@@ -75,3 +86,13 @@ for (const id of ['disney-en-helt-ny-varld', 'encanto-vi-pratar-inte-om-bruno'])
     assert.ok(checked > 30, 'Cover recorded releases across the actual arrangement');
   });
 }
+
+test('Aladdin screenshot regression: Om du flyger replaces Oförglömliga stunder', () => {
+  const fixture = JSON.parse(readFileSync(new URL('./fixtures/disney-en-helt-ny-varld.json', import.meta.url), 'utf8')) as TimingSnapshot;
+  const verses: Verse[] = fixture.phrases.map(phrase => ({ speaker: phrase.singers[0], speakers: phrase.singers.length > 1 ? phrase.singers : undefined, verseStart: phrase.start, verseEnd: phrase.end, words: phrase.words.map(([start, end, timed]) => ({ word: 'lyric', start, end, timed: timed ?? undefined })) }));
+  const sections = buildEnsembleSections(verses);
+  const shown = [...visiblePhrases(visibleSection(sections, 43.1)!, verses, 43.1).values()];
+  assert.ok(shown.some(phrase => phrase.index === 7));
+  assert.equal(shown.some(phrase => phrase.index === 6), false);
+  assert.equal(shown.filter(phrase => phrase.partIds.includes('aladdin')).length, 1);
+});

@@ -6,7 +6,7 @@ import { parseRawLyrics } from '../tokenizer';
 import { autoHealTimings, validateSongContract } from '../contracts';
 import { isTimed, partIds } from '../parts';
 import { nextCursor, stampStart, stampEnd } from '../../studio/timing';
-import { buildEnsembleSections, visibleSection, laneVerses } from '../../renderer/ensembleModel';
+import { buildEnsembleSections, visibleSection, visiblePhrases } from '../../renderer/ensembleModel';
 import type { Verse, SaveLyricsPayload } from '../../types/karaoke';
 
 const cue = (speaker: string, start: number, end: number): Verse => ({ speaker, verseStart: start, verseEnd: end, words: [{ word: `Part ${speaker}`, start, end, timed: true, endLocked: true }] });
@@ -71,7 +71,7 @@ test('all seven simultaneous phrases survive and have independent timing', () =>
   const sections = buildEnsembleSections(verses);
   const section = visibleSection(sections, 11)!;
   assert.equal(section.voices.length, 7);
-  assert.deepEqual(section.voices.flatMap(lane => laneVerses(lane, verses, 11)).sort((a, b) => a - b), [0, 1, 2, 3, 4, 5, 6]);
+  assert.deepEqual([...visiblePhrases(section, verses, 11).values()].map(phrase => phrase.index).sort((a, b) => a - b), [0, 1, 2, 3, 4, 5, 6]);
   assert.equal(visibleSection(sections, 1), undefined);
   assert.equal(visibleSection(sections, 11), section);
   // A backward seek recovers the same section and lane order.
@@ -79,15 +79,15 @@ test('all seven simultaneous phrases survive and have independent timing', () =>
   assert.deepEqual(visibleSection(sections, 11)?.voices, section.voices);
 });
 
-test('same-character overlaps are retained; sequential cues reuse their lane', () => {
+test('same-character overlaps replace the old phrase; sequential cues reuse their lane', () => {
   const verses = [cue('a', 1, 5), cue('a', 2, 3), cue('b', 2, 8), cue('a', 5, 7)];
   const sections = buildEnsembleSections(verses);
   assert.equal(sections.length, 1);
   assert.equal(sections[0].voices.length, 2);
   const lane = sections[0].voices.find(lane => lane.partIds[0] === 'a')!;
   assert.deepEqual(lane.verses, [0, 1, 3]);
-  assert.deepEqual(laneVerses(lane, verses, 2.5), [1, 0]);
-  assert.deepEqual(laneVerses(lane, verses, 5.5), [3]);
+  assert.deepEqual([visiblePhrases(sections[0], verses, 2.5).get(lane.key)!.index], [1]);
+  assert.deepEqual([visiblePhrases(sections[0], verses, 5.5).get(lane.key)!.index], [3]);
 });
 
 test('saved JSON retains colours, shared assignments and explicit endings', () => {

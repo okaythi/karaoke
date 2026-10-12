@@ -224,7 +224,7 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
             </div>
 
             <div class="transport-center">
-              <span style="color: var(--text-dim); font-size: 11px;">Focus right panel & tap <kbd class="kbd-chip">SPACE</kbd> to sync</span>
+              <span style="color: var(--text-dim); font-size: 11px;">Focus timing matrix: <kbd class="kbd-chip">SPACE</kbd> starts a word · <kbd class="kbd-chip">E</kbd> ends the word just tapped</span>
             </div>
 
             <div class="transport-right">
@@ -254,6 +254,11 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
           <label>Colour<input id="part-color" type="color" value="#deb668" aria-label="Selected character colour" /></label>
           <button class="micro-btn" id="btn-add-part">+ Character</button>
           <p id="part-status" role="status">Select a character to record one voice per pass. E ends the last tapped word.</p>
+          <p class="timing-guide"><kbd class="kbd-chip">SPACE</kbd> starts a word and advances. <kbd class="kbd-chip">E</kbd> ends the word you just tapped. Press E when its final vowel stops.</p>
+          <div class="timing-actions">
+            <button class="micro-btn" type="button" id="btn-end-word" aria-keyshortcuts="E" disabled>End word <kbd class="kbd-chip">E</kbd></button>
+            <span id="end-word-target" role="status">Tap a word with Space, or select a timed word, to mark its end.</span>
+          </div>
           <div class="word-time-editor">
             <label>Word start (s)<input class="field-input" id="word-start" type="number" min="0" step="0.01" /></label>
             <label>Word end (s)<input class="field-input" id="word-end" type="number" min="0" step="0.01" /></label>

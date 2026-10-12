@@ -33,7 +33,7 @@ function setup(t: { after(fn: () => void): void }, text = '@A\nFirst two\n@B\nOt
   const oldWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
   const parsed = parseLyricImport(text);
   Object.assign(state, { localLyrics: parsed.verses, parts: parsed.parts, selectedPart: '*', recordingPart: null, currentV: 0, currentW: 0, partCursors: {}, lastStamped: null, globalOffset: 0 });
-  const controls = Object.fromEntries(['matrixPane', 'wordStart', 'wordEnd', 'btnSetWordTimes', 'partStatus', 'partColor', 'recordingPartSelector', 'syncProgressFill', 'statsWordsTimed', 'statsVersesCount', 'offsetDisplay', 'versesContainer', 'partSelector', 'btnAddPart', 'loopStart', 'loopEnd', 'loopEnabled', 'btnLoopRestart'].map(name => [name, new Control()]));
+  const controls = Object.fromEntries(['matrixPane', 'wordStart', 'wordEnd', 'btnSetWordTimes', 'btnEndWord', 'endWordTarget', 'partStatus', 'partColor', 'recordingPartSelector', 'syncProgressFill', 'statsWordsTimed', 'statsVersesCount', 'offsetDisplay', 'versesContainer', 'partSelector', 'btnAddPart', 'loopStart', 'loopEnd', 'loopEnabled', 'btnLoopRestart'].map(name => [name, new Control()]));
   const media = { currentTime: 1, duration: 30, paused: false, listeners: new Map<string, ((event: any) => void)[]>(), addEventListener: Control.prototype.addEventListener, dispatch: Control.prototype.dispatch };
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { getElementById: () => null, querySelectorAll: () => [] } });
   Object.defineProperty(globalThis, 'window', { configurable: true, value: { addEventListener() {} } });
@@ -164,4 +164,32 @@ test('loop restart restores the recording voice cursor without a matrix or previ
   assert.equal(state.recordingPart, 'b');
   assert.equal(app.media.currentTime, 10);
   assert.equal(app.rebuilds(), 0);
+});
+
+test('visible End word button ends the last tap after the cursor advances to another phrase', t => {
+  const app = setup(t, '@A\nHeld\n@B\nOther\n@A\nNext');
+  armRecordingPart('a', { v: 0, w: 0 });
+  app.press('Space');
+  assert.equal(state.currentV, 2);
+  assert.equal(app.controls.btnEndWord.disabled, false);
+  assert.match(app.controls.endWordTarget.textContent, /Held/);
+  app.media.currentTime = 4;
+  app.controls.btnEndWord.dispatch('click', {});
+  assert.equal(state.localLyrics[0].words[0].end, 4);
+  assert.equal(state.localLyrics[0].words[0].endLocked, true);
+  assert.equal(state.localLyrics[1].words[0].timed, false);
+  assert.match(app.controls.endWordTarget.textContent, /End is locked/);
+  assert.equal(app.rebuilds(), 0);
+});
+
+test('End word cannot stamp an unselected voice or an untimed word', t => {
+  const app = setup(t);
+  app.controls.btnEndWord.dispatch('click', {});
+  assert.equal(app.changed.length, 0);
+  assert.equal(app.controls.btnEndWord.disabled, true);
+  armRecordingPart('b', { v: 1, w: 0 });
+  app.press('KeyE');
+  assert.equal(app.changed.length, 0);
+  assert.equal(app.controls.btnEndWord.disabled, true);
+  assert.equal(state.localLyrics[1].words[0].endLocked, undefined);
 });

@@ -5,12 +5,10 @@
 .ensemble-grid[hidden] + .ensemble-shared { margin-top: 0; }
 .ensemble-voice {
   min-width: 0;
-  min-height: calc(var(--ensemble-lane-lines, 1) * (1.4em + 4px));
+  min-height: calc(1.4em + 4px);
   font-size: clamp(16px, 1.5vw, 23px);
 }
 .ensemble-measure { position: fixed; left: -10000px; top: 0; visibility: hidden; pointer-events: none; }
-/* Held notes stay subordinate to the latest entrance in the same singer's area. */
-.ensemble-voice > .ensemble-line + .ensemble-line { opacity: .7; font-size: .85em; }
 .ensemble-grid {
   display: grid;
   grid-template-columns: repeat(var(--ensemble-columns, 1), minmax(0, 1fr));
