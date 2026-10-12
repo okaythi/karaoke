@@ -1,11 +1,14 @@
 import { isProtectedVideo, PROTECTED_MEDIA_PATH } from '../security/protectedSong.js';
 import { state } from './state';
-import { 
-  parseSongInfoFromFilename, 
-  canonicalSongId, 
-  canonicalVideoFilename, 
-  parseRawLyrics 
+import {
+  parseSongInfoFromFilename,
+  canonicalSongId,
+  canonicalVideoFilename
 } from '../core/tokenizer';
+import { parseLyricImport, type LyricImport } from '../core/lyricImport';
+import { collectParts } from '../core/parts';
+import { validateSongContract } from '../core/contracts';
+import brunoDraft from '../data/lyric-drafts/vi-pratar-inte-om-bruno.sv.txt?raw';
 import { buildPayload } from './persistence';
 import type { SaveLyricsPayload, SongCatalogItem } from '../types/karaoke';
 import type { getStudioElements } from './dom';
@@ -44,18 +47,59 @@ export function initModals(
   btnCloseIngest.addEventListener('click', () => ingestModal.classList.remove('open'));
   btnCancelIngest.addEventListener('click', () => ingestModal.classList.remove('open'));
 
-  btnApplyIngest.addEventListener('click', () => {
+  const parseInput = (): LyricImport & { offset?: number } => {
     const text = rawLyricsInput.value.trim();
-    if (!text) return;
-    const parsed = parseRawLyrics(text);
-    if (parsed.length > 0) {
-      state.localLyrics = parsed;
-      state.currentV = 0;
-      state.currentW = 0;
+    if (text.startsWith('{')) {
+      const document = JSON.parse(text) as SaveLyricsPayload;
+      const validation = validateSongContract(document);
+      if (!validation.valid) throw new Error(validation.errors.join('\n'));
+      return { verses: document.lyricsData, parts: collectParts(document.lyricsData, document.parts ?? []), warnings: [], offset: document.globalOffset };
+    }
+    return parseLyricImport(text);
+  };
+  const preview = () => {
+    try {
+      const parsed = parseInput();
+      const unassigned = parsed.verses.filter(verse => !verse.speaker && !verse.speakers?.length).length;
+      els.ingestPreview.textContent = `${parsed.verses.length} phrases; ${parsed.parts.map(part => part.name).join(', ') || 'no characters'}; ${unassigned} unassigned. ${parsed.warnings.join(' ')}`;
+      els.ingestPreview.classList.remove('import-error');
+      btnApplyIngest.disabled = !parsed.verses.length;
+    } catch (error) {
+      els.ingestPreview.textContent = error instanceof Error ? error.message : String(error);
+      els.ingestPreview.classList.add('import-error');
+      btnApplyIngest.disabled = true;
+    }
+  };
+  rawLyricsInput.addEventListener('input', preview);
+  btnOpenIngest.addEventListener('click', preview);
+  els.btnBrunoDraft.addEventListener('click', () => { rawLyricsInput.value = brunoDraft; preview(); });
+  els.ingestFile.addEventListener('change', async () => {
+    const file = els.ingestFile.files?.[0];
+    if (!file) return;
+    if (file.size > 1024 * 1024) { showToast('Lyric imports must be under 1 MB.', true); return; }
+    rawLyricsInput.value = await file.text();
+    preview();
+    els.ingestFile.value = '';
+  });
+  btnApplyIngest.addEventListener('click', () => {
+    try {
+      const parsed = parseInput();
+      if (!parsed.verses.length) return;
+      if (state.localLyrics.length && !confirm('Replace the current lyrics and timings with this import?')) return;
+      state.localLyrics = parsed.verses;
+      state.parts = parsed.parts;
+      if (state.parts.length && window.innerWidth > 1050) els.studioGrid.classList.add('sidebar-collapsed');
+      state.selectedPart = '*';
+      state.partCursors = {}; state.lastStamped = null;
+      state.currentV = 0; state.currentW = 0;
+      if (parsed.offset !== undefined) {
+        state.globalOffset = parsed.offset;
+        els.offsetDisplay.textContent = `${parsed.offset >= 0 ? '+' : ''}${parsed.offset.toFixed(2)}s`;
+      }
       onLyricsIngested();
       ingestModal.classList.remove('open');
-      showToast(`Ingested ${parsed.length} verses ready for synchronization!`);
-    }
+      showToast(`Imported ${parsed.verses.length} phrases across ${parsed.parts.length} parts.`);
+    } catch (error) { showToast(error instanceof Error ? error.message : String(error), true); }
   });
 
   // Export Modal
@@ -68,6 +112,7 @@ export function initModals(
       globalOffset: state.globalOffset,
       hasTranslation: false,
       isDialect: false,
+      parts: state.parts,
       lyricsData: state.localLyrics
     };
 

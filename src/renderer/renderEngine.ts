@@ -1,7 +1,9 @@
 import { escapeHtml, lyricHtml } from '../core/html';
 import { hasCjk } from '../core/script';
 import { followPlayback } from '../playback/frames';
-import type { Verse } from '../types/karaoke';
+import { isTimed } from '../core/parts';
+import { createEnsembleEngine } from './ensemble';
+import type { LyricPart, Verse } from '../types/karaoke';
 
 export type LineMode = 'dual' | 'single';
 
@@ -11,6 +13,7 @@ export interface RenderEngineOptions {
   topLineElement: HTMLElement;
   bottomLineElement: HTMLElement;
   lyricsData?: Verse[];
+  parts?: LyricPart[];
   globalOffset?: number;
   /** A compact lyric lane alongside an instrumental score. */
   lineMode?: LineMode;
@@ -62,6 +65,7 @@ const speakerKey = (speaker?: string): string =>
  * current verse is shown, fitted to one line.
  */
 export function createRenderEngine(options: RenderEngineOptions): RenderEngineController {
+  if (options.parts?.length) return createEnsembleEngine(options);
   const { videoElement, containerElement } = options;
   const lyrics = (options.lyricsData || []).filter(verse => verse && Array.isArray(verse.words) && verse.words.length > 0);
   const globalOffset = options.globalOffset || 0;
@@ -117,7 +121,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     verse.words.forEach((word, index) => {
       const element = line.words[index];
       if (!element) return;
-      const progress = isRecent ? 100 : isActive ? wordProgress(word.start, word.end, time) : 0;
+      const progress = !isTimed(word) ? 0 : isRecent ? 100 : isActive ? wordProgress(word.start, word.end, time) : 0;
       if (line.written[index] === progress) return;
       line.written[index] = progress;
       element.style.setProperty('--wipe-progress', `${progress}%`);

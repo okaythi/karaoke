@@ -1,4 +1,7 @@
 import { state } from './state';
+import { escapeHtml, lyricHtml } from '../core/html';
+import { collectParts, isTimed, isVerseTimed, partIds, partColor } from '../core/parts';
+import { matchesPart } from './timing';
 import { formatTime } from './format';
 import type { getStudioElements } from './dom';
 
@@ -14,7 +17,7 @@ export function updateTelemetry(els: StudioElements): void {
   state.localLyrics.forEach(v => {
     v.words.forEach(w => {
       totalWords++;
-      if (w.start > 0 || (w.end && w.end > 0)) {
+      if (isTimed(w)) {
         timedWords++;
       }
     });
@@ -31,6 +34,19 @@ export function updateTelemetry(els: StudioElements): void {
  */
 export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): void {
   const { versesContainer, matrixPane, vid } = els;
+  state.parts = collectParts(state.localLyrics, state.parts);
+  els.studioGrid.classList.toggle('ensemble-workspace', state.parts.length > 0);
+  els.partSelector.innerHTML = '<option value="*">All parts</option><option value="">Unassigned</option>' + state.parts.map(part => `<option value="${escapeHtml(part.id)}">${escapeHtml(part.name)}</option>`).join('');
+  els.partSelector.value = state.selectedPart;
+  const selected = state.parts.find(part => part.id === state.selectedPart);
+  els.partColor.disabled = !selected;
+  els.partColor.value = selected?.color ?? '#deb668';
+  const targetWord = state.localLyrics[state.currentV]?.words[state.currentW];
+  els.wordStart.value = targetWord && isTimed(targetWord) ? String(targetWord.start) : '';
+  els.wordEnd.value = targetWord && isTimed(targetWord) ? String(targetWord.end) : '';
+  els.btnSetWordTimes.disabled = !targetWord;
+  const remaining = state.localLyrics.filter(verse => matchesPart(verse, state.selectedPart)).flatMap(verse => verse.words).filter(word => !isTimed(word)).length;
+  els.partStatus.textContent = `${remaining} untimed words in ${selected?.name ?? (state.selectedPart === '*' ? 'all parts' : 'unassigned')}. Space starts the next word; E ends the last tapped word.`;
 
   if (state.localLyrics.length === 0) {
     versesContainer.innerHTML = `
@@ -50,9 +66,10 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
     });
     document.getElementById('btn-empty-add')?.addEventListener('click', () => {
       state.localLyrics.push({
+        speaker: state.selectedPart !== '*' ? state.selectedPart || undefined : undefined,
         verseStart: 0,
         verseEnd: 0,
-        words: [{ word: 'FirstWord ', start: 0, end: 0 }]
+        words: [{ word: 'FirstWord ', start: 0, end: 0, timed: false }]
       });
       renderMatrix(els, onRenderBlocks);
       updateTelemetry(els);
@@ -62,18 +79,22 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
   }
 
   versesContainer.innerHTML = state.localLyrics.map((verse, vIdx) => {
+    if (!matchesPart(verse, state.selectedPart)) return '';
     const isCurrentVerse = vIdx === state.currentV;
-    const rangeDisplay = verse.verseStart > 0
+    const rangeDisplay = isVerseTimed(verse)
       ? `${formatTime(verse.verseStart)} → ${formatTime(verse.verseEnd)}`
       : '--:--.---';
 
     return `
-      <div class="verse-card ${isCurrentVerse ? 'active' : ''}" id="card-v-${vIdx}">
+      <div class="verse-card ${isCurrentVerse ? 'active' : ''}" id="card-v-${vIdx}" style="--part-color:${partColor(verse, state.parts)}">
         <div class="verse-card-header">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span class="verse-id-badge">#${String(vIdx + 1).padStart(2, '0')}</span>
             <span class="verse-time-range">${rangeDisplay}</span>
-            ${verse.speaker ? `<span class="speaker-tag">${verse.speaker}</span>` : ''}
+            <details class="phrase-parts"><summary>${escapeHtml(partIds(verse).map(id => state.parts.find(part => part.id === id)?.name ?? id).join(' + ') || 'Unassigned')} ▾</summary>
+              ${state.parts.map(part => `<label><input type="checkbox" data-part="${escapeHtml(part.id)}" data-v="${vIdx}" ${partIds(verse).includes(part.id) ? 'checked' : ''} />${escapeHtml(part.name)}</label>`).join('')}
+              <small>Select multiple only for identical words and timing.</small>
+            </details>
           </div>
           <div class="verse-actions">
             ${state.activeSong?.hasTranslation && !verse.translation ? `<button class="icon-btn" data-action="add-translation" data-v="${vIdx}" title="Add translation">+Tr</button>` : ''}
@@ -85,17 +106,17 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
 
         <div class="words-grid">
           ${verse.words.map((w, wIdx) => {
-            const isTimed = w.start > 0 || w.end > 0;
+            const wordTimed = isTimed(w);
             const isTargetNext = vIdx === state.currentV && wIdx === state.currentW;
             const displayWord = w.furigana
-              ? `<span class="yomitan-ruby" data-furi="${w.furigana}">${w.word}</span>`
-              : w.word;
+              ? `<span class="yomitan-ruby" data-furi="${escapeHtml(w.furigana)}">${lyricHtml(w.word)}</span>`
+              : lyricHtml(w.word);
 
             return `
-              <div class="word-chip ${isTimed ? 'timed' : ''} ${isTargetNext ? 'target-next' : ''}" 
+              <div class="word-chip ${wordTimed ? 'timed' : ''} ${isTargetNext ? 'target-next' : ''}"
                    data-v="${vIdx}" data-w="${wIdx}" id="chip-${vIdx}-${wIdx}">
                 <span class="word-text">${displayWord}</span>
-                <span class="word-timestamp">${w.start > 0 ? w.start.toFixed(2) + 's' : '--'}</span>
+                <span class="word-timestamp">${wordTimed ? w.start.toFixed(2) + 's' : '--'}</span>
               </div>
             `;
           }).join('')}
@@ -103,12 +124,27 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
 
         ${verse.translation ? `
           <div class="verse-translation-subtitle" data-action="edit-translation" data-v="${vIdx}" title="Click to edit translation">
-            <span style="opacity: 0.5; margin-right: 4px;">↳</span>${verse.translation}
+            <span style="opacity: 0.5; margin-right: 4px;">↳</span>${lyricHtml(verse.translation)}
           </div>
         ` : ''}
       </div>
     `;
   }).join('');
+
+  versesContainer.querySelectorAll<HTMLInputElement>('[data-part]').forEach(input => {
+    input.addEventListener('change', () => {
+      const verse = state.localLyrics[Number(input.dataset.v)];
+      const assigned = new Set(partIds(verse));
+      if (input.checked) assigned.add(input.dataset.part!); else assigned.delete(input.dataset.part!);
+      const ids = [...assigned];
+      verse.speaker = ids[0];
+      verse.speakers = ids.length > 1 ? ids : undefined;
+      state.partCursors = {};
+      state.lastStamped = null;
+      renderMatrix(els, onRenderBlocks);
+      onRenderBlocks();
+    });
+  });
 
   // Attach Word Chip Listeners
   versesContainer.querySelectorAll('.word-chip').forEach(el => {
@@ -117,13 +153,11 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
       const w = Number(el.getAttribute('data-w'));
       state.currentV = v;
       state.currentW = w;
+      state.lastStamped = null;
 
       const targetWord = state.localLyrics[v]?.words[w];
-      const targetTime = (targetWord?.start && targetWord.start > 0)
-        ? targetWord.start
-        : (state.localLyrics[v]?.verseStart || 0);
-
-      if (targetTime > 0) {
+      const targetTime = targetWord && isTimed(targetWord) ? targetWord.start : state.localLyrics[v]?.verseStart || 0;
+      if ((targetWord && isTimed(targetWord)) || isVerseTimed(state.localLyrics[v])) {
         vid.currentTime = Math.max(0, targetTime + state.globalOffset - 1.0);
       }
 
@@ -140,7 +174,7 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
       state.currentV = v;
       state.currentW = 0;
       const start = state.localLyrics[v]?.verseStart || 0;
-      if (start > 0) vid.currentTime = Math.max(0, start + state.globalOffset - 1.0);
+      if (isVerseTimed(state.localLyrics[v])) vid.currentTime = Math.max(0, start + state.globalOffset - 1.0);
       renderMatrix(els, onRenderBlocks);
     });
   });
@@ -151,7 +185,7 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
       const v = Number(btn.getAttribute('data-v'));
       const wordText = prompt('Enter new word text:');
       if (wordText) {
-        state.localLyrics[v].words.push({ word: wordText + ' ', start: 0, end: 0 });
+        state.localLyrics[v].words.push({ word: wordText + ' ', start: 0, end: 0, timed: false });
         renderMatrix(els, onRenderBlocks);
         updateTelemetry(els);
         onRenderBlocks();
@@ -169,6 +203,7 @@ export function renderMatrix(els: StudioElements, onRenderBlocks: () => void): v
           state.currentV = Math.max(0, state.localLyrics.length - 1);
         }
         state.currentW = 0;
+        state.partCursors = {}; state.lastStamped = null;
         renderMatrix(els, onRenderBlocks);
         updateTelemetry(els);
         onRenderBlocks();

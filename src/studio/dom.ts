@@ -9,6 +9,17 @@ export function getStudioElements() {
     trackSelector: document.getElementById('track-selector') as unknown as HTMLSelectElement,
     matrixPane: document.getElementById('matrix-pane') as HTMLElement,
     versesContainer: document.getElementById('verses-container') as HTMLElement,
+    partSelector: document.getElementById('part-selector') as HTMLSelectElement,
+    partColor: document.getElementById('part-color') as HTMLInputElement,
+    btnAddPart: document.getElementById('btn-add-part') as HTMLButtonElement,
+    loopStart: document.getElementById('loop-start') as HTMLInputElement,
+    loopEnd: document.getElementById('loop-end') as HTMLInputElement,
+    loopEnabled: document.getElementById('loop-enabled') as HTMLInputElement,
+    btnLoopRestart: document.getElementById('btn-loop-restart') as HTMLButtonElement,
+    wordStart: document.getElementById('word-start') as HTMLInputElement,
+    wordEnd: document.getElementById('word-end') as HTMLInputElement,
+    btnSetWordTimes: document.getElementById('btn-set-word-times') as HTMLButtonElement,
+    partStatus: document.getElementById('part-status') as HTMLElement,
 
     hudCurrentTime: document.getElementById('hud-current-time') as HTMLElement,
     hudTotalTime: document.getElementById('hud-total-time') as HTMLElement,
@@ -75,6 +86,9 @@ export function getStudioElements() {
     btnCancelIngest: document.getElementById('btn-cancel-ingest') as HTMLButtonElement,
     btnApplyIngest: document.getElementById('btn-apply-ingest') as HTMLButtonElement,
     rawLyricsInput: document.getElementById('raw-lyrics-input') as HTMLTextAreaElement,
+    ingestPreview: document.getElementById('ingest-preview') as HTMLElement,
+    ingestFile: document.getElementById('ingest-file') as HTMLInputElement,
+    btnBrunoDraft: document.getElementById('btn-bruno-draft') as HTMLButtonElement,
 
     // Shortcuts modal
     shortcutsModal: document.getElementById('shortcuts-modal') as HTMLElement,

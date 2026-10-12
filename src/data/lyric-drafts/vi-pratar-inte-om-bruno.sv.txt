@@ -1,0 +1,176 @@
+// Swedish Bruno draft, reformatted from the text supplied in this chat.
+// Reference: https://www.youtube.com/watch?v=zVrLyU9YHpE
+// REVIEW: Voice assignments follow the scene structure; they have not been audited against the Swedish audio.
+// REVIEW: Kör represents group responses whose exact participating voices need checking.
+// REVIEW: The supplied finale omits independent overlapping Isabela/Dolores text. Add verified text before final timing; it has not been invented here.
+// REVIEW: Check who sings “dags för middag” and the final Kör responses in the recording.
+
+@Pepa | #edd18e
+Vi pratar inte om Bruno-no-no-no
+@Pepa + Félix
+Prata inte om Bruno
+@Pepa
+Men, dagen vi gifte oss
+@Félix | #8fd5f4
+dagen vi gifte oss
+@Pepa
+Vi var nästan klara och det fanns inga moln denna dag
+@Félix
+Moln var förbjudna, vår dag
+@Pepa
+Vi såg Brunos min, ett sånt illmarigt flin
+@Félix
+åska
+@Pepa
+Ska du få berätta eller jag?
+@Félix
+Förlåt mig, kära, prata på
+@Pepa
+Han säger: "Regnet kommer snart"
+@Félix
+Hon får huvudbryt
+@Pepa
+Det mulnar inom mig såklart
+@Félix
+Vi fäller upp paraplyt
+@Pepa
+En full orkan som snabbt tar fart
+@Félix
+Vilken ljuvlig dag, men som vi sa
+@Pepa + Félix
+Vi pratar inte om Bruno-no-no-no
+Prata inte om Bruno
+
+@Dolores | #eaa3da
+Du, Bruno kunde få mig att rysa eller huttra
+Jag som alltid hörde honom lalla runt och muttra
+Han var som en vind som yr i sand och låter så
+(tss, tss, tss)
+Han var så tyngd av sin siargåva
+Jobbigt för familjen, ja, det vill jag lova
+Syner och visioner är ju svåra att förstå
+kan du själv förstå?
+
+@Camilo | #9bd7a0
+En gänglig gestalt
+råttor på hans rygg
+Han kan skåda allt
+och aldrig är du trygg
+Som en mardrömsman
+en sann demon är han (hey)
+@Kör | #c6d87d
+Vi pratar inte om Bruno-no-no-no
+@Dolores
+prata inte om Bruno-no
+@Kör
+Prata inte om Bruno
+@Dolores
+prata inte om Bruno
+
+@Bybo – fisk | #ffad86
+Min fisk skulle dö, sa han, sen dog den, tvärt!
+@Kör
+No, no
+@Osvaldo | #8ce0d0
+Jag skulle bli rund, sa han, och aldrig mer slank!
+@Kör
+No, no
+@Prästen | #e7c898
+Jag skulle mista allt mitt hår, sa han, och se nu på mig!
+@Kör
+No, no
+Han styr ditt öde och allt som väntar dig
+
+@Isabela | #c0b2ff
+Han har sagt att mitt liv blir en dröm
+Med det under som kärleken ger
+Han har sagt att min lycka blir stor
+Och min kraft ska frodas allt mer
+@Abuela | #e9a8b1
+Åh, Mariano är på väg
+@Dolores
+Han sa att jag får aldrig min prins
+Fast han nära mig finns, han får någon annan
+Jag nästan hör hans röst
+@Isabela
+du, syrran
+Ikväll får du hålla dig tyst!
+@Dolores
+det är som jag hör hans röst
+Ja, jag hör hans röst
+
+@Mirabel | #f0b8a0
+Um, Bruno?
+När det gäller Bruno
+Berätta lite mera om Bruno
+Vill veta allt, veta allt om Bruno
+@Abuela
+Isabella, din pojkvän är här
+@Kör
+dags för middag
+
+@Camilo
+En gänglig gestalt
+@Pepa
+dagen vi gifte oss
+@Camilo
+Råttor på hans rygg
+@Félix
+dagen vi gifte oss
+@Camilo
+Han kan skåda allt
+@Pepa
+vi var nästan klara och det fanns inga moln denna dag
+@Camilo
+Och aldrig är du trygg
+@Félix
+moln var förbjudna, vår dag
+@Camilo
+Som en mardrömsman
+@Pepa
+Bruno, hans min var ett illmarigt flin
+@Camilo
+En sann demon är han
+@Félix
+åska
+@Pepa
+Ska du få berätta eller jag?
+@Félix
+Förlåt mig, kära, prata på
+@Abuela
+åh, Mariano är på väg
+
+@Camilo
+En gänglig gestalt
+@Pepa
+han säger: "Regnet kommer snart"
+@Camilo
+Råttor på hans rygg
+@Félix
+hon får huvudbryt
+@Camilo
+Han kan skåda allt
+@Pepa
+det mulnar inom mig såklart
+@Camilo
+Och aldrig är du trygg
+@Félix
+vi fäller upp paraplyt
+@Camilo
+Som en mardrömsman
+@Pepa
+en full orkan som snabbt tar fart
+@Camilo
+En sann demon är han
+@Félix
+vilken ljuvlig dag
+@Dolores
+Han är här!
+@Kör
+Säg inget om Bruno-no-no-no
+@Mirabel
+åh, varför nämnde jag Bruno?
+@Kör
+Vi ska tiga om Bruno
+@Mirabel
+jag borde hållit tyst om Bruno

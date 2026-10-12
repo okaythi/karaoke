@@ -1,0 +1,58 @@
+/* Shared by the public player and studio preview. Character names stay in authoring UI. */
+.ensemble-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ensemble-columns, 1), minmax(0, 1fr));
+  align-items: start;
+  gap: 6px 24px;
+  width: 100%;
+}
+.ensemble-line {
+  min-width: 0;
+  min-height: 1.4em;
+  font-size: clamp(16px, 1.5vw, 23px);
+  font-weight: 650;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--lyric-highlight, #deb668);
+  overflow-wrap: anywhere;
+  padding-bottom: 4px;
+}
+.ensemble-line .word-base { opacity: .48; }
+.ensemble-line .word-wrapper {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+  margin: 0 2px;
+  max-width: 100%;
+}
+.ensemble-line .word-cjk { margin: 0; }
+.ensemble-line .word-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--lyric-highlight, #deb668);
+  pointer-events: none;
+  clip-path: inset(-30px calc(100% - var(--wipe-progress, 0%)) -15px 0);
+}
+.ensemble-line .k-line-translation { display: block; font-size: 12px; opacity: .75; }
+.ensemble-line.shared-part { border-bottom: 3px solid transparent; border-image: var(--shared-colors) 1; }
+/* Override the solo display's fixed height, including fullscreen/portrait rules. */
+.stage-middle .lyrics-stage-container.ensemble-lyrics,
+.lyrics-stage-container.ensemble-lyrics {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 1600px;
+  height: auto;
+  min-height: 55px;
+  max-height: none;
+  padding: 8px 16px;
+  overflow: visible;
+}
+.ensemble-lyrics > [hidden] { display: none !important; }
+@media (max-width: 559px) {
+  .ensemble-grid { gap: 4px; }
+  .ensemble-line { font-size: 16px; }
+}

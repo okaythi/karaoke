@@ -24,7 +24,8 @@ export function buildPayload(els: StudioElements): SaveLyricsPayload | null {
     globalOffset: state.globalOffset,
     hasTranslation: els.metaHasTranslation.checked,
     isDialect: els.metaIsDialect.checked,
-    lyricsData: state.localLyrics
+    lyricsData: state.localLyrics,
+    parts: state.parts.length ? state.parts : undefined
   };
 }
 

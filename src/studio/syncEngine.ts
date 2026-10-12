@@ -1,7 +1,9 @@
 import { state } from './state';
 import { renderMatrix, updateTelemetry } from './renderer';
 import { formatTime } from './format';
-import { ALL_PUNCT_REGEX } from '../core/punctuation';
+import { autoHealTimings } from '../core/contracts';
+import { isTimed } from '../core/parts';
+import { nextCursor, stampStart, stampEnd, matchesPart } from './timing';
 import type { getStudioElements } from './dom';
 
 type StudioElements = ReturnType<typeof getStudioElements>;
@@ -17,158 +19,85 @@ export function initSyncEngine(
 ) {
   const { matrixPane, vid, offsetDisplay } = els;
 
-  // Spacebar Tap-to-Sync & Keyboard Modifiers
+  const refresh = () => {
+    autoHealTimings(state.localLyrics);
+    state.partCursors[state.selectedPart] = { v: state.currentV, w: state.currentW };
+    renderMatrix(els, onRenderBlocks);
+    onRenderBlocks();
+    updateTelemetry(els);
+  };
+
   matrixPane.addEventListener('keydown', (e: KeyboardEvent) => {
+    if ((e.target as HTMLElement).closest('input, textarea, select, button')) return;
+    if (e.repeat && ['Space', 'KeyE', 'Backspace'].includes(e.code)) { e.preventDefault(); return; }
+    const cursor = { v: state.currentV, w: state.currentW };
+    const verse = state.localLyrics[cursor.v];
+    const time = vid.currentTime - state.globalOffset;
     if (e.code === 'Space') {
       e.preventDefault();
-      if (state.currentV >= state.localLyrics.length) return;
-
-      const time = parseFloat((vid.currentTime - state.globalOffset).toFixed(3));
-      const verse = state.localLyrics[state.currentV];
-      if (!verse || !verse.words || state.currentW >= verse.words.length) return;
-
-      const stampedV = state.currentV;
-      const stampedW = state.currentW;
-
-      // Stamp start of current word
-      verse.words[stampedW].start = Math.max(0, time);
-
-      // If first word of verse, set verseStart
-      if (stampedW === 0) {
-        verse.verseStart = Math.max(0, time);
-      }
-
-      // Close end timestamp of previous word
-      if (stampedW > 0) {
-        verse.words[stampedW - 1].end = Math.max(verse.words[stampedW - 1].start, time);
-      } else if (stampedV > 0) {
-        const prevV = state.localLyrics[stampedV - 1];
-        if (prevV.words.length > 0) {
-          const lastW = prevV.words[prevV.words.length - 1];
-          // Only clip if next verse started earlier than estimated hold; never stretch across breaks!
-          if (time > lastW.start && time < (lastW.end || 0)) {
-            lastW.end = time;
-            prevV.verseEnd = time;
-          }
-        }
-      }
-
-      // Advance target indices
-      state.currentW++;
-      if (state.currentW >= verse.words.length) {
-        const lastWord = verse.words[stampedW];
-        if (lastWord && (!lastWord.end || lastWord.end <= lastWord.start)) {
-          let innerDurSum = 0;
-          let innerCount = 0;
-          for (let j = 0; j < verse.words.length - 1; j++) {
-            const d = verse.words[j].end - verse.words[j].start;
-            if (d > 0.05 && d < 4.0) { innerDurSum += d; innerCount++; }
-          }
-          const avgDur = innerCount > 0 ? (innerDurSum / innerCount) : 0.4;
-          const naturalHold = Math.max(0.8, Math.min(1.8, avgDur * 2.0));
-          lastWord.end = parseFloat((time + naturalHold).toFixed(3));
-        }
-        verse.verseEnd = parseFloat(((lastWord?.end || time) + 0.4).toFixed(3));
-        state.currentW = 0;
-        state.currentV++;
-      }
-
-      // Automatically skip standalone punctuation words
-      while (
-        state.currentV < state.localLyrics.length &&
-        state.localLyrics[state.currentV]?.words?.[state.currentW] &&
-        ALL_PUNCT_REGEX.test(state.localLyrics[state.currentV].words[state.currentW].word.trim())
-      ) {
-        state.currentW++;
-        if (state.currentW >= state.localLyrics[state.currentV].words.length) {
-          state.currentW = 0;
-          state.currentV++;
-        }
-      }
-
-      // In-place DOM update within current verse
-      if (state.currentV === stampedV) {
-        const stampedChip = document.getElementById(`chip-${stampedV}-${stampedW}`);
-        if (stampedChip) {
-          stampedChip.classList.add('timed');
-          stampedChip.classList.remove('target-next');
-          const tsEl = stampedChip.querySelector('.word-timestamp');
-          if (tsEl) tsEl.textContent = `${time.toFixed(2)}s`;
-        }
-
-        const nextChip = document.getElementById(`chip-${state.currentV}-${state.currentW}`);
-        if (nextChip) {
-          nextChip.classList.add('target-next');
-        }
-
-        if (stampedW === 0) {
-          const rangeEl = document.querySelector(`#card-v-${stampedV} .verse-time-range`);
-          if (rangeEl && verse.verseStart > 0) {
-            rangeEl.textContent = `${formatTime(verse.verseStart)} → ${formatTime(verse.verseEnd || 0)}`;
-          }
-        }
-
-        onRenderBlocks();
-        updateTelemetry(els);
-      } else {
-        renderMatrix(els, onRenderBlocks);
-        onRenderBlocks();
-        updateTelemetry(els);
-      }
+      if (!verse || !matchesPart(verse, state.selectedPart)) return;
+      stampStart(verse, cursor.w, time);
+      state.lastStamped = cursor;
+      const next = nextCursor(state.localLyrics, cursor, state.selectedPart);
+      state.currentV = next?.v ?? state.localLyrics.length;
+      state.currentW = next?.w ?? 0;
+      refresh();
+    } else if (e.code === 'KeyE') {
+      e.preventDefault();
+      const target = state.lastStamped ?? cursor;
+      const targetVerse = state.localLyrics[target.v];
+      if (targetVerse && matchesPart(targetVerse, state.selectedPart)) stampEnd(targetVerse, target.w, time);
+      refresh();
     } else if (e.code === 'Backspace') {
       e.preventDefault();
-      if (e.shiftKey) {
-        // Delete current verse
-        if (state.localLyrics[state.currentV]) {
-          state.localLyrics.splice(state.currentV, 1);
-          if (state.currentV >= state.localLyrics.length) {
-            state.currentV = Math.max(0, state.localLyrics.length - 1);
-          }
-          state.currentW = 0;
-          renderMatrix(els, onRenderBlocks);
-          onRenderBlocks();
-          updateTelemetry(els);
-        }
+      if (e.shiftKey && verse) {
+        state.localLyrics.splice(cursor.v, 1);
+        state.partCursors = {};
+        state.currentV = Math.min(cursor.v, state.localLyrics.length);
+        state.currentW = 0;
       } else {
-        // Undo / clear current word
-        if (state.currentW > 0) {
-          state.currentW--;
-          state.localLyrics[state.currentV].words[state.currentW].start = 0;
-          state.localLyrics[state.currentV].words[state.currentW].end = 0;
-        } else if (state.currentV > 0) {
-          state.currentV--;
-          state.currentW = state.localLyrics[state.currentV].words.length - 1;
-          state.localLyrics[state.currentV].words[state.currentW].start = 0;
-          state.localLyrics[state.currentV].words[state.currentW].end = 0;
+        const previous = nextCursor(state.localLyrics, cursor, state.selectedPart, -1);
+        if (previous) {
+          state.currentV = previous.v; state.currentW = previous.w;
+          const word = state.localLyrics[previous.v].words[previous.w];
+          word.start = word.end = 0; word.timed = false; word.endLocked = false;
         }
-        renderMatrix(els, onRenderBlocks);
-        onRenderBlocks();
-        updateTelemetry(els);
       }
+      state.lastStamped = null;
+      refresh();
     } else if (e.code === 'Tab') {
       e.preventDefault();
-      if (e.shiftKey) {
-        if (state.currentW > 0) state.currentW--;
-        else if (state.currentV > 0) { state.currentV--; state.currentW = state.localLyrics[state.currentV].words.length - 1; }
-      } else {
-        if (state.currentW < state.localLyrics[state.currentV]?.words.length - 1) state.currentW++;
-        else if (state.currentV < state.localLyrics.length - 1) { state.currentV++; state.currentW = 0; }
-      }
-      renderMatrix(els, onRenderBlocks);
+      const next = nextCursor(state.localLyrics, cursor, state.selectedPart, e.shiftKey ? -1 : 1);
+      if (next) { state.currentV = next.v; state.currentW = next.w; }
+      state.lastStamped = null;
+      refresh();
     } else if (e.key === '[' || e.key === ']') {
-      const delta = e.key === ']' ? 0.05 : -0.05;
-      const w = state.localLyrics[state.currentV]?.words[state.currentW];
-      if (w && w.start > 0) {
-        w.start = Math.max(0, parseFloat((w.start + delta).toFixed(3)));
-        renderMatrix(els, onRenderBlocks);
-        onRenderBlocks();
+      e.preventDefault();
+      const word = verse?.words[cursor.w];
+      if (word && isTimed(word)) {
+        const delta = e.key === ']' ? 0.05 : -0.05;
+        word.start = Math.max(0, Number((word.start + delta).toFixed(3)));
+        word.end = Math.max(word.start, Number((word.end + delta).toFixed(3)));
+        refresh();
       }
     }
   });
 
+  els.btnSetWordTimes.addEventListener('click', () => {
+    const verse = state.localLyrics[state.currentV];
+    const start = Number(els.wordStart.value);
+    const end = Number(els.wordEnd.value);
+    if (!verse || !els.wordStart.value || !els.wordEnd.value || !Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start) return;
+    stampStart(verse, state.currentW, start);
+    stampEnd(verse, state.currentW, end);
+    state.lastStamped = null;
+    refresh();
+    matrixPane.focus({ preventScroll: true });
+  });
+
   // Global Transport Keydown
   window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') {
+    if ((e.target as HTMLElement).closest('input, textarea, select') && !(e.code === 'KeyS' && (e.ctrlKey || e.metaKey))) {
       return;
     }
 
@@ -193,6 +122,7 @@ export function initSyncEngine(
   const adjustOffset = (delta: number) => {
     const updated = parseFloat((state.globalOffset + delta).toFixed(3));
     state.globalOffset = updated;
+    onRenderBlocks();
     offsetDisplay.textContent = `${updated >= 0 ? '+' : ''}${updated.toFixed(2)}s`;
   };
 

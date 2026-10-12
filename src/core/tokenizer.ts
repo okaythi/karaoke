@@ -88,11 +88,18 @@ export function parseRawLyrics(rawText: string): Verse[] {
 
   const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const verses: Verse[] = [];
+  let speakers: string[] = [];
 
   const isLrcLine = /^\[(\d{1,2}):(\d{2}(?:\.\d{1,3})?)\](.*)$/;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line.startsWith('//')) continue;
+    if (line.startsWith('@')) {
+      const header = line.slice(1).split('|')[0].trim();
+      speakers = header === '-' ? [] : header.split('+').map(name => name.trim()).filter(Boolean);
+      continue;
+    }
     const lrcMatch = line.match(isLrcLine);
 
     let verseStart = 0;
@@ -216,6 +223,8 @@ export function parseRawLyrics(rawText: string): Verse[] {
 
     if (words.length > 0) {
       verses.push({
+        speaker: speakers[0],
+        ...(speakers.length > 1 ? { speakers: [...speakers] } : {}),
         verseStart,
         verseEnd: verseStart > 0 ? parseFloat((verseStart + 2).toFixed(3)) : 0,
         words

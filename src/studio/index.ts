@@ -1,5 +1,7 @@
 import { prepareProtectedPlayback } from '../security/playback';
 import { loadCatalog, loadLyrics } from '../catalog/catalog';
+import { collectParts } from '../core/parts';
+import { initParts } from './parts';
 import { parseRawLyrics } from '../core/tokenizer';
 import { cleanVersePunctuation } from '../core/punctuation';
 import { getStudioElements } from './dom';
@@ -206,6 +208,11 @@ export async function bootstrapStudio(): Promise<void> {
     const lyricsDoc = await loadLyrics(song.id);
     const parsedLyrics = lyricsDoc?.lyricsData ? JSON.parse(JSON.stringify(lyricsDoc.lyricsData)) : [];
     state.localLyrics = cleanVersePunctuation(parsedLyrics);
+    state.parts = collectParts(state.localLyrics, lyricsDoc?.parts ?? []);
+    state.selectedPart = '*';
+    partsController.reset();
+    state.loopStart = state.loopEnd = 0;
+    els.loopStart.value = els.loopEnd.value = '0';
     state.currentV = 0;
     state.currentW = 0;
 
@@ -217,11 +224,14 @@ export async function bootstrapStudio(): Promise<void> {
   // Initialize Player
   const playerController = initPlayer(els);
 
+  const partsController = initParts(els, playerController.renderBlocks);
+
   // Initialize Modals
   const modalController = initModals(
     els,
     showToast,
     () => {
+      partsController.reset();
       renderMatrix(els, playerController.renderBlocks);
       playerController.renderBlocks();
       updateTelemetry(els);
@@ -271,10 +281,12 @@ export async function bootstrapStudio(): Promise<void> {
         v.words.forEach(w => {
           w.start = 0;
           w.end = 0;
+          w.timed = false; w.endLocked = false;
         });
       });
       state.currentV = 0;
       state.currentW = 0;
+      partsController.reset();
       els.vid.currentTime = 0;
       renderMatrix(els, playerController.renderBlocks);
       playerController.renderBlocks();
@@ -289,6 +301,10 @@ export async function bootstrapStudio(): Promise<void> {
     if (text !== null) {
       const newVerses = parseRawLyrics(text || 'VerseWord ');
       if (newVerses.length > 0) {
+        newVerses.forEach(verse => {
+          if (!verse.speaker && state.selectedPart !== '*') verse.speaker = state.selectedPart || undefined;
+          verse.words.forEach(word => word.timed = false);
+        });
         state.localLyrics.push(...newVerses);
       } else {
         state.localLyrics.push({ verseStart: 0, verseEnd: 0, words: [{ word: 'Word ', start: 0, end: 0 }] });

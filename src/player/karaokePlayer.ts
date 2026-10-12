@@ -102,6 +102,7 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
     if (signal.aborted) return;
     stage.mount({
       verses: lyricFile?.lyricsData ?? [],
+      parts: lyricFile?.parts,
       globalOffset: song.globalOffset || 0,
       score: loadedScore === 'failed' ? null : loadedScore
     });
