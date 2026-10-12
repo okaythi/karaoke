@@ -293,14 +293,14 @@ export function updateTimingControls(els: StudioElements): void {
   const endingWord = endTarget ? state.localLyrics[endTarget.v].words[endTarget.w] : null;
   els.endWordTarget.textContent = endingWord
     ? `Ends “${endingWord.word.replace(/<[^>]*>/g, '').trim()}” at the current video time.${endingWord.endLocked ? ' End is locked.' : ''}`
-    : 'Tap a word with Space, or select a timed word, to mark its end.';
+    : 'Tap a word to mark its end.';
   if (target === null) {
-    els.partStatus.textContent = 'Choose a singer or click their phrase to record. Space will follow that voice only.';
+    els.partStatus.textContent = 'Choose a singer or click their phrase to record.';
     return;
   }
   const name = selected?.name ?? (target === '*' ? 'this song' : 'Unassigned');
   const complete = !state.localLyrics[state.currentV] || !matchesPart(state.localLyrics[state.currentV], target);
-  els.partStatus.textContent = complete ? `${name}: end of part. Click a phrase to continue or choose another voice.` : `Recording ${name} · phrase ${state.currentV + 1}, word ${state.currentW + 1}. Space starts; E ends the last tapped word.`;
+  els.partStatus.textContent = complete ? `${name}: end of part. Click a phrase to continue or choose another voice.` : `Recording ${name} · phrase ${state.currentV + 1}, word ${state.currentW + 1}.`;
 }
 
 /** Timing taps never replace the matrix DOM or its event listeners. */

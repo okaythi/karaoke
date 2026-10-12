@@ -249,21 +249,32 @@ const pageTitle = "Karaoke Studio // Lyrics Sync Workstation";
         </div>
 
         <div class="part-toolbar">
-          <label>Show parts<select class="field-input" id="part-selector"><option value="*">All parts</option></select></label>
-          <label>Record voice<select class="field-input" id="recording-part-selector"><option value="*">Choose singer…</option></select></label>
-          <label>Colour<input id="part-color" type="color" value="#deb668" aria-label="Selected character colour" /></label>
-          <button class="micro-btn" id="btn-add-part">+ Character</button>
-          <p id="part-status" role="status">Select a character to record one voice per pass. E ends the last tapped word.</p>
-          <p class="timing-guide"><kbd class="kbd-chip">SPACE</kbd> starts a word and advances. <kbd class="kbd-chip">E</kbd> ends the word you just tapped. Press E when its final vowel stops.</p>
+          <p id="part-status" role="status">Choose a singer or click a phrase to record.</p>
           <div class="timing-actions">
             <button class="micro-btn" type="button" id="btn-end-word" aria-keyshortcuts="E" disabled>End word <kbd class="kbd-chip">E</kbd></button>
-            <span id="end-word-target" role="status">Tap a word with Space, or select a timed word, to mark its end.</span>
+            <span id="end-word-target" role="status">Tap a word to mark its end.</span>
           </div>
-          <div class="word-time-editor">
-            <label>Word start (s)<input class="field-input" id="word-start" type="number" min="0" step="0.01" /></label>
-            <label>Word end (s)<input class="field-input" id="word-end" type="number" min="0" step="0.01" /></label>
-            <button class="micro-btn" id="btn-set-word-times">Apply</button>
-          </div>
+          <details class="timing-options">
+            <summary>Singers</summary>
+            <div class="part-settings">
+              <label>Show parts<select class="field-input" id="part-selector"><option value="*">All parts</option></select></label>
+              <label>Record voice<select class="field-input" id="recording-part-selector"><option value="*">Choose singer…</option></select></label>
+              <label>Colour<input id="part-color" type="color" value="#deb668" aria-label="Selected character colour" /></label>
+              <button class="micro-btn" id="btn-add-part">+ Character</button>
+            </div>
+          </details>
+          <details class="timing-options">
+            <summary>Word times</summary>
+            <div class="word-time-editor">
+              <label>Word start (s)<input class="field-input" id="word-start" type="number" min="0" step="0.01" /></label>
+              <label>Word end (s)<input class="field-input" id="word-end" type="number" min="0" step="0.01" /></label>
+              <button class="micro-btn" id="btn-set-word-times">Apply</button>
+            </div>
+          </details>
+          <details class="timing-options">
+            <summary>Timing help</summary>
+            <p class="timing-guide"><kbd class="kbd-chip">SPACE</kbd> starts a word and advances. <kbd class="kbd-chip">E</kbd> ends the word you just tapped. Press E when its final vowel stops.</p>
+          </details>
         </div>
         <!-- Verse Cards Scroll Area -->
         <div class="verses-scroll-area" id="verses-container">

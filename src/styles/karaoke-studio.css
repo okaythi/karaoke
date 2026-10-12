@@ -1258,8 +1258,16 @@ video#studio-video { border-radius: 9px; box-shadow: none; }
 }
 
 /* Ensemble authoring: controls wrap on the laptop; only the lyric matrix scrolls. */
-.part-toolbar { padding: 10px 14px; border-bottom: 1px solid var(--studio-border); display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
-.part-toolbar > label:first-child { flex: 1; min-width: 140px; }
+.part-toolbar { padding: 8px 14px; border-bottom: 1px solid var(--studio-border); display: flex; flex-wrap: wrap; align-items: end; gap: 6px 12px; flex: 0 0 auto; max-height: 40%; overflow-y: auto; }
+.part-settings { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.part-settings > label:nth-child(-n+2) { flex: 1; min-width: 120px; }
+.timing-options { font-size: 11px; color: var(--text-muted); }
+.timing-options summary { cursor: pointer; padding: 4px 0; }
+.timing-options[open] { flex-basis: 100%; }
+.timing-options[open] > :not(summary) { margin-top: 6px; }
+.panel-right { min-height: 0; }
+.panel-right .matrix-header { min-height: 60px; padding: 12px 16px 10px; flex-shrink: 0; }
+.verses-scroll-area { min-height: 0; }
 .part-toolbar label, .ensemble-controls label, .word-time-editor label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--text-muted); }
 .part-toolbar select { width: 100%; }
 .part-toolbar input[type=color] { width: 40px; height: 30px; padding: 2px; background: var(--studio-panel); border: 1px solid var(--studio-border); }
