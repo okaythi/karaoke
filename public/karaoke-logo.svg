@@ -1,33 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 195 34" width="195" height="34" role="img" aria-label="Karaoke by Thy">
-  <g class="brand-wordmark" fill="#f5f0e6">
-    <!-- K -->
-    <path d="M4 8 H6.8 V16.2 L14.8 8 H18.4 L10.8 16.8 L18.8 26 H15.1 L8.2 18 V26 H4 Z" />
-    
-    <!-- A -->
-    <path d="M22.5 26 L28.3 8 H31.3 L37.1 26 H34.1 L32.8 21.6 H26.8 L25.5 26 Z M27.6 19.1 H32 L29.8 12 Z" />
-
-    <!-- R -->
-    <path d="M41 8 H48 C51.3 8 53.3 9.6 53.3 12.5 C53.3 14.8 51.9 16.3 49.8 16.8 L53.9 26 H50.7 L46.9 17.2 H43.8 V26 H41 Z M43.8 15 H48 C49.9 15 50.6 14 50.6 12.5 C50.6 11 49.9 10.2 48 10.2 H43.8 Z" />
-
-    <!-- A -->
-    <path d="M57.5 26 L63.3 8 H66.3 L72.1 26 H69.1 L67.8 21.6 H61.8 L60.5 26 Z M62.6 19.1 H67 L64.8 12 Z" />
-
-    <!-- O -->
-    <path d="M83 7.6 C88 7.6 91.5 11.3 91.5 17 C91.5 22.7 88 26.4 83 26.4 C78 26.4 74.5 22.7 74.5 17 C74.5 11.3 78 7.6 83 7.6 Z M83 10.2 C79.7 10.2 77.3 12.8 77.3 17 C77.3 21.2 79.7 23.8 83 23.8 C86.3 23.8 88.7 21.2 88.7 17 C88.7 12.8 86.3 10.2 83 10.2 Z" />
-
-    <!-- K -->
-    <path d="M96.5 8 H99.3 V16.2 L107.3 8 H110.9 L103.3 16.8 L111.3 26 H107.6 L100.7 18 V26 H96.5 Z" />
-
-    <!-- E -->
-    <path d="M116 8 H126.5 V10.5 H118.8 V15.5 H125.2 V18 H118.8 V23.5 H126.8 V26 H116 Z" />
-  </g>
-
-  <!-- Signature lockup -->
-  <g class="brand-signature">
-    <!-- Divider micro-bar -->
-    <rect x="134" y="13.5" width="1.5" height="7" rx="0.75" fill="#deb668" opacity="0.4" />
-    
-    <!-- by Thy typography -->
-    <text x="142" y="19.5" fill="#9a9183" font-family="'JetBrains Mono', 'Plus Jakarta Sans', monospace, sans-serif" font-size="9" font-weight="500" letter-spacing="0.04em">by <tspan fill="#deb668" font-weight="600">Thy</tspan></text>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 34" width="200" height="34" role="img" aria-label="Karaoke by Thy">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;family=Plus+Jakarta+Sans:wght@800&amp;display=swap');
+      .brand-title {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-weight: 800;
+        font-size: 19px;
+        letter-spacing: -0.02em;
+        fill: #f5f0e6;
+      }
+      .brand-divider {
+        fill: #deb668;
+        opacity: 0.45;
+      }
+      .brand-sig {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        font-weight: 500;
+        fill: #9a9183;
+        letter-spacing: 0.02em;
+      }
+      .brand-sig-name {
+        fill: #deb668;
+        font-weight: 600;
+      }
+    </style>
+  </defs>
+  <text x="0" y="23" class="brand-title">KARAOKE</text>
+  <rect x="103" y="10.5" width="1.5" height="13" rx="0.75" class="brand-divider" />
+  <text x="113" y="21.5" class="brand-sig">by <tspan class="brand-sig-name">Thy</tspan></text>
 </svg>

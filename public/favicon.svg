@@ -1,11 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
-  <!-- Minimalist dark background -->
-  <rect width="256" height="256" rx="56" fill="#131211" />
-  <!-- Elegant geometric K in Silk Cream and Brass -->
-  <g transform="translate(56, 52)">
-    <!-- Stem in Brass (#deb668) -->
-    <rect x="0" y="0" width="24" height="152" rx="4" fill="#deb668" />
-    <!-- Architectural diagonal arms in Silk Cream (#f5f0e6) -->
-    <polygon points="24,76 96,0 128,0 52,76 128,152 96,152 24,76" fill="#f5f0e6" />
+  <rect width="256" height="256" rx="56" fill="#181614" stroke="#2e2924" stroke-width="4"/>
+  <g transform="translate(68, 52)">
+    <!-- Vertical stem in accent brass (#deb668) -->
+    <rect x="0" y="0" width="26" height="152" rx="13" fill="#deb668"/>
+    <!-- Dynamic angular musical arms in theater cream (#f5f0e6) -->
+    <path d="M102 12 L24 76 L102 140" fill="none" stroke="#f5f0e6" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>

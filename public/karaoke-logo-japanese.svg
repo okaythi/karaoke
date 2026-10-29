@@ -1,24 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 195 34" width="195" height="34" role="img" aria-label="Karaoke by Thy">
-  <g class="brand-wordmark-ja" fill="#f5f0e6">
-    <!-- カ (Ka) -->
-    <path d="M4 13.5 H16.5 C18.8 13.5 20 14.6 19.6 16.8 C19.1 19.5 17.6 23.8 12.8 26.2 L10.8 24 C14.6 21.8 16.2 18.5 16.4 16 H8.2 V26 H5.4 V16 Z M11.5 9 L9.5 9.6 C11.5 13.3 12.8 17.6 13.3 21.3 L15.8 20.4 C15.1 17 13.8 12.8 11.5 9 Z" />
-
-    <!-- ラ (Ra) -->
-    <path d="M38 10.8 H50 V13.2 H38 Z M40.8 16 H48 C51.3 16 52.5 17.6 52.5 19.8 C52.5 22.4 50.3 25.8 42.3 26.2 L41 23.8 C47.3 23.4 49.7 21 49.7 19.6 C49.7 18.5 48.9 18.2 46.9 18.2 H40.8 V26 H38 V16 Z" />
-
-    <!-- オ (O) -->
-    <path d="M72 12.5 H85 V14.8 H80.3 V26 H77.7 V14.8 H72 Z M77.3 15 C74.5 19.2 70.5 23.8 65 25.8 L63.5 23.6 C68.7 21.8 72.3 17.8 74.9 14.6 Z M80.5 14.8 C82.3 17.4 85 21.6 86.7 24.8 L84.3 26.2 C82.7 23.2 80.3 19 78.5 16.2 Z" />
-
-    <!-- ケ (Ke) -->
-    <path d="M109 10.5 C108 15.2 105.8 20.8 101.2 24.8 L99.4 23.2 C103.2 19.4 105.4 14.5 106.2 10 Z M105.8 16 H120 V18.2 H113.8 V26 H111.2 V18.2 H104.5 V16 Z" />
-  </g>
-
-  <!-- Signature lockup in exact matching position -->
-  <g class="brand-signature">
-    <!-- Divider micro-bar -->
-    <rect x="134" y="13.5" width="1.5" height="7" rx="0.75" fill="#deb668" opacity="0.4" />
-    
-    <!-- by Thy typography -->
-    <text x="142" y="19.5" fill="#9a9183" font-family="'JetBrains Mono', 'Plus Jakarta Sans', monospace, sans-serif" font-size="9" font-weight="500" letter-spacing="0.04em">by <tspan fill="#deb668" font-weight="600">Thy</tspan></text>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 34" width="200" height="34" role="img" aria-label="Karaoke by Thy">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;family=Noto+Sans+JP:wght@900&amp;display=swap');
+      .brand-title-ja {
+        font-family: 'Noto Sans JP', 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif;
+        font-weight: 900;
+        font-size: 19px;
+        letter-spacing: 0.04em;
+        fill: #f5f0e6;
+      }
+      .brand-divider {
+        fill: #deb668;
+        opacity: 0.45;
+      }
+      .brand-sig {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        font-weight: 500;
+        fill: #9a9183;
+        letter-spacing: 0.02em;
+      }
+      .brand-sig-name {
+        fill: #deb668;
+        font-weight: 600;
+      }
+    </style>
+  </defs>
+  <text x="0" y="23" class="brand-title-ja">カラオケ</text>
+  <rect x="103" y="10.5" width="1.5" height="13" rx="0.75" class="brand-divider" />
+  <text x="113" y="21.5" class="brand-sig">by <tspan class="brand-sig-name">Thy</tspan></text>
 </svg>
