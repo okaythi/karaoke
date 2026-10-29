@@ -108,9 +108,16 @@ export function autoHealTimings(verses: Verse[]): Verse[] {
     }
     const avgDur = innerCount > 0 ? (innerDurSum / innerCount) : 0.4;
 
+    const currentParts = partIds(verse);
+    const isEnsemble = currentParts.length > 0;
+
     // Look ahead to the start of the next timed verse to prevent overhang into subsequent lines
     let nextVerseStart = 0;
     for (let k = vIdx + 1; k < verses.length; k++) {
+      if (isEnsemble) {
+        const nextParts = partIds(verses[k]);
+        if (!nextParts.some(p => currentParts.includes(p))) continue;
+      }
       const firstTimed = verses[k].words.find(isTimed);
       if (firstTimed && firstTimed.start > 0) {
         nextVerseStart = firstTimed.start;
