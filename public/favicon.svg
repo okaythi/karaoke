@@ -1,26 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#282420"/>
-      <stop offset="1" stop-color="#131211"/>
-    </linearGradient>
-    <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#edd18e"/>
-      <stop offset="1" stop-color="#c99a45"/>
-    </linearGradient>
-  </defs>
-  <rect x="10" y="10" width="236" height="236" rx="56" fill="url(#bg)"/>
-  <rect x="11.5" y="11.5" width="233" height="233" rx="54.5" fill="none" stroke="#2e2924" stroke-width="3"/>
-  <g fill="url(#brass)">
-    <!-- mic capsule -->
-    <rect x="94" y="40" width="68" height="112" rx="34"/>
-    <!-- cradle arc -->
-    <path d="M70 116a58 58 0 0 0 116 0h-18a40 40 0 0 1-80 0z"/>
-    <rect x="119" y="172" width="18" height="30"/>
-    <rect x="88" y="196" width="80" height="18" rx="9"/>
-  </g>
-  <g fill="#131211">
-    <rect x="110" y="72" width="36" height="12" rx="6"/>
-    <rect x="110" y="96" width="36" height="12" rx="6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Minimalist dark background -->
+  <rect width="256" height="256" rx="56" fill="#131211" />
+  <!-- Elegant geometric K in Silk Cream and Brass -->
+  <g transform="translate(56, 52)">
+    <!-- Stem in Brass (#deb668) -->
+    <rect x="0" y="0" width="24" height="152" rx="4" fill="#deb668" />
+    <!-- Architectural diagonal arms in Silk Cream (#f5f0e6) -->
+    <polygon points="24,76 96,0 128,0 52,76 128,152 96,152 24,76" fill="#f5f0e6" />
   </g>
 </svg>
