@@ -99,7 +99,7 @@ export function validateSongContract(payload: unknown): { valid: boolean; errors
  * Auto-heals unclosed word endpoints and verse boundaries before contract validation.
  */
 export function autoHealTimings(verses: Verse[]): Verse[] {
-  verses.forEach(verse => {
+  verses.forEach((verse, vIdx) => {
     let innerDurSum = 0;
     let innerCount = 0;
     for (let j = 0; j < verse.words.length - 1; j++) {
@@ -108,19 +108,42 @@ export function autoHealTimings(verses: Verse[]): Verse[] {
     }
     const avgDur = innerCount > 0 ? (innerDurSum / innerCount) : 0.4;
 
+    // Look ahead to the start of the next timed verse to prevent overhang into subsequent lines
+    let nextVerseStart = 0;
+    for (let k = vIdx + 1; k < verses.length; k++) {
+      const firstTimed = verses[k].words.find(isTimed);
+      if (firstTimed && firstTimed.start > 0) {
+        nextVerseStart = firstTimed.start;
+        break;
+      }
+      if (verses[k].verseStart > 0) {
+        nextVerseStart = verses[k].verseStart;
+        break;
+      }
+    }
+
     let maxWordEnd = 0;
     verse.words.forEach((w, idx) => {
-      if (isTimed(w) && !w.endLocked && (!w.end || w.end <= w.start)) {
-        const next = verse.words[idx + 1];
-        if (next && isTimed(next) && next.start > w.start) {
-          w.end = next.start;
-        } else {
-          const naturalHold = Math.max(0.8, Math.min(1.8, avgDur * 2.0));
-          w.end = parseFloat((w.start + naturalHold).toFixed(3));
+      if (isTimed(w)) {
+        if (!w.endLocked && (!w.end || w.end <= w.start)) {
+          const next = verse.words[idx + 1];
+          if (next && isTimed(next) && next.start > w.start) {
+            w.end = next.start;
+          } else {
+            let naturalHold = Math.max(0.8, Math.min(1.8, avgDur * 2.0));
+            if (nextVerseStart > w.start) {
+              naturalHold = Math.min(naturalHold, Math.max(0.05, nextVerseStart - w.start));
+            }
+            w.end = parseFloat((w.start + naturalHold).toFixed(3));
+          }
+        } else if (!w.endLocked && nextVerseStart > w.start && w.end > nextVerseStart) {
+          // Clamp unlocked overhang when the next line begins sooner
+          w.end = nextVerseStart;
         }
-      }
-      if (isTimed(w) && w.end > maxWordEnd) {
-        maxWordEnd = w.end;
+
+        if (w.end > maxWordEnd) {
+          maxWordEnd = w.end;
+        }
       }
     });
 

@@ -20,6 +20,7 @@ type VoiceLane = {
 export function createEnsembleEngine(options: RenderEngineOptions): RenderEngineController {
   const { videoElement: video, containerElement: container } = options;
   const verses = options.lyricsData ?? [];
+  autoHealTimings(verses);
   const parts = collectParts(verses, options.parts ?? []);
   let sections = buildEnsembleSections(verses);
   const stage = document.createElement('div');

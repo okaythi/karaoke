@@ -2,6 +2,7 @@ import { escapeHtml, lyricHtml } from '../core/html';
 import { hasCjk } from '../core/script';
 import { followPlayback } from '../playback/frames';
 import { isTimed } from '../core/parts';
+import { autoHealTimings } from '../core/contracts';
 import { createEnsembleEngine } from './ensemble';
 import type { LyricPart, Verse } from '../types/karaoke';
 
@@ -70,6 +71,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
   if (options.parts?.length || options.lyricsData?.some(verse => verse.speaker || verse.speakers?.length)) return createEnsembleEngine(options);
   const { videoElement, containerElement } = options;
   const lyrics = (options.lyricsData || []).filter(verse => verse && Array.isArray(verse.words) && verse.words.length > 0);
+  autoHealTimings(lyrics);
   const globalOffset = options.globalOffset || 0;
   const top: LyricLine = { element: options.topLineElement, verseIndex: UNMOUNTED, words: [], written: [] };
   const bottom: LyricLine = { element: options.bottomLineElement, verseIndex: UNMOUNTED, words: [], written: [] };
@@ -118,12 +120,19 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     if (!verse) return;
     const isActive = line.verseIndex === active;
     const isRecent = line.verseIndex === recent;
+    const isPast = (active !== -1 && line.verseIndex < active) || isRecent || (verse.verseEnd > verse.verseStart && time >= verse.verseEnd);
     line.element.classList.toggle('k-line-active', isActive || isRecent);
     line.element.classList.toggle('k-line-idle', !isActive && !isRecent);
     verse.words.forEach((word, index) => {
       const element = line.words[index];
       if (!element) return;
-      const progress = !isTimed(word) ? 0 : isRecent ? 100 : isActive ? wordProgress(word.start, word.end, time) : 0;
+      const progress = !isTimed(word)
+        ? 0
+        : isPast || (time >= word.end && word.end > word.start)
+        ? 100
+        : isActive
+        ? wordProgress(word.start, word.end, time)
+        : 0;
       if (line.written[index] === progress) return;
       line.written[index] = progress;
       element.style.setProperty('--wipe-progress', `${progress}%`);
@@ -152,7 +161,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     lyrics.forEach((verse, index) => {
       // Verses can overlap: the newly started line takes focus immediately.
       if (time >= verse.verseStart && time < verse.verseEnd) active = index;
-      if (time > verse.verseEnd && time <= verse.verseEnd + FADE_OUT_GRACE) recent = index;
+      if (time >= verse.verseEnd && time <= verse.verseEnd + FADE_OUT_GRACE) recent = index;
       if (time < verse.verseStart && upcoming === -1) upcoming = index;
     });
 
