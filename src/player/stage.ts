@@ -28,10 +28,11 @@ export interface Stage {
   showStatus(message: string, loading?: boolean): void;
 }
 
-/** Whether a song uses top/bottom video letterbox bars for its duet lanes (`小説夏と罰`). */
-export function isLetterboxSong(songId?: string, title?: string): boolean {
-  const haystack = `${songId ?? ''} ${title ?? ''}`;
-  return haystack.includes('小説夏と罰');
+/** Whether a song uses top/bottom video letterbox bars for its duet lanes (`小説 夏と罰`). */
+export function isLetterboxSong(songId?: string, title?: string, parts?: LyricPart[]): boolean {
+  if (parts?.some(part => /[（(][上下][）)]/.test(part.name))) return true;
+  const normalized = `${songId ?? ''} ${title ?? ''}`.normalize('NFKC').replace(/[\s\-_]+/g, '');
+  return normalized.includes('小説夏と罰');
 }
 
 /** What is shown with the video: synchronized lyrics, an engraved score, or both. */
@@ -69,7 +70,7 @@ export function createStage(video: HTMLVideoElement): Stage {
     clear,
     mount({ songId, title, verses, parts, globalOffset, score: loaded }) {
       clear();
-      const letterbox = loaded === null && isLetterboxSong(songId, title);
+      const letterbox = loaded === null && isLetterboxSong(songId, title, parts);
       const withScore = loaded !== null && verses.length > 0;
       const host = letterbox && frame ? frame : lyricsContainer;
       lyricsContainer.hidden = letterbox || verses.length === 0;

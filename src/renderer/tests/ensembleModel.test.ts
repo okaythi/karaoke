@@ -158,8 +158,9 @@ test('solo and shared phrases compete for each singer, without silencing the oth
 });
 
 test('letterbox mode assigns rightmost duet singer to top bar and leftmost to bottom bar across duet and solo passages', () => {
+  assert.equal(isLetterboxSong('傘村トータ-小説-夏と罰', '小説 夏と罰'), true);
   assert.equal(isLetterboxSong('傘村トータ-小説夏と罰', '小説夏と罰'), true);
-  assert.equal(isLetterboxSong('some-other-id', '小説夏と罰'), true);
+  assert.equal(isLetterboxSong('custom-id', 'Custom', [{ id: 'lucia', name: 'Lucia（上）', color: '#edd18e' }]), true);
   assert.equal(isLetterboxSong('other-song', 'Other Title'), false);
 
   const verses = [cue('left', 0, 10), cue('right', 1, 5), cue('right', 20, 25)];
