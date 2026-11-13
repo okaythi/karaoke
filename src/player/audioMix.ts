@@ -4,11 +4,39 @@ export interface AudioMix {
   /** The instrumental stem for the new song, or none. Vocals come back on. */
   setStem(url: string | null): void;
   toggleMute(): void;
+  toggleVocals(): void;
 }
 
-/** The stem is pulled back to the video when the two drift further apart than this, in seconds. */
-const MAX_STEM_DRIFT = 0.05;
+export type StemSyncAction =
+  | { readonly kind: 'in-sync'; readonly rate: number }
+  | { readonly kind: 'nudge'; readonly rate: number }
+  | { readonly kind: 'seek'; readonly time: number; readonly rate: number };
+
+/** Below this drift, in seconds, the stem plays at the video's exact rate. */
+const SOFT_DRIFT_MIN = 0.015;
+/** Above this drift, in seconds, the stem seeks directly rather than nudging rate. */
+const HARD_DRIFT_MAX = 0.16;
+/** Maximum proportional rate adjustment applied during a soft nudge. */
+const MAX_RATE_NUDGE = 0.025;
 const PILL_FADE_MS = 150;
+
+/**
+ * Pure drift resolver: small phase errors nudge playbackRate smoothly so the
+ * listener hears no click; larger gaps snap currentTime directly.
+ */
+export function resolveStemSync(videoTime: number, stemTime: number, baseRate = 1): StemSyncAction {
+  const safeRate = Number.isFinite(baseRate) && baseRate > 0 ? baseRate : 1;
+  const drift = videoTime - stemTime;
+  const absDrift = Math.abs(drift);
+  if (!Number.isFinite(drift) || absDrift <= SOFT_DRIFT_MIN) {
+    return { kind: 'in-sync', rate: safeRate };
+  }
+  if (absDrift >= HARD_DRIFT_MAX) {
+    return { kind: 'seek', time: Math.max(0, videoTime), rate: safeRate };
+  }
+  const factor = Math.max(-MAX_RATE_NUDGE, Math.min(MAX_RATE_NUDGE, drift * 0.25));
+  return { kind: 'nudge', rate: Number((safeRate * (1 + factor)).toFixed(4)) };
+}
 
 /**
  * Volume, mute and the vocal toggle. With vocals removed the video is muted
@@ -42,6 +70,7 @@ export function createAudioMix(video: HTMLVideoElement): AudioMix {
   const showVoiceButton = () => {
     voiceButton.hidden = !stem;
     voiceButton.classList.toggle('karaoke-active', vocalsRemoved);
+    voiceButton.setAttribute('aria-pressed', String(vocalsRemoved));
     pill.textContent = pillText();
     if (!stem) {
       pill.classList.remove('visible');
@@ -51,6 +80,8 @@ export function createAudioMix(video: HTMLVideoElement): AudioMix {
 
   const playStem = () => {
     if (!stem) return;
+    if (stem.preload !== 'auto') stem.preload = 'auto';
+    stem.playbackRate = video.playbackRate || 1;
     stem.currentTime = video.currentTime;
     stem.play().catch(error => console.warn('Stem playback was prevented:', error));
   };
@@ -68,14 +99,21 @@ export function createAudioMix(video: HTMLVideoElement): AudioMix {
   };
   muteButton.addEventListener('click', toggleMute);
 
-  voiceButton.addEventListener('click', () => {
+  const toggleVocals = () => {
     if (!stem) return;
     vocalsRemoved = !vocalsRemoved;
     apply();
-    if (!vocalsRemoved) stem.pause();
-    else if (!video.paused) playStem();
+    if (!vocalsRemoved) {
+      stem.pause();
+      stem.playbackRate = video.playbackRate || 1;
+    } else if (!video.paused) {
+      playStem();
+    } else if (stem.preload !== 'auto') {
+      stem.preload = 'auto';
+    }
     showVoiceButton();
-  });
+  };
+  voiceButton.addEventListener('click', toggleVocals);
 
   // The tip follows the pointer rather than sitting on the button.
   const movePill = (event: MouseEvent) => {
@@ -99,13 +137,26 @@ export function createAudioMix(video: HTMLVideoElement): AudioMix {
   video.addEventListener('play', () => {
     if (vocalsRemoved) playStem();
   });
-  for (const type of ['pause', 'ended', 'error']) video.addEventListener(type, () => stem?.pause());
+  video.addEventListener('playing', () => {
+    if (vocalsRemoved) playStem();
+  });
+  for (const type of ['pause', 'waiting', 'stalled', 'ended', 'error'] as const) {
+    video.addEventListener(type, () => stem?.pause());
+  }
+  video.addEventListener('ratechange', () => {
+    if (stem) stem.playbackRate = video.playbackRate || 1;
+  });
   video.addEventListener('seeking', () => {
-    if (vocalsRemoved && stem) stem.currentTime = video.currentTime;
+    if (vocalsRemoved && stem) {
+      stem.playbackRate = video.playbackRate || 1;
+      stem.currentTime = video.currentTime;
+    }
   });
   video.addEventListener('timeupdate', () => {
     if (!vocalsRemoved || !stem || video.paused || !video.duration) return;
-    if (Math.abs(stem.currentTime - video.currentTime) > MAX_STEM_DRIFT) stem.currentTime = video.currentTime;
+    const action = resolveStemSync(video.currentTime, stem.currentTime, video.playbackRate || 1);
+    if (action.kind === 'seek') stem.currentTime = action.time;
+    if (stem.playbackRate !== action.rate) stem.playbackRate = action.rate;
     if (stem.paused) stem.play().catch(console.warn);
   });
 
@@ -119,11 +170,13 @@ export function createAudioMix(video: HTMLVideoElement): AudioMix {
         stem.src = '';
       }
       stem = url ? new Audio(url) : null;
-      if (stem) stem.preload = 'auto';
+      // Only fetch header metadata up front; full audio buffers when vocals are toggled off.
+      if (stem) stem.preload = 'metadata';
       vocalsRemoved = false;
       apply();
       showVoiceButton();
     },
-    toggleMute
+    toggleMute,
+    toggleVocals
   };
 }

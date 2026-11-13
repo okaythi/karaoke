@@ -160,6 +160,7 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
     KeyJ: () => { video.currentTime = Math.max(0, video.currentTime - SEEK_STEP); },
     KeyL: () => { video.currentTime = Math.min(video.duration || 0, video.currentTime + SEEK_STEP); },
     KeyM: audioMix.toggleMute,
+    KeyV: audioMix.toggleVocals,
     KeyF: toggleFullscreen
   };
   const searchLibrary = () => {
