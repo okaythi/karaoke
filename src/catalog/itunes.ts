@@ -145,6 +145,13 @@ function lookUp(query: AlbumArtQuery): Promise<string | null> {
   return lookup;
 }
 
+/** Resolves the song's cover URL at the requested square size, or null when none is found. */
+export async function lookUpAlbumArt(query: AlbumArtQuery, size = DEFAULT_SIZE): Promise<string | null> {
+  if (query.coverUrl) return query.coverUrl;
+  const url = await lookUp(query);
+  return url ? url.replace('100x100bb', `${size}x${size}bb`) : null;
+}
+
 /** Puts the song's cover on `imgEl`: its own `coverUrl` if it has one, else the best iTunes match. */
 export function fetchAlbumArt(query: AlbumArtQuery, imgEl: HTMLImageElement, { size = DEFAULT_SIZE, badgeEl }: AlbumArtOptions = {}): void {
   const setBadge = (text: string) => {

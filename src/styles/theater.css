@@ -1121,10 +1121,37 @@
 }
 :fullscreen .lyrics-stage-container {
   position: absolute;
-  bottom: 80px;
-  left: 0;
-  width: 100%;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(860px, 94vw);
+  max-width: min(860px, 94vw);
   z-index: 100;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(19, 18, 17, 0.55) 0%, rgba(19, 18, 17, 0.82) 100%);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+}
+:fullscreen .piano-score-container {
+  position: relative;
+  z-index: 95;
+  background: rgba(19, 18, 17, 0.88);
+  border-radius: 6px;
+}
+:fullscreen .theater-header,
+:fullscreen .transport-deck-theater {
+  transition: opacity 0.25s ease;
+}
+.theater-stage.fullscreen-idle:fullscreen {
+  cursor: none;
+}
+.theater-stage.fullscreen-idle:fullscreen .theater-header,
+.theater-stage.fullscreen-idle:fullscreen .transport-deck-theater {
+  opacity: 0;
+  pointer-events: none;
+}
+.theater-stage.fullscreen-idle:fullscreen .lyrics-stage-container {
+  bottom: 32px;
 }
 
 /* ==========================================================================

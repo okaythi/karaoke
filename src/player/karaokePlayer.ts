@@ -7,6 +7,8 @@ import { createAudioMix } from './audioMix';
 import { byId } from './dom';
 import { createIdentity } from './identity';
 import { createLibrary } from './library';
+import { createMediaSession } from './mediaSession';
+import { adjacentSong, buildSongHistoryUrl, seekWhenReady } from './navigation';
 import { createNowPlaying } from './nowPlaying';
 import { initShareButton } from './share';
 import { createStage, type LoadedScore } from './stage';
@@ -18,6 +20,8 @@ import { createVotes } from './votes';
 const GRANT_RENEWAL_MS = 60_000;
 /** The J and L keys step this far, in seconds. */
 const SEEK_STEP = 2;
+/** In fullscreen, the pointer and transport fade after this long without movement. */
+const FULLSCREEN_IDLE_MS = 2800;
 
 const hasScore = (song: SongCatalogItem): boolean => hasSongScore(song.id);
 const playable = (catalog: SongCatalogItem[]): SongCatalogItem[] =>
@@ -37,6 +41,7 @@ export interface TheaterOptions {
 /** Wires the theater page: picking a song loads it onto the stage and starts it. */
 export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
   const video = byId<HTMLVideoElement>('theater-video');
+  const stageElement = document.querySelector<HTMLElement>('.theater-stage')!;
   const identity = createIdentity();
   const stage = createStage(video);
   const audioMix = createAudioMix(video);
@@ -44,12 +49,26 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
   const votes = createVotes(identity);
   const views = createViewCounter(video, identity);
   const transport = createTransport(video, () => void togglePlay());
-  const library = createLibrary(song => void selectSong(song));
+  const library = createLibrary(song => void selectSong(song, { syncUrl: true }));
 
   let activeSong: SongCatalogItem | null = null;
   // Aborted when another song is picked, so slower work from the earlier pick can tell it is stale.
   let selection = new AbortController();
   initShareButton(() => activeSong);
+
+  const stepTrack = (direction: -1 | 1) => {
+    const next = adjacentSong(library.visibleSongs(), activeSong?.id ?? null, direction);
+    if (next) void selectSong(next, { syncUrl: true });
+  };
+
+  const mediaSession = createMediaSession(video, {
+    onPlay: () => void togglePlay(),
+    onPause: () => video.pause(),
+    onSeekBackward: () => { video.currentTime = Math.max(0, video.currentTime - SEEK_STEP); },
+    onSeekForward: () => { video.currentTime = Math.min(video.duration || 0, video.currentTime + SEEK_STEP); },
+    onPreviousTrack: () => stepTrack(-1),
+    onNextTrack: () => stepTrack(1)
+  });
 
   function play(): void {
     video.play().then(() => transport.showPlaying(true)).catch(error => {
@@ -58,15 +77,24 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
     });
   }
 
-  async function selectSong(song: SongCatalogItem): Promise<void> {
-    if (activeSong?.id === song.id && !video.paused) return;
+  async function selectSong(
+    song: SongCatalogItem,
+    options: { syncUrl?: boolean; startAt?: number } = {}
+  ): Promise<void> {
+    if (activeSong?.id === song.id && !video.paused && !options.startAt) return;
     selection.abort();
     selection = new AbortController();
     const { signal } = selection;
     activeSong = song;
 
+    if (options.syncUrl) {
+      const nextUrl = buildSongHistoryUrl(location.search, location.pathname, song);
+      history.replaceState(null, '', nextUrl);
+    }
+
     library.setActive(song.id);
     nowPlaying.show(song);
+    mediaSession.show(song);
     views.watch(song.videoFile);
     stage.clear();
     audioMix.setStem(song.instrumentalUrl ?? null);
@@ -96,6 +124,9 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
     video.src = song.videoUrl;
     video.load();
     video.currentTime = 0;
+    if (options.startAt && options.startAt > 0) {
+      seekWhenReady(video, options.startAt, signal);
+    }
     transport.reset();
 
     const [lyricFile, loadedScore] = await Promise.all([lyrics, score]);
@@ -144,14 +175,42 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
 
   const fullscreenButton = byId<HTMLButtonElement>('deck-fullscreen-btn');
   const toggleFullscreen = () => {
-    const target = document.fullscreenElement ? document.exitFullscreen() : document.querySelector('.theater-stage')!.requestFullscreen();
+    const target = document.fullscreenElement ? document.exitFullscreen() : stageElement.requestFullscreen();
     target.catch(console.warn);
   };
   fullscreenButton.addEventListener('click', toggleFullscreen);
 
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  const wakeFullscreenControls = () => {
+    clearTimeout(idleTimer);
+    stageElement.classList.remove('fullscreen-idle');
+    if (!document.fullscreenElement || video.paused) return;
+    idleTimer = setTimeout(() => {
+      if (document.fullscreenElement && !video.paused) {
+        stageElement.classList.add('fullscreen-idle');
+      }
+    }, FULLSCREEN_IDLE_MS);
+  };
+  for (const type of ['pointermove', 'pointerdown', 'keydown'] as const) {
+    stageElement.addEventListener(type, wakeFullscreenControls, { passive: true });
+  }
+  document.addEventListener('fullscreenchange', wakeFullscreenControls);
+  video.addEventListener('play', wakeFullscreenControls);
+  video.addEventListener('pause', wakeFullscreenControls);
+
+  byId('deck-prev-btn').addEventListener('click', () => stepTrack(-1));
+  byId('deck-next-btn').addEventListener('click', () => stepTrack(1));
+
   byId('deck-shuffle-btn').addEventListener('click', () => {
     const others = library.visibleSongs().filter(song => song.id !== activeSong?.id);
-    if (others.length > 0) void selectSong(others[Math.floor(Math.random() * others.length)]);
+    if (others.length > 0) void selectSong(others[Math.floor(Math.random() * others.length)], { syncUrl: true });
+  });
+
+  // Automatically advance to the next visible song when a track finishes playing.
+  video.addEventListener('ended', () => {
+    const songs = library.visibleSongs();
+    if (songs.length <= 1) return;
+    stepTrack(1);
   });
 
   const shortcuts: Record<string, () => void> = {
@@ -170,6 +229,11 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
   window.addEventListener('keydown', event => {
     // Browser shortcuts such as Ctrl+F and Ctrl+L keep their meaning.
     if (library.ownsKey(event) || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.shiftKey) {
+      if (event.code === 'KeyN') { event.preventDefault(); stepTrack(1); }
+      else if (event.code === 'KeyP') { event.preventDefault(); stepTrack(-1); }
+      return;
+    }
     const action = event.key === '/' ? searchLibrary : shortcuts[event.code];
     if (!action) return;
     event.preventDefault();
@@ -189,8 +253,9 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
     library.open(linked);
     const first = linked ?? library.visibleSongs()[0];
     if (!first) return;
-    void selectSong(first).then(() => {
-      if (startAt > 0 && activeSong === first) video.currentTime = startAt;
+    void selectSong(first, {
+      syncUrl: !!linked,
+      startAt: startAt > 0 ? startAt : undefined
     });
   };
 
