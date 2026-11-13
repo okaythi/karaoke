@@ -28,7 +28,8 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   grid.className = 'ensemble-grid';
   const shared = document.createElement('div');
   shared.className = 'ensemble-shared';
-  stage.append(grid, shared);
+  stage.appendChild(grid);
+  stage.appendChild(shared);
   container.appendChild(stage);
   container.classList.add('ensemble-lyrics');
   const previousHidden = [options.topLineElement.hidden, options.bottomLineElement.hidden];
@@ -37,6 +38,16 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   const lanes = new Map<string, VoiceLane>();
   let voiceLanes: VoiceLane[] = [];
   let lastTime = NaN;
+
+  const onStageClick = (event: MouseEvent) => {
+    const wordEl = (event.target as Element | null)?.closest<HTMLElement>('.word-wrapper[data-start]');
+    if (!wordEl) return;
+    const start = Number(wordEl.dataset.start);
+    if (Number.isFinite(start) && start >= 0) {
+      video.currentTime = Math.max(0, start + (options.globalOffset ?? 0));
+    }
+  };
+  stage.addEventListener('click', onStageClick);
 
   const fit = () => {
     const { columns, places } = ensembleLayout(voiceLanes.length, container.clientWidth);
@@ -82,11 +93,15 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   const createPhrase = (target: number): PhraseLine => {
     const verse = verses[target];
     const element = document.createElement('div');
-    element.className = 'ensemble-line';
+    element.className = `ensemble-line${verse.words.some(word => !!word.furigana) ? ' k-line-has-ruby' : ''}`;
     element.innerHTML = verse.words.map(word => {
       const text = lyricHtml(word.word);
-      const display = word.furigana ? `<span class="yomitan-ruby" data-furi="${escapeHtml(word.furigana)}">${text}</span>` : text;
-      return `<span class="word-wrapper${hasCjk(word.word) ? ' word-cjk' : ''}"><span class="word-base">${display}</span><span class="word-highlight" aria-hidden="true">${display}</span></span>`;
+      const display = word.furigana
+        ? `<span class="yomitan-ruby" data-furi="${escapeHtml(word.furigana)}"><span class="ruby-base">${text}</span></span>`
+        : text;
+      const classes = `word-wrapper${word.furigana ? ' word-has-ruby' : ''}${hasCjk(word.word) ? ' word-cjk' : ''}`;
+      const startAttr = isTimed(word) ? ` data-start="${word.start}"` : '';
+      return `<span class="${classes}"${startAttr}><span class="word-base">${display}</span><span class="word-highlight" aria-hidden="true">${display}</span></span>`;
     }).join('') + (verse.translation ? `<span class="k-line-translation">${lyricHtml(verse.translation)}</span>` : '');
     return { element, words: Array.from(element.querySelectorAll<HTMLElement>('.word-wrapper')), written: [] };
   };

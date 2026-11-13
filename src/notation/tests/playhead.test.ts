@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { engrave } from '../layout/engrave';
 import { ScoreIndex } from '../model/query';
 import { clockFrom } from '../playback/clock';
-import { playheadAnchors, playheadX } from '../playback/playhead';
+import { playheadAnchors, playheadTime, playheadX } from '../playback/playhead';
 import { nominalTiming } from '../playback/timing';
 import { parseShorthand } from '../shorthand/parse';
 
@@ -49,4 +49,12 @@ test('Pauses hold position and backward seeks recompute it immediately', () => {
   assert.equal(playheadX(anchors, 5), 40);
   assert.equal(playheadX(anchors, 2.5), 15);
   assert.equal(playheadX(anchors, 0), 10);
+});
+
+test('playheadTime maps clicked horizontal staff coordinates back to media time', () => {
+  const anchors = [{ time: 2, x: 10 }, { time: 4, x: 30 }, { time: 6, x: 50 }];
+  assert.equal(playheadTime(anchors, 5), 2);
+  assert.equal(playheadTime(anchors, 20), 3);
+  assert.equal(playheadTime(anchors, 40), 5);
+  assert.equal(playheadTime(anchors, 80), 6);
 });

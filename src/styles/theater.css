@@ -867,12 +867,35 @@
   line-height: 1.3;
 }
 
+.hide-translations .k-line-translation {
+  display: none !important;
+}
+
+.badge-toggle {
+  cursor: pointer;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.badge-toggle.badge-muted {
+  opacity: 0.42;
+  text-decoration: line-through;
+}
+
 /* Continuous Syllable Wipe: Brass/Gold Accent, No Glow */
 .word-wrapper {
   position: relative;
   display: inline-block;
   vertical-align: baseline;
   margin: 0 3px;
+}
+
+.word-wrapper[data-start] {
+  cursor: pointer;
+}
+
+.score-page svg,
+.score-half svg {
+  cursor: pointer;
 }
 
 /* Kana and kanji are set solid, without word spaces. */

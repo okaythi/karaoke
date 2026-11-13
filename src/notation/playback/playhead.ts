@@ -32,3 +32,18 @@ export function playheadX(points: readonly PlayheadAnchor[], time: number): numb
   const span = after.time - before.time;
   return span > 0 ? before.x + (after.x - before.x) * (time - before.time) / span : after.x;
 }
+
+/** Inverse of playheadX: maps a horizontal position on a staff system to its playback time. */
+export function playheadTime(points: readonly PlayheadAnchor[], x: number): number {
+  if (!points.length) return 0;
+  if (x <= points[0].x) return points[0].time;
+  let low = 1, high = points.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (points[middle].x < x) low = middle + 1; else high = middle;
+  }
+  if (low === points.length) return points.at(-1)!.time;
+  const before = points[low - 1], after = points[low];
+  const span = after.x - before.x;
+  return span > 0 ? before.time + (after.time - before.time) * (x - before.x) / span : after.time;
+}

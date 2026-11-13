@@ -29,13 +29,30 @@ export function createNowPlaying(): NowPlaying {
   const artwork = byId<HTMLImageElement>('active-track-art');
   const title = byId('active-track-title-text');
   const artist = byId('active-track-artist');
-  const translationBadge = byId('badge-translation');
-  const dialectBadge = byId('badge-dialect');
+  const translationBadge = byId<HTMLButtonElement>('badge-translation');
+  const dialectBadge = byId<HTMLButtonElement>('badge-dialect');
   const support = byId('support-dropdown-container');
   const supportButton = byId<HTMLButtonElement>('support-artist-btn');
   const supportMenu = byId('support-menu');
   const logoFrame = byId('brand-logo-frame');
   let logoTimer: ReturnType<typeof setTimeout> | undefined;
+  let subtitlesVisible = true;
+
+  const syncSubtitleToggles = () => {
+    document.documentElement.classList.toggle('hide-translations', !subtitlesVisible);
+    const pressed = String(subtitlesVisible);
+    translationBadge.setAttribute('aria-pressed', pressed);
+    dialectBadge.setAttribute('aria-pressed', pressed);
+    translationBadge.classList.toggle('badge-muted', !subtitlesVisible);
+    dialectBadge.classList.toggle('badge-muted', !subtitlesVisible);
+  };
+  const toggleSubtitles = (event: MouseEvent) => {
+    event.stopPropagation();
+    subtitlesVisible = !subtitlesVisible;
+    syncSubtitleToggles();
+  };
+  translationBadge.addEventListener('click', toggleSubtitles);
+  dialectBadge.addEventListener('click', toggleSubtitles);
 
   supportButton.addEventListener('click', event => {
     event.stopPropagation();

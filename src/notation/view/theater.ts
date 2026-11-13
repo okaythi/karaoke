@@ -19,7 +19,7 @@ import type { Engraving } from '../layout/engrave';
 import * as F from '../core/fraction';
 import { ScoreIndex } from '../model/query';
 import { GlideController } from '../playback/glide';
-import { playheadAnchors, playheadX } from '../playback/playhead';
+import { playheadAnchors, playheadTime, playheadX } from '../playback/playhead';
 import type { PlayheadAnchor } from '../playback/playhead';
 import { followPlayback } from '../../playback/frames';
 import { renderSystemView } from '../render/svg';
@@ -147,6 +147,12 @@ export function createScoreView(video: HTMLMediaElement, container: HTMLElement,
     playhead.setAttribute('y1', String(Math.min(...engraved.staffTops.values()) - 1.5));
     playhead.setAttribute('y2', String(Math.max(...engraved.staffTops.values()) + 5.5));
     view.svg.appendChild(playhead);
+    view.svg.addEventListener('click', event => {
+      const ctm = view.svg.getScreenCTM();
+      if (!ctm || !anchors.length) return;
+      const svgX = (event.clientX - ctm.e) / ctm.a;
+      video.currentTime = Math.max(0, playheadTime(anchors, svgX));
+    });
     slot.element.appendChild(view.svg);
     slot.shown = { system, view, glide: new GlideController(view.glides, song.timing), anchors, playhead };
     if (animate) {

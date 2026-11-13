@@ -86,7 +86,8 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
         ? `<span class="yomitan-ruby" data-furi="${escapeHtml(word.furigana)}"><span class="ruby-base">${text}</span></span>`
         : text;
       const classes = `word-wrapper${word.furigana ? ' word-has-ruby' : ''}${hasCjk(word.word) ? ' word-cjk' : ''}`;
-      const span = `<span class="${classes}"><span class="word-base">${display}</span><span class="word-highlight" aria-hidden="true">${display}</span></span>`;
+      const startAttr = isTimed(word) ? ` data-start="${word.start}"` : '';
+      const span = `<span class="${classes}"${startAttr}><span class="word-base">${display}</span><span class="word-highlight" aria-hidden="true">${display}</span></span>`;
       return hasBreak ? `${span}<span class="k-verse-break" aria-hidden="true"></span>` : span;
     }).join('');
     return verse.translation ? `${words}<span class="k-line-translation">${lyricHtml(verse.translation)}</span>` : words;
@@ -139,16 +140,43 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     });
   };
 
-  // Fits a single physical line when its verse changes or the stage is resized,
+  // Fits the lyrics when a verse changes or the stage is resized,
   // so measurement stays out of the per-frame wipe.
-  const fitSingleLine = () => {
+  const fitLines = () => {
     top.element.style.fontSize = '';
-    if (!singleLine || !top.element.clientWidth) return;
-    for (let pass = 0; pass < 2 && top.element.scrollWidth > top.element.clientWidth; pass++) {
-      const size = parseFloat(getComputedStyle(top.element).fontSize);
-      top.element.style.fontSize = `${size * top.element.clientWidth / top.element.scrollWidth}px`;
+    bottom.element.style.fontSize = '';
+    if (singleLine) {
+      if (!top.element.clientWidth) return;
+      for (let pass = 0; pass < 2 && top.element.scrollWidth > top.element.clientWidth; pass++) {
+        const size = parseFloat(getComputedStyle(top.element).fontSize);
+        top.element.style.fontSize = `${size * top.element.clientWidth / top.element.scrollWidth}px`;
+      }
+      return;
+    }
+    if (!containerElement.clientHeight) return;
+    for (let pass = 0; pass < 2 && containerElement.scrollHeight > containerElement.clientHeight; pass++) {
+      const ratio = Math.max(0.75, containerElement.clientHeight / containerElement.scrollHeight);
+      for (const line of [top, bottom]) {
+        if (!line.words.length) continue;
+        const size = parseFloat(getComputedStyle(line.element).fontSize);
+        line.element.style.fontSize = `${(size * ratio).toFixed(2)}px`;
+      }
     }
   };
+
+  const onLineClick = (line: LyricLine, event: MouseEvent) => {
+    const verse = lyrics[line.verseIndex];
+    if (!verse) return;
+    const wordEl = (event.target as Element | null)?.closest<HTMLElement>('.word-wrapper[data-start]');
+    const start = wordEl ? Number(wordEl.dataset.start) : verse.verseStart;
+    if (Number.isFinite(start) && start >= 0) {
+      videoElement.currentTime = Math.max(0, start + globalOffset);
+    }
+  };
+  const onTopClick = (event: MouseEvent) => onLineClick(top, event);
+  const onBottomClick = (event: MouseEvent) => onLineClick(bottom, event);
+  top.element.addEventListener('click', onTopClick);
+  bottom.element.addEventListener('click', onBottomClick);
 
   const draw = () => {
     const time = videoElement.currentTime - globalOffset;
@@ -182,14 +210,14 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     }
 
     const topChanged = mount(top, topTarget, focus === -1);
-    mount(bottom, bottomTarget, focus === -1);
+    const bottomChanged = mount(bottom, bottomTarget, focus === -1);
 
     containerElement.style.opacity = focus === -1 ? '0' : '1';
     if (focus !== -1) {
       wipe(top, time, active, recent);
       wipe(bottom, time, active, recent);
     }
-    if (topChanged) fitSingleLine();
+    if (topChanged || bottomChanged) fitLines();
   };
 
   const frames = followPlayback(videoElement, draw);
@@ -207,7 +235,7 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     redraw();
   };
 
-  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(fitSingleLine) : undefined;
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(fitLines) : undefined;
   resizeObserver?.observe(containerElement);
   setLineMode(options.lineMode ?? 'dual');
 
@@ -215,7 +243,10 @@ export function createRenderEngine(options: RenderEngineOptions): RenderEngineCo
     destroy: () => {
       frames.stop();
       resizeObserver?.disconnect();
+      top.element.removeEventListener('click', onTopClick);
+      bottom.element.removeEventListener('click', onBottomClick);
       top.element.style.fontSize = '';
+      bottom.element.style.fontSize = '';
       containerElement.classList.remove('lyrics-single-line');
       bottom.element.hidden = false;
     },
