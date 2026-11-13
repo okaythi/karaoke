@@ -18,6 +18,8 @@ export interface RenderEngineOptions {
   globalOffset?: number;
   /** A compact lyric lane alongside an instrumental score. */
   lineMode?: LineMode;
+  /** Places the rightmost singer in the top video bar and leftmost singer in the bottom video bar. */
+  letterboxBars?: boolean;
 }
 
 export interface RenderEngineController {

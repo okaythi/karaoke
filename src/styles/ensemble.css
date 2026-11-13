@@ -67,3 +67,71 @@
   .ensemble-grid { gap: 4px; }
   .ensemble-voice, .ensemble-shared { font-size: 16px; }
 }
+
+/* ==========================================================================
+   LETTERBOX BAR MODE (小説夏と罰):
+   Rightmost singer in the top video bar, leftmost singer in the bottom video
+   bar, freeing the below-video lyric shelf so the video fills the stage.
+   ========================================================================== */
+.theater-stage.stage-letterbox .video-stage-wrapper {
+  flex: 1 1 0;
+  container-type: size;
+}
+
+.theater-stage.stage-letterbox .video-frame-container {
+  width: min(100%, 1440px, calc(100cqh * var(--video-ratio, 1.7777778)));
+  max-height: 100%;
+}
+
+.theater-stage.stage-letterbox .stage-middle {
+  display: none !important;
+}
+
+.ensemble-stage.ensemble-letterbox {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.ensemble-stage.ensemble-letterbox .ensemble-grid,
+.ensemble-stage.ensemble-letterbox .ensemble-shared {
+  display: contents;
+}
+
+.ensemble-stage.ensemble-letterbox .ensemble-voice {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11.5%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  box-sizing: border-box;
+  font-size: clamp(14px, 1.85vw, 24px);
+}
+
+.ensemble-stage.ensemble-letterbox .ensemble-voice[data-bar="top"] {
+  top: 0;
+}
+
+.ensemble-stage.ensemble-letterbox .ensemble-voice[data-bar="bottom"],
+.ensemble-stage.ensemble-letterbox .ensemble-shared .ensemble-voice {
+  bottom: 0;
+}
+
+.ensemble-stage.ensemble-letterbox .ensemble-line {
+  padding-bottom: 0;
+  line-height: 1.2;
+}
+
+.ensemble-stage.ensemble-letterbox .ensemble-line.k-line-has-ruby {
+  padding-top: 0.45em;
+}
+
+.ensemble-stage.ensemble-letterbox .word-wrapper[data-start] {
+  pointer-events: auto;
+}

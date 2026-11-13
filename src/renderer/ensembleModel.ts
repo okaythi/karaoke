@@ -76,15 +76,29 @@ function sameCast(a: EnsembleSection, b: EnsembleSection): boolean {
   return left.length === right.length && left.every((key, i) => key === right[i]);
 }
 
+export function ensembleVoiceOrder(verses: Verse[]): string[] {
+  const ordered = verses.map((verse, index) => ({ verse, index })).filter(item => isVerseTimed(item.verse)).sort((a, b) => a.verse.verseStart - b.verse.verseStart || a.index - b.index);
+  const globalVoices = groupLanes(ordered).voices;
+  const globalScores = prominence(globalVoices, verses);
+  return globalVoices.sort((a, b) => globalScores.get(b.key)! - globalScores.get(a.key)!).map(lane => lane.key);
+}
+
+/** Map a singer lane to the top or bottom video letterbox bar:
+ * the rightmost duet singer (rank 1) takes the top bar; the leftmost (rank 0) takes the bottom bar.
+ */
+export function letterboxBarSlot(laneKey: string, voiceOrder: readonly string[], sectionIndex = 0): 'top' | 'bottom' {
+  const rank = voiceOrder.indexOf(laneKey);
+  if (rank >= 0) return rank === 1 ? 'top' : 'bottom';
+  return sectionIndex === 1 ? 'top' : 'bottom';
+}
+
 /** Compile choreography once on load/timing edits, never inside playback frames.
  * Positions persist through each connected passage. A new cast is an explicit
  * formation change; short breaths with the same cast keep the same formation.
  */
 export function buildEnsembleSections(verses: Verse[]): EnsembleSection[] {
   const ordered = verses.map((verse, index) => ({ verse, index })).filter(item => isVerseTimed(item.verse)).sort((a, b) => a.verse.verseStart - b.verse.verseStart || a.index - b.index);
-  const globalVoices = groupLanes(ordered).voices;
-  const globalScores = prominence(globalVoices, verses);
-  const order = globalVoices.sort((a, b) => globalScores.get(b.key)! - globalScores.get(a.key)!).map(lane => lane.key);
+  const order = ensembleVoiceOrder(verses);
   const sections: EnsembleSection[] = [];
   let members: Entrance[] = [];
   let start = 0, end = 0;

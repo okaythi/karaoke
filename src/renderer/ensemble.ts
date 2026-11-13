@@ -3,7 +3,7 @@ import { hasCjk } from '../core/script';
 import { collectParts, isTimed } from '../core/parts';
 import { followPlayback } from '../playback/frames';
 import { wordProgress, type RenderEngineController, type RenderEngineOptions } from './renderEngine';
-import { buildEnsembleSections, ensembleLayout, visibleSection, visiblePhrases, reservedLaneHeight, type EnsembleSection, type EnsembleLane } from './ensembleModel';
+import { buildEnsembleSections, ensembleLayout, ensembleVoiceOrder, letterboxBarSlot, visibleSection, visiblePhrases, reservedLaneHeight, type EnsembleSection, type EnsembleLane } from './ensembleModel';
 
 type PhraseLine = { element: HTMLElement; words: HTMLElement[]; written: number[] };
 type VoiceLane = {
@@ -18,12 +18,13 @@ type VoiceLane = {
 
 /** One video clock and one stable area per singer, with no visible speaker labels. */
 export function createEnsembleEngine(options: RenderEngineOptions): RenderEngineController {
-  const { videoElement: video, containerElement: container } = options;
+  const { videoElement: video, containerElement: container, letterboxBars = false } = options;
   const verses = options.lyricsData ?? [];
   const parts = collectParts(verses, options.parts ?? []);
   let sections = buildEnsembleSections(verses);
+  let voiceOrder = ensembleVoiceOrder(verses);
   const stage = document.createElement('div');
-  stage.className = 'ensemble-stage';
+  stage.className = `ensemble-stage${letterboxBars ? ' ensemble-letterbox' : ''}`;
   const grid = document.createElement('div');
   grid.className = 'ensemble-grid';
   const shared = document.createElement('div');
@@ -31,7 +32,7 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   stage.appendChild(grid);
   stage.appendChild(shared);
   container.appendChild(stage);
-  container.classList.add('ensemble-lyrics');
+  if (!letterboxBars) container.classList.add('ensemble-lyrics');
   const previousHidden = [options.topLineElement.hidden, options.bottomLineElement.hidden];
   options.topLineElement.hidden = options.bottomLineElement.hidden = true;
   let current: EnsembleSection | undefined;
@@ -42,6 +43,7 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   const onStageClick = (event: MouseEvent) => {
     const wordEl = (event.target as Element | null)?.closest<HTMLElement>('.word-wrapper[data-start]');
     if (!wordEl) return;
+    event.stopPropagation();
     const start = Number(wordEl.dataset.start);
     if (Number.isFinite(start) && start >= 0) {
       video.currentTime = Math.max(0, start + (options.globalOffset ?? 0));
@@ -50,12 +52,23 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   stage.addEventListener('click', onStageClick);
 
   const fit = () => {
+    if (letterboxBars) {
+      grid.style.setProperty('--ensemble-columns', '1');
+      voiceLanes.forEach((lane, index) => {
+        lane.element.style.gridColumn = '1 / span 1';
+        lane.element.style.gridRow = 'auto';
+        lane.element.dataset.bar = letterboxBarSlot(lane.plan.key, voiceOrder, index);
+        lane.element.classList.remove('ensemble-lead');
+      });
+      return;
+    }
     const { columns, places } = ensembleLayout(voiceLanes.length, container.clientWidth);
     grid.style.setProperty('--ensemble-columns', String(columns));
     voiceLanes.forEach((lane, index) => {
       const place = places[index];
       lane.element.style.gridColumn = `${place.column} / span ${place.span}`;
       lane.element.style.gridRow = String(place.row);
+      delete lane.element.dataset.bar;
       lane.element.classList.toggle('ensemble-lead', voiceLanes.length > 2 && index === 0);
     });
     reserveLaneHeights();
@@ -137,7 +150,8 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
     lastTime = time;
     const section = visibleSection(sections, time);
     if (section !== current) mountSection(section);
-    container.style.opacity = section ? '1' : '0';
+    if (letterboxBars) stage.style.opacity = section ? '1' : '0';
+    else container.style.opacity = section ? '1' : '0';
     const shown = section ? visiblePhrases(section, verses, time) : undefined;
     for (const [key, lane] of lanes) {
       const displayed = shown?.get(key);
@@ -175,13 +189,15 @@ export function createEnsembleEngine(options: RenderEngineOptions): RenderEngine
   resize?.observe(container);
   draw();
   return {
-    refreshTimings() { sections = buildEnsembleSections(verses); lastTime = NaN; draw(); },
+    refreshTimings() { sections = buildEnsembleSections(verses); voiceOrder = ensembleVoiceOrder(verses); lastTime = NaN; draw(); },
     setLineMode() { /* Each singer displays one current phrase in a stable area. */ },
     destroy() {
       frames.stop(); resize?.disconnect(); stage.remove(); probe.remove();
       document.fonts?.removeEventListener('loadingdone', fontsLoaded);
-      container.classList.remove('ensemble-lyrics');
-      container.style.opacity = '';
+      if (!letterboxBars) {
+        container.classList.remove('ensemble-lyrics');
+        container.style.opacity = '';
+      }
       options.topLineElement.hidden = previousHidden[0];
       options.bottomLineElement.hidden = previousHidden[1];
     }

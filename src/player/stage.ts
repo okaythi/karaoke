@@ -10,17 +10,33 @@ export interface LoadedScore {
   createView: typeof createScoreView;
 }
 
+export interface StageContent {
+  songId?: string;
+  title?: string;
+  verses: Verse[];
+  parts?: LyricPart[];
+  globalOffset: number;
+  score: LoadedScore | null;
+}
+
 export interface Stage {
   /** Takes down the previous song's lyrics and score. */
   clear(): void;
   /** Puts a song's lyrics and score under the video. With both, the lyrics take a single line beneath the score. */
-  mount(content: { verses: Verse[]; parts?: LyricPart[]; globalOffset: number; score: LoadedScore | null }): void;
+  mount(content: StageContent): void;
   /** A message over the video, or a spinner while `loading`; an empty message removes it. */
   showStatus(message: string, loading?: boolean): void;
 }
 
+/** Whether a song uses top/bottom video letterbox bars for its duet lanes (`小説夏と罰`). */
+export function isLetterboxSong(songId?: string, title?: string): boolean {
+  const haystack = `${songId ?? ''} ${title ?? ''}`;
+  return haystack.includes('小説夏と罰');
+}
+
 /** What is shown with the video: synchronized lyrics, an engraved score, or both. */
 export function createStage(video: HTMLVideoElement): Stage {
+  const theaterStage = video.closest<HTMLElement>('.theater-stage');
   const middle = byId('stage-middle');
   const lyricsContainer = byId('lyrics-stage-container');
   const scoreContainer = byId('piano-score-container');
@@ -46,24 +62,29 @@ export function createStage(video: HTMLVideoElement): Stage {
     scoreContainer.replaceChildren();
     lyricsContainer.hidden = true;
     middle.classList.remove('score-with-lyrics');
+    theaterStage?.classList.remove('stage-letterbox');
   };
 
   return {
     clear,
-    mount({ verses, parts, globalOffset, score: loaded }) {
+    mount({ songId, title, verses, parts, globalOffset, score: loaded }) {
       clear();
+      const letterbox = loaded === null && isLetterboxSong(songId, title);
       const withScore = loaded !== null && verses.length > 0;
-      lyricsContainer.hidden = verses.length === 0;
+      const host = letterbox && frame ? frame : lyricsContainer;
+      lyricsContainer.hidden = letterbox || verses.length === 0;
       middle.classList.toggle('score-with-lyrics', withScore);
+      theaterStage?.classList.toggle('stage-letterbox', letterbox);
       lyrics = createRenderEngine({
         videoElement: video,
-        containerElement: lyricsContainer,
+        containerElement: host,
         topLineElement: byId('k-line-top'),
         bottomLineElement: byId('k-line-bottom'),
         lyricsData: verses,
         parts,
         globalOffset,
-        lineMode: withScore ? 'single' : 'dual'
+        lineMode: withScore ? 'single' : 'dual',
+        letterboxBars: letterbox
       });
       if (loaded) {
         // The view measures its container, which must be laid out first.

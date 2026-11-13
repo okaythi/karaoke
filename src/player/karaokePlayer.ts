@@ -132,6 +132,8 @@ export function initKaraokeTheater({ showLibrary }: TheaterOptions): void {
     const [lyricFile, loadedScore] = await Promise.all([lyrics, score]);
     if (signal.aborted) return;
     stage.mount({
+      songId: song.id,
+      title: song.title,
       verses: lyricFile?.lyricsData ?? [],
       parts: lyricFile?.parts,
       globalOffset: song.globalOffset || 0,

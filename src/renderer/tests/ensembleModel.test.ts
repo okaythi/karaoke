@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildEnsembleSections, ensembleLayout, visiblePhrases, reservedLaneHeight, visibleSection } from '../ensembleModel';
+import { buildEnsembleSections, ensembleLayout, ensembleVoiceOrder, letterboxBarSlot, visiblePhrases, reservedLaneHeight, visibleSection } from '../ensembleModel';
+import { isLetterboxSong } from '../../player/stage';
 import type { Verse } from '../../types/karaoke';
 
 const cue = (speaker: string, start: number, end: number): Verse => ({ speaker, verseStart: start, verseEnd: end, words: [{ word: speaker, start, end, timed: true }] });
@@ -155,3 +156,24 @@ test('solo and shared phrases compete for each singer, without silencing the oth
   const singers = displayed.flatMap(phrase => phrase.partIds);
   assert.equal(new Set(singers).size, singers.length);
 });
+
+test('letterbox mode assigns rightmost duet singer to top bar and leftmost to bottom bar across duet and solo passages', () => {
+  assert.equal(isLetterboxSong('傘村トータ-小説夏と罰', '小説夏と罰'), true);
+  assert.equal(isLetterboxSong('some-other-id', '小説夏と罰'), true);
+  assert.equal(isLetterboxSong('other-song', 'Other Title'), false);
+
+  const verses = [cue('left', 0, 10), cue('right', 1, 5), cue('right', 20, 25)];
+  const sections = buildEnsembleSections(verses);
+  const voiceOrder = ensembleVoiceOrder(verses);
+  assert.equal(sections.length, 2);
+
+  // In the duet section, index 0 (leftmost) -> bottom bar, index 1 (rightmost) -> top bar
+  const [duetLeft, duetRight] = sections[0].voices;
+  assert.equal(letterboxBarSlot(duetLeft.key, voiceOrder, 0), 'bottom');
+  assert.equal(letterboxBarSlot(duetRight.key, voiceOrder, 1), 'top');
+
+  // In a solo section by the rightmost singer, they remain in the top bar
+  const [soloRight] = sections[1].voices;
+  assert.equal(letterboxBarSlot(soloRight.key, voiceOrder, 0), 'top');
+});
+
