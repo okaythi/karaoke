@@ -2,6 +2,31 @@ import type { SongCatalogItem } from '../types/karaoke';
 import { byId } from './dom';
 
 const COPIED_LABEL_MS = 1300;
+const DEFAULT_SHARE_ORIGIN = 'https://karaoke.nixlabs.tech';
+const MUSIC_SHARE_ORIGIN = 'https://music.sudothy.me';
+
+export interface ShareOriginContext {
+  origin?: string;
+  hostname?: string;
+  musicVisitor?: boolean;
+}
+
+/** Builds a clickable share URL for the listener's active domain. */
+export function shareUrl(
+  song: Pick<SongCatalogItem, 'id' | 'shareCode'>,
+  context?: ShareOriginContext
+): string {
+  const hostname = context?.hostname ?? (typeof location !== 'undefined' ? location.hostname : '');
+  const musicVisitor = context?.musicVisitor
+    ?? (typeof document !== 'undefined' && document.documentElement.classList.contains('music-visitor'));
+  const origin = context?.origin ?? (typeof location !== 'undefined' ? location.origin : '');
+  const base = musicVisitor || hostname === 'music.sudothy.me'
+    ? MUSIC_SHARE_ORIGIN
+    : /^https?:\/\//i.test(origin)
+      ? origin
+      : DEFAULT_SHARE_ORIGIN;
+  return `${base.replace(/\/+$/, '')}/${encodeURIComponent(song.shareCode || song.id)}`;
+}
 
 /**
  * The share button copies the playing song's short link. It is also the only
@@ -46,7 +71,7 @@ export function initShareButton(playingSong: () => SongCatalogItem | null): void
     event.stopPropagation();
     const song = playingSong();
     if (!song) return;
-    await copy(`karaoke.nixlabs.tech/${song.shareCode || song.id}`);
+    await copy(shareUrl(song));
 
     button.classList.add('copied');
     clearTimeout(labelTimer);
