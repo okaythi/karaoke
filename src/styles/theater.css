@@ -867,15 +867,21 @@
 }
 
 .k-line-translation {
+  flex-basis: 100%;
+  width: 100%;
+  display: block;
   font-size: 12px;
   font-family: var(--font-sans);
   font-weight: 400;
   opacity: 0.75;
-  margin-left: 8px;
-  margin-right: 8px;
+  margin: -2px 0 0 0;
   color: var(--theater-text-muted);
   white-space: normal;
   line-height: 1.3;
+}
+
+.k-line.k-line-has-ruby .k-line-translation {
+  margin-top: -8px;
 }
 
 .hide-translations .k-line-translation {
