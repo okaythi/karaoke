@@ -11,7 +11,7 @@ import '../notation/render/notation.css';
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Music · Nix</title>
   <link rel="privacy-policy" href="/privacy" />
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
@@ -34,8 +34,11 @@ import '../notation/render/notation.css';
   </script>
   <script is:inline src="https://accounts.nixlabs.tech/widget.js" async></script>
   <script is:inline>
-    // Disable text selection and drag
-    document.addEventListener('selectstart', e => e.preventDefault());
+    // Disable text selection (except in search/input fields) and drag
+    document.addEventListener('selectstart', e => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      e.preventDefault();
+    });
     document.addEventListener('dragstart', e => e.preventDefault());
 
     // Disable context menu (right click)

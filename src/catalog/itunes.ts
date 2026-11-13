@@ -31,6 +31,24 @@ const NOT_FOUND = 'none';
 /** Lookups by query, shared so the same cover is never requested twice at once. */
 const lookups = new Map<string, Promise<string | null>>();
 
+const MAX_CONCURRENT_LOOKUPS = 3;
+let activeLookups = 0;
+const lookupQueue: Array<() => void> = [];
+
+function scheduleLookup<T>(task: () => Promise<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const run = () => {
+      activeLookups++;
+      task().then(resolve, reject).finally(() => {
+        activeLookups--;
+        lookupQueue.shift()?.();
+      });
+    };
+    if (activeLookups < MAX_CONCURRENT_LOOKUPS) run();
+    else lookupQueue.push(run);
+  });
+}
+
 export function albumArtQuery(song: SongMetadata): AlbumArtQuery {
   return {
     artist: song.itunesArtist || song.artist,
@@ -136,7 +154,7 @@ function lookUp(query: AlbumArtQuery): Promise<string | null> {
     const stored = readStored(key);
     lookup = stored !== undefined
       ? Promise.resolve(stored)
-      : searchItunes(query).then(url => {
+      : scheduleLookup(() => searchItunes(query)).then(url => {
         store(key, url);
         return url;
       });
@@ -173,4 +191,39 @@ export function fetchAlbumArt(query: AlbumArtQuery, imgEl: HTMLImageElement, { s
     if (url) imgEl.src = url.replace('100x100bb', `${size}x${size}bb`);
     setBadge(url ? 'iTunes Match' : 'No Art Found');
   });
+}
+
+const pendingArt = new WeakMap<HTMLImageElement, { query: AlbumArtQuery; options: AlbumArtOptions }>();
+let artObserver: IntersectionObserver | null | undefined;
+
+function getArtObserver(): IntersectionObserver | null {
+  if (artObserver !== undefined) return artObserver;
+  if (typeof IntersectionObserver !== 'function') {
+    artObserver = null;
+    return null;
+  }
+  artObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const img = entry.target as HTMLImageElement;
+      artObserver?.unobserve(img);
+      const pending = pendingArt.get(img);
+      if (pending) {
+        pendingArt.delete(img);
+        fetchAlbumArt(pending.query, img, pending.options);
+      }
+    }
+  }, { rootMargin: '160px 0px' });
+  return artObserver;
+}
+
+/** Defers album-art network lookups for offscreen song cards until they scroll near the viewport. */
+export function observeAlbumArt(query: AlbumArtQuery, imgEl: HTMLImageElement, options: AlbumArtOptions = {}): void {
+  const observer = getArtObserver();
+  if (!observer) {
+    fetchAlbumArt(query, imgEl, options);
+    return;
+  }
+  pendingArt.set(imgEl, { query, options });
+  observer.observe(imgEl);
 }

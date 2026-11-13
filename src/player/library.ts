@@ -1,4 +1,4 @@
-import { albumArtQuery, fetchAlbumArt } from '../catalog/itunes';
+import { albumArtQuery, observeAlbumArt } from '../catalog/itunes';
 import { escapeHtml } from '../core/html';
 import type { SongCatalogItem } from '../types/karaoke';
 import { byId } from './dom';
@@ -32,6 +32,9 @@ function createCard(song: SongCatalogItem, colour: string): HTMLElement {
   const card = document.createElement('div');
   card.className = 'song-card';
   card.dataset.id = song.id;
+  card.tabIndex = 0;
+  card.setAttribute('role', 'button');
+  card.setAttribute('aria-label', `${song.title} by ${song.artist}`);
 
   const placeholder = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='${encodeURIComponent(colour)}'><rect width='44' height='44' rx='4'/></svg>`;
   const badge = !song.hasTranslation ? ''
@@ -39,14 +42,14 @@ function createCard(song: SongCatalogItem, colour: string): HTMLElement {
     : '<span class="badge badge-trans" title="Localized Translation">SUB</span>';
   card.innerHTML = `
     <span class="song-card-num"></span>
-    <img class="song-card-art" src="${placeholder}" alt="" />
+    <img class="song-card-art" src="${placeholder}" alt="" loading="lazy" />
     <div class="song-card-info">
       <div class="song-card-title">${escapeHtml(song.title)}</div>
       <div class="song-card-artist">${escapeHtml(song.artist)}</div>
     </div>
     ${badge}
   `;
-  fetchAlbumArt(albumArtQuery(song), card.querySelector<HTMLImageElement>('.song-card-art')!, { size: CARD_ART_SIZE });
+  observeAlbumArt(albumArtQuery(song), card.querySelector<HTMLImageElement>('.song-card-art')!, { size: CARD_ART_SIZE });
   return card;
 }
 
@@ -109,7 +112,9 @@ export function createLibrary(onSelect: (song: SongCatalogItem) => void): Librar
     }
     list.replaceChildren(...visible.map((song, index) => {
       const card = cardFor(song);
-      card.classList.toggle('active', song.id === activeId);
+      const isActive = song.id === activeId;
+      card.classList.toggle('active', isActive);
+      card.setAttribute('aria-current', isActive ? 'true' : 'false');
       card.querySelector('.song-card-num')!.textContent = String(index + 1).padStart(2, '0');
       return card;
     }));
@@ -126,13 +131,46 @@ export function createLibrary(onSelect: (song: SongCatalogItem) => void): Librar
 
   for (const each of LIBRARY_MODES) modeInputs[each].addEventListener('change', () => setMode(each));
 
-  list.addEventListener('click', event => {
-    const id = (event.target as Element).closest<HTMLElement>('.song-card')?.dataset.id;
+  const activateCard = (card: HTMLElement | null) => {
+    const id = card?.dataset.id;
     const song = visible.find(candidate => candidate.id === id);
     if (song) onSelect(song);
+  };
+
+  list.addEventListener('click', event => {
+    activateCard((event.target as Element).closest<HTMLElement>('.song-card'));
+  });
+
+  list.addEventListener('keydown', event => {
+    const card = (event.target as Element).closest<HTMLElement>('.song-card');
+    if (!card) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      activateCard(card);
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const cardsInList = Array.from(list.querySelectorAll<HTMLElement>('.song-card'));
+      const index = cardsInList.indexOf(card);
+      const next = cardsInList[index + (event.key === 'ArrowDown' ? 1 : -1)];
+      next?.focus();
+    }
   });
 
   search.addEventListener('input', refresh);
+  search.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown') {
+      const firstCard = list.querySelector<HTMLElement>('.song-card');
+      if (firstCard) {
+        event.preventDefault();
+        firstCard.focus();
+      }
+    } else if (event.key === 'Enter' && visible.length > 0) {
+      event.preventDefault();
+      onSelect(visible[0]);
+    }
+  });
   clearSearch.addEventListener('click', () => {
     search.value = '';
     refresh();
@@ -153,7 +191,11 @@ export function createLibrary(onSelect: (song: SongCatalogItem) => void): Librar
     },
     setActive(songId) {
       activeId = songId;
-      for (const [id, card] of cards) card.classList.toggle('active', id === songId);
+      for (const [id, card] of cards) {
+        const isActive = id === songId;
+        card.classList.toggle('active', isActive);
+        card.setAttribute('aria-current', isActive ? 'true' : 'false');
+      }
     },
     visibleSongs: () => visible,
     focusSearch() {
@@ -161,9 +203,11 @@ export function createLibrary(onSelect: (song: SongCatalogItem) => void): Librar
       search.select();
     },
     ownsKey(event) {
-      if (document.activeElement !== search) return false;
-      if (event.key === 'Escape') search.blur();
-      return true;
+      if (document.activeElement === search) {
+        if (event.key === 'Escape') search.blur();
+        return true;
+      }
+      return document.activeElement instanceof HTMLElement && list.contains(document.activeElement);
     }
   };
 }

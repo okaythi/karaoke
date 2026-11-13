@@ -39,6 +39,8 @@ export function initShareButton(playingSong: () => SongCatalogItem | null): void
 
   document.addEventListener('copy', event => {
     if (copying) return;
+    const target = event.target;
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
     event.preventDefault();
     event.stopImmediatePropagation();
   }, true);

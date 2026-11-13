@@ -4,7 +4,7 @@
 <footer class="transport-deck-theater">
   <div class="deck-scrubber-row">
     <span class="timecode-label timecode-current" id="deck-time-current">0:00</span>
-    <input type="range" class="progress-scrubber" id="deck-progress-scrubber" value="0" min="0" max="100" step="0.1" title="Seek" />
+    <input type="range" class="progress-scrubber" id="deck-progress-scrubber" value="0" min="0" max="100" step="0.1" title="Seek" aria-label="Seek playback position" />
     <span class="timecode-label timecode-duration" id="deck-time-duration">0:00</span>
   </div>
 
@@ -35,7 +35,7 @@
 
     <div class="deck-controls-right">
       <div class="volume-deck-group">
-        <button class="deck-icon-btn deck-vol-btn" id="deck-vol-btn" title="Mute / Unmute (M)" data-level="high">
+        <button class="deck-icon-btn deck-vol-btn" id="deck-vol-btn" title="Mute / Unmute (M)" aria-label="Mute / Unmute" data-level="high">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
             <path class="vol-wave-low" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
@@ -43,7 +43,7 @@
             <g class="vol-cross"><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></g>
           </svg>
         </button>
-        <input type="range" class="volume-slider" id="deck-volume-slider" min="0" max="1" step="0.05" value="0.7" title="Volume" />
+        <input type="range" class="volume-slider" id="deck-volume-slider" min="0" max="1" step="0.05" value="0.7" title="Volume" aria-label="Volume" />
       </div>
 
       <button class="deck-icon-btn deck-voice-btn" id="deck-voice-btn" aria-label="Toggle Vocals" hidden>

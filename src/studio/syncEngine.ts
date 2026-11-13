@@ -1,6 +1,5 @@
 import { state } from './state';
 import { renderMatrix, updateTelemetry, updateTimingCursor, updateTimingControls } from './renderer';
-import { formatTime } from './format';
 import { autoHealTimings } from '../core/contracts';
 import { isTimed } from '../core/parts';
 import { armRecordingPart } from './recording';
